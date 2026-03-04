@@ -30,14 +30,11 @@ export async function GET(request: NextRequest) {
     userId = sessionData.session.user.id
   } else if (token) {
     console.log('[auth/callback] verifying token OTP')
-    const type = (searchParams.get('type') ?? 'magiclink') as Parameters<
-      typeof supabase.auth.verifyOtp
-    >[0]['type']
     const email = searchParams.get('email') ?? ''
 
     const { data: otpData, error: otpError } = await supabase.auth.verifyOtp({
       token,
-      type,
+      type: 'email',
       email,
     })
 
