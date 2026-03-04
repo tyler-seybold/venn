@@ -128,7 +128,7 @@ export default function LoginPage() {
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   required
-                  maxLength={6}
+                  maxLength={8}
                   value={code}
                   onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setError('') }}
                   placeholder="123456"
@@ -140,7 +140,7 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                disabled={loading || code.length !== 6}
+                disabled={loading || code.length !== 8}
                 className="w-full rounded-lg bg-purple-700 hover:bg-purple-800 disabled:bg-purple-400 text-white text-sm font-medium py-2.5 transition focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
               >
                 {loading ? 'Verifying…' : 'Verify Code'}
