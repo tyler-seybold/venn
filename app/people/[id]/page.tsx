@@ -77,7 +77,7 @@ export default function PersonDetailPage() {
       setProfile(profileData)
       setStartups(
         (memberData ?? [])
-          .map((m) => m.startups as Startup | null)
+          .map((m) => (Array.isArray(m.startups) ? m.startups[0] : m.startups) as unknown as Startup | null)
           .filter((s): s is Startup => s !== null)
       )
       setLoading(false)
