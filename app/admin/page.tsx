@@ -77,7 +77,7 @@ export default function AdminPage() {
       setStartups(
         (startupsData ?? []).map(({ profiles, ...s }) => ({
           ...s,
-          founder_name: (Array.isArray(profiles) ? profiles[0] : profiles as { full_name: string | null } | null)?.full_name ?? null,
+          founder_name: ((profiles as unknown as { full_name: string | null }[])[0])?.full_name ?? null,
         }))
       )
       setLoading(false)

@@ -84,7 +84,7 @@ export default function StartupDetailPage() {
       setStartup(startupData)
       setMembers(
         (membersData ?? []).map((m) => {
-          const profile = m.profiles as {
+          type ProfileData = {
             full_name: string | null
             email: string | null
             bio: string | null
@@ -92,7 +92,8 @@ export default function StartupDetailPage() {
             industries_of_interest: string[] | null
             is_looking_for_startup: boolean
             avatar_url: string | null
-          } | null
+          }
+          const profile = ((m.profiles as unknown as ProfileData[])[0]) ?? null
           return {
             id: m.id,
             role: m.role,
