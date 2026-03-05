@@ -434,8 +434,13 @@ function StartupCard({
 }
 
 function PersonCard({ person: p }: { person: Profile }) {
+  const router = useRouter()
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3">
+    <div
+      className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3 cursor-pointer hover:border-purple-200 hover:shadow-md transition"
+      onClick={() => router.push(`/people/${p.user_id}`)}
+    >
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <h3 className="font-semibold text-gray-900 text-base leading-tight">
