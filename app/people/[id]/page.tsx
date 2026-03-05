@@ -30,6 +30,9 @@ type Profile = {
   skills: string[] | null
   industries_of_interest: string[] | null
   is_looking_for_startup: boolean
+  graduation_year: number | null
+  degree_program: string | null
+  avatar_url: string | null
 }
 
 type Startup = {
@@ -110,15 +113,40 @@ export default function PersonDetailPage() {
         {/* Profile card */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 mb-6">
           {/* Header */}
-          <div className="flex items-start justify-between gap-3 mb-6">
-            <h1 className="text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
-              {profile.full_name ?? '—'}
-            </h1>
-            {profile.is_looking_for_startup && (
-              <span className="flex-shrink-0 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                Open to joining
-              </span>
+          <div className="flex items-start gap-5 mb-6">
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={profile.full_name ?? 'Avatar'}
+                className="w-20 h-20 rounded-full object-cover border border-gray-200 flex-shrink-0"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                <span className="text-3xl font-bold text-purple-600">
+                  {(profile.full_name ?? '?').charAt(0).toUpperCase()}
+                </span>
+              </div>
             )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-3">
+                <h1 className="text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
+                  {profile.full_name ?? '—'}
+                </h1>
+                {profile.is_looking_for_startup && (
+                  <span className="flex-shrink-0 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                    Open to joining
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                {profile.degree_program && (
+                  <span className="text-sm text-gray-500">{profile.degree_program}</span>
+                )}
+                {profile.graduation_year && (
+                  <span className="text-sm text-gray-500">{profile.graduation_year}</span>
+                )}
+              </div>
+            </div>
           </div>
 
           <hr className="border-gray-100 mb-6" />

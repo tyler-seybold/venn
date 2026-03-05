@@ -28,6 +28,9 @@ type Profile = {
   skills: string[] | null
   industries_of_interest: string[] | null
   is_looking_for_startup: boolean
+  graduation_year: number | null
+  degree_program: string | null
+  avatar_url: string | null
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -448,15 +451,35 @@ function PersonCard({ person: p }: { person: Profile }) {
       onClick={() => router.push(`/people/${p.user_id}`)}
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold text-gray-900 text-base leading-tight">
-          {p.full_name ?? '—'}
-        </h3>
-        {p.is_looking_for_startup && (
-          <span className="flex-shrink-0 text-xs font-medium px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
-            Open to joining
-          </span>
+      <div className="flex items-start gap-3">
+        {p.avatar_url ? (
+          <img
+            src={p.avatar_url}
+            alt={p.full_name ?? 'Avatar'}
+            className="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+            <span className="text-sm font-bold text-purple-600">
+              {(p.full_name ?? '?').charAt(0).toUpperCase()}
+            </span>
+          </div>
         )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-semibold text-gray-900 text-base leading-tight truncate">
+              {p.full_name ?? '—'}
+            </h3>
+            {p.is_looking_for_startup && (
+              <span className="flex-shrink-0 text-xs font-medium px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                Open to joining
+              </span>
+            )}
+          </div>
+          {p.degree_program && (
+            <p className="text-xs text-gray-500 mt-0.5">{p.degree_program}</p>
+          )}
+        </div>
       </div>
 
       {/* Bio */}

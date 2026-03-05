@@ -21,6 +21,9 @@ create table profiles (
   skills                  text[],
   industries_of_interest  text[],
   is_looking_for_startup  boolean not null default false,
+  graduation_year         integer,
+  degree_program          text,
+  avatar_url              text,
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now()
 );

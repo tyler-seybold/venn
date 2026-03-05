@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, KeyboardEvent } from 'react'
+import { useState, useEffect, useRef, KeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
@@ -15,6 +15,18 @@ const INDUSTRIES = [
   'Other',
 ]
 
+const DEGREE_PROGRAMS = [
+  '1Y',
+  '2Y',
+  'EMBA',
+  'Evening & Weekend (E&W)',
+  'Exchange Student',
+  'JD/MBA',
+  'MBAi',
+  'MD/MBA',
+  'MMM',
+]
+
 export default function ProfileSetupPage() {
   const router = useRouter()
 
@@ -25,6 +37,10 @@ export default function ProfileSetupPage() {
 
   // Form state
   const [fullName, setFullName] = useState('')
+  const [graduationYear, setGraduationYear] = useState('')
+  const [degreeProgram, setDegreeProgram] = useState('')
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [bio, setBio] = useState('')
   const [skills, setSkills] = useState<string[]>([])
   const [skillInput, setSkillInput] = useState('')
@@ -34,6 +50,15 @@ export default function ProfileSetupPage() {
   // Submission state
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAvatarFile(file)
+    setAvatarPreview(URL.createObjectURL(file))
+  }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -86,10 +111,29 @@ export default function ProfileSetupPage() {
     setError('')
     setLoading(true)
 
+    let avatarUrl: string | null = null
+    if (avatarFile) {
+      const ext = avatarFile.name.split('.').pop()
+      const path = `${userId}/${Date.now()}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, avatarFile, { upsert: true })
+      if (uploadError) {
+        setError(`Photo upload failed: ${uploadError.message}`)
+        setLoading(false)
+        return
+      }
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
+      avatarUrl = urlData.publicUrl
+    }
+
     const { error: insertError } = await supabase.from('profiles').insert({
       user_id: userId,
       email: userEmail,
       full_name: fullName,
+      graduation_year: graduationYear ? parseInt(graduationYear, 10) : null,
+      degree_program: degreeProgram || null,
+      avatar_url: avatarUrl,
       bio: bio || null,
       skills: skills.length > 0 ? skills : null,
       industries_of_interest: industries.length > 0 ? industries : null,
@@ -140,6 +184,79 @@ export default function ProfileSetupPage() {
                 placeholder="Jane Smith"
                 className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
               />
+            </div>
+
+            {/* Photo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Photo <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <div className="flex items-center gap-4">
+                {avatarPreview ? (
+                  <>
+                    <img
+                      src={avatarPreview}
+                      alt="Avatar preview"
+                      className="w-16 h-16 rounded-full object-cover border border-gray-200 flex-shrink-0"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="text-sm text-purple-600 hover:text-purple-800 transition"
+                    >
+                      Change
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 hover:border-purple-400 hover:text-purple-600 transition"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 0L8 8m4-4l4 4" />
+                    </svg>
+                    Upload photo
+                  </button>
+                )}
+                <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+              </div>
+            </div>
+
+            {/* Graduation year */}
+            <div>
+              <label htmlFor="graduationYear" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Graduation year <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="graduationYear"
+                type="number"
+                required
+                min={2000}
+                max={2100}
+                value={graduationYear}
+                onChange={(e) => setGraduationYear(e.target.value)}
+                placeholder="2026"
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+              />
+            </div>
+
+            {/* Degree program */}
+            <div>
+              <label htmlFor="degreeProgram" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Degree program <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <select
+                id="degreeProgram"
+                value={degreeProgram}
+                onChange={(e) => setDegreeProgram(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition bg-white"
+              >
+                <option value="">Select a program…</option>
+                {DEGREE_PROGRAMS.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
             </div>
 
             {/* Bio */}
