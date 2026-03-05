@@ -54,7 +54,6 @@ export default function StartupDetailPage() {
   const [founderProfile, setFounderProfile] = useState<FounderProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [leavingStartup, setLeavingStartup] = useState(false)
-  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -85,27 +84,14 @@ export default function StartupDetailPage() {
 
   async function handleLeaveStartup() {
     if (!startup) return
-    if (!window.confirm(`Are you sure you want to leave ${startup.startup_name}? This will delete the startup and cannot be undone.`)) return
+    if (!window.confirm(`Are you sure you want to leave ${startup.startup_name}? You will be detached as the founder.`)) return
 
     setLeavingStartup(true)
 
-    if (startup.logo_url) {
-      const marker = '/startup-logos/'
-      const idx = startup.logo_url.indexOf(marker)
-      if (idx !== -1) {
-        await supabase.storage.from('startup-logos').remove([startup.logo_url.slice(idx + marker.length)])
-      }
-    }
-
-    const { error } = await supabase.from('startups').delete().eq('id', startup.id)
+    await supabase.from('startups').update({ founder_id: null }).eq('id', startup.id)
 
     setLeavingStartup(false)
-
-    if (error) {
-      setDeleteError(error.message)
-    } else {
-      router.push('/dashboard')
-    }
+    router.push('/dashboard')
   }
 
   if (loading) {
@@ -251,25 +237,6 @@ export default function StartupDetailPage() {
           </div>
         </div>
 
-        {/* Danger zone — founder only */}
-        {isOwner && (
-          <div className="mt-6 bg-white rounded-2xl border border-red-200 px-8 py-6">
-            <h2 className="text-sm font-semibold text-red-700 mb-1">Danger zone</h2>
-            <p className="text-xs text-gray-500 mb-4">
-              Permanently delete this startup. This action cannot be undone.
-            </p>
-            {deleteError && <p className="text-sm text-red-600 mb-3">{deleteError}</p>}
-            <button
-              type="button"
-              onClick={handleLeaveStartup}
-              disabled={leavingStartup}
-              className="rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm font-medium px-4 py-2 transition focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-            >
-              {leavingStartup ? 'Deleting…' : 'Leave Startup'}
-            </button>
-          </div>
-        )}
-
         {/* Meet the Founder */}
         {founderProfile && (
           <div className="mt-6">
@@ -278,16 +245,28 @@ export default function StartupDetailPage() {
               onClick={() => router.push(`/people/${founderProfile.user_id}`)}
               className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3 cursor-pointer hover:border-purple-200 hover:shadow-md transition"
             >
-              {/* Name + badge */}
+              {/* Name + badge + leave */}
               <div className="flex items-start justify-between gap-2">
                 <h3 className="font-semibold text-gray-900 text-base leading-tight">
                   {founderProfile.full_name ?? '—'}
                 </h3>
-                {founderProfile.is_looking_for_startup && (
-                  <span className="flex-shrink-0 text-xs font-medium px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                    Open to joining
-                  </span>
-                )}
+                <div className="flex flex-shrink-0 items-center gap-2">
+                  {founderProfile.is_looking_for_startup && (
+                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                      Open to joining
+                    </span>
+                  )}
+                  {isOwner && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleLeaveStartup() }}
+                      disabled={leavingStartup}
+                      className="text-xs font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 rounded-lg px-2.5 py-1 transition disabled:opacity-50"
+                    >
+                      {leavingStartup ? 'Leaving…' : 'Leave Startup'}
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Bio */}
