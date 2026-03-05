@@ -164,6 +164,12 @@ export default function DashboardPage() {
               <span className="hidden sm:block text-sm text-gray-500">{userEmail}</span>
             )}
             <button
+              onClick={() => router.push('/profile/edit')}
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition"
+            >
+              Edit Profile
+            </button>
+            <button
               onClick={handleSignOut}
               className="text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition"
             >
