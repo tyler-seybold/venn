@@ -87,9 +87,17 @@ export default function EditStartupPage() {
         return
       }
 
+      // Allow primary founder or admin
       if (startup.founder_id !== uid) {
-        router.replace('/dashboard')
-        return
+        const { data: callerProfile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('user_id', uid)
+          .single()
+        if (!callerProfile?.is_admin) {
+          router.replace('/dashboard')
+          return
+        }
       }
 
       // Pre-populate fields

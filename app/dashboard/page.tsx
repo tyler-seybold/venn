@@ -79,6 +79,7 @@ export default function DashboardPage() {
   const [authChecked, setAuthChecked] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [tab, setTab] = useState<'startups' | 'people'>('startups')
 
   const [startups, setStartups] = useState<Startup[]>([])
@@ -94,12 +95,18 @@ export default function DashboardPage() {
 
   // Auth check
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) {
         router.replace('/login')
       } else {
         setUserId(data.user.id)
         setUserEmail(data.user.email ?? null)
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('user_id', data.user.id)
+          .single()
+        setIsAdmin(profile?.is_admin ?? false)
         setAuthChecked(true)
       }
     })
@@ -177,6 +184,14 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3">
             {userEmail && (
               <span className="hidden sm:block text-sm text-gray-500">{userEmail}</span>
+            )}
+            {isAdmin && (
+              <button
+                onClick={() => router.push('/admin')}
+                className="text-sm font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 rounded-lg px-3 py-1.5 hover:bg-red-50 transition"
+              >
+                Admin
+              </button>
             )}
             <button
               onClick={() => router.push('/profile/edit')}

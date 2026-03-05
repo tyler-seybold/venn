@@ -21,6 +21,7 @@ create table profiles (
   skills                  text[],
   industries_of_interest  text[],
   is_looking_for_startup  boolean not null default false,
+  is_admin                boolean not null default false,
   graduation_year         integer,
   degree_program          text,
   avatar_url              text,
@@ -150,6 +151,42 @@ create policy "startup_members: primary founder insert"
       select 1 from startups
       where id = startup_id
       and founder_id = auth.uid()
+    )
+  );
+
+-- profiles: admins can update any profile
+create policy "profiles: admin update"
+  on profiles for update
+  to authenticated
+  using (
+    exists (
+      select 1 from profiles p
+      where p.user_id = auth.uid()
+      and p.is_admin = true
+    )
+  );
+
+-- startups: admins can update any startup
+create policy "startups: admin update"
+  on startups for update
+  to authenticated
+  using (
+    exists (
+      select 1 from profiles
+      where user_id = auth.uid()
+      and is_admin = true
+    )
+  );
+
+-- startups: admins can delete any startup
+create policy "startups: admin delete"
+  on startups for delete
+  to authenticated
+  using (
+    exists (
+      select 1 from profiles
+      where user_id = auth.uid()
+      and is_admin = true
     )
   );
 
