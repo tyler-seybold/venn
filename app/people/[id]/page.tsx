@@ -132,11 +132,18 @@ export default function PersonDetailPage() {
                 <h1 className="text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
                   {profile.full_name ?? '—'}
                 </h1>
-                {profile.is_looking_for_startup && (
-                  <span className="flex-shrink-0 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                    Open to joining
-                  </span>
-                )}
+                <div className="flex flex-shrink-0 gap-1.5">
+                  {startups.length > 0 && (
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
+                      Founder
+                    </span>
+                  )}
+                  {profile.is_looking_for_startup && (
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                      Open to joining
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
                 {profile.degree_program && (

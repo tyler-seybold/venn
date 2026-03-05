@@ -31,6 +31,7 @@ type Profile = {
   graduation_year: number | null
   degree_program: string | null
   avatar_url: string | null
+  is_founder: boolean
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -127,10 +128,15 @@ export default function DashboardPage() {
     if (!authChecked) return
     supabase
       .from('profiles')
-      .select('*')
+      .select('*, startups(id)')
       .order('full_name', { ascending: true })
       .then(({ data }) => {
-        setPeople(data ?? [])
+        setPeople(
+          (data ?? []).map(({ startups, ...p }) => ({
+            ...p,
+            is_founder: Array.isArray(startups) && startups.length > 0,
+          }))
+        )
         setLoadingPeople(false)
       })
   }, [authChecked])
@@ -470,11 +476,18 @@ function PersonCard({ person: p }: { person: Profile }) {
             <h3 className="font-semibold text-gray-900 text-base leading-tight truncate">
               {p.full_name ?? '—'}
             </h3>
-            {p.is_looking_for_startup && (
-              <span className="flex-shrink-0 text-xs font-medium px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                Open to joining
-              </span>
-            )}
+            <div className="flex flex-shrink-0 gap-1">
+              {p.is_founder && (
+                <span className="text-xs font-medium px-2 py-1 rounded-full bg-indigo-100 text-indigo-700">
+                  Founder
+                </span>
+              )}
+              {p.is_looking_for_startup && (
+                <span className="text-xs font-medium px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                  Open to joining
+                </span>
+              )}
+            </div>
           </div>
           {p.degree_program && (
             <p className="text-xs text-gray-500 mt-0.5">{p.degree_program}</p>
