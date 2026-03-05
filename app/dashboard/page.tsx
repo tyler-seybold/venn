@@ -336,7 +336,10 @@ function StartupCard({
   const isOwner = currentUserId !== null && s.founder_id === currentUserId
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3">
+    <div
+      className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3 cursor-pointer hover:border-purple-200 hover:shadow-md transition"
+      onClick={() => router.push(`/startup/${s.id}`)}
+    >
       {/* Header: logo + name + stage */}
       <div className="flex items-start gap-3">
         {s.logo_url ? (
@@ -410,7 +413,7 @@ function StartupCard({
       </div>
 
       {/* Actions */}
-      <div className="mt-auto pt-1 flex gap-2">
+      <div className="mt-auto pt-1 flex gap-2" onClick={(e) => e.stopPropagation()}>
         <a
           href={`mailto:?subject=Re: ${encodeURIComponent(s.startup_name)}`}
           className="flex-1 text-center rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 text-sm font-medium py-2 transition"
