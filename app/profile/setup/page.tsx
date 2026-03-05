@@ -145,7 +145,7 @@ export default function ProfileSetupPage() {
     if (insertError) {
       setError(insertError.message)
     } else {
-      router.push('/dashboard')
+      router.push('/onboarding/startup')
     }
   }
 
