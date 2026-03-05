@@ -482,7 +482,7 @@ function PersonCard({ person: p }: { person: Profile }) {
                   Founder
                 </span>
               )}
-              {p.is_looking_for_startup && (
+              {!p.is_founder && p.is_looking_for_startup && (
                 <span className="text-xs font-medium px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
                   Open to joining
                 </span>

@@ -138,7 +138,7 @@ export default function PersonDetailPage() {
                       Founder
                     </span>
                   )}
-                  {profile.is_looking_for_startup && (
+                  {startups.length === 0 && profile.is_looking_for_startup && (
                     <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
                       Open to joining
                     </span>

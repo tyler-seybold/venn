@@ -47,6 +47,7 @@ export default function ProfileEditPage() {
   const [skillInput, setSkillInput] = useState('')
   const [industries, setIndustries] = useState<string[]>([])
   const [isLooking, setIsLooking] = useState(false)
+  const [isFounder, setIsFounder] = useState(false)
 
   // Submission state
   const [loading, setLoading] = useState(false)
@@ -73,11 +74,12 @@ export default function ProfileEditPage() {
       setUserId(uid)
       setUserEmail(data.user.email ?? null)
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', uid)
-        .single()
+      const [{ data: profile }, { count }] = await Promise.all([
+        supabase.from('profiles').select('*').eq('user_id', uid).single(),
+        supabase.from('startups').select('id', { count: 'exact', head: true }).eq('founder_id', uid),
+      ])
+
+      if (count && count > 0) setIsFounder(true)
 
       if (profile) {
         setFullName(profile.full_name ?? '')
@@ -377,21 +379,26 @@ export default function ProfileEditPage() {
             </div>
 
             {/* Looking for startup toggle */}
-            <div className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
+            <div className={`flex items-center justify-between rounded-lg border px-4 py-3 ${isFounder ? 'border-gray-100 bg-gray-50' : 'border-gray-200'}`}>
               <div>
-                <p className="text-sm font-medium text-gray-700">Looking to join a startup?</p>
-                <p className="text-xs text-gray-400 mt-0.5">Founders can find and reach out to you</p>
+                <p className={`text-sm font-medium ${isFounder ? 'text-gray-400' : 'text-gray-700'}`}>Looking to join a startup?</p>
+                {isFounder ? (
+                  <p className="text-xs text-gray-400 mt-0.5">Disabled — automatically off for founders</p>
+                ) : (
+                  <p className="text-xs text-gray-400 mt-0.5">Founders can find and reach out to you</p>
+                )}
               </div>
               <button
                 type="button"
-                onClick={() => setIsLooking(!isLooking)}
+                onClick={() => !isFounder && setIsLooking(!isLooking)}
+                disabled={isFounder}
                 className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
-                  isLooking ? 'bg-purple-700' : 'bg-gray-200'
+                  isFounder ? 'bg-gray-200 cursor-not-allowed' : isLooking ? 'bg-purple-700' : 'bg-gray-200'
                 }`}
               >
                 <span
                   className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${
-                    isLooking ? 'translate-x-5' : 'translate-x-0'
+                    !isFounder && isLooking ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
               </button>
