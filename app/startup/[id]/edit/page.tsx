@@ -53,6 +53,7 @@ export default function EditStartupPage() {
   // UI state
   const [dataLoaded, setDataLoaded] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -189,6 +190,29 @@ export default function EditStartupPage() {
 
     if (updateError) {
       setError(updateError.message)
+    } else {
+      router.push('/dashboard')
+    }
+  }
+
+  async function handleDelete() {
+    if (!window.confirm('Are you sure you want to delete this startup? This cannot be undone.')) return
+    setDeleting(true)
+
+    // Delete logo from storage if one exists
+    if (existingLogoUrl) {
+      const oldPath = storagePathFromUrl(existingLogoUrl)
+      if (oldPath) {
+        await supabase.storage.from('startup-logos').remove([oldPath])
+      }
+    }
+
+    const { error: deleteError } = await supabase.from('startups').delete().eq('id', id)
+
+    setDeleting(false)
+
+    if (deleteError) {
+      setError(deleteError.message)
     } else {
       router.push('/dashboard')
     }
@@ -452,6 +476,22 @@ export default function EditStartupPage() {
               {loading ? 'Saving…' : 'Save Changes'}
             </button>
           </form>
+        </div>
+
+        {/* Danger zone */}
+        <div className="mt-6 bg-white rounded-2xl border border-red-200 px-8 py-6">
+          <h2 className="text-sm font-semibold text-red-700 mb-1">Danger zone</h2>
+          <p className="text-xs text-gray-500 mb-4">
+            Permanently delete this startup. This action cannot be undone.
+          </p>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting}
+            className="rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm font-medium px-4 py-2 transition focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            {deleting ? 'Deleting…' : 'Delete Startup'}
+          </button>
         </div>
       </div>
     </div>
