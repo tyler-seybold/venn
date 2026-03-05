@@ -251,11 +251,6 @@ export default function StartupDetailPage() {
                   {founderProfile.full_name ?? '—'}
                 </h3>
                 <div className="flex flex-shrink-0 items-center gap-2">
-                  {founderProfile.is_looking_for_startup && (
-                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                      Open to joining
-                    </span>
-                  )}
                   {isOwner && (
                     <button
                       type="button"
