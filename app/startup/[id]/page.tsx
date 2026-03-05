@@ -35,13 +35,23 @@ type Startup = {
   current_ask: string | null
 }
 
+type FounderProfile = {
+  user_id: string
+  full_name: string | null
+  email: string | null
+  bio: string | null
+  skills: string[] | null
+  industries_of_interest: string[] | null
+  is_looking_for_startup: boolean
+}
+
 export default function StartupDetailPage() {
   const router = useRouter()
   const { id } = useParams<{ id: string }>()
 
   const [userId, setUserId] = useState<string | null>(null)
   const [startup, setStartup] = useState<Startup | null>(null)
-  const [founderEmail, setFounderEmail] = useState<string | null>(null)
+  const [founderProfile, setFounderProfile] = useState<FounderProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -55,7 +65,7 @@ export default function StartupDetailPage() {
 
       const { data: startupData, error } = await supabase
         .from('startups')
-        .select('*, profiles(email)')
+        .select('*, profiles(*)')
         .eq('id', id)
         .single()
 
@@ -64,9 +74,9 @@ export default function StartupDetailPage() {
         return
       }
 
-      const { profiles, ...rest } = startupData as Startup & { profiles: { email: string } | null }
+      const { profiles, ...rest } = startupData as Startup & { profiles: FounderProfile | null }
       setStartup(rest)
-      setFounderEmail(profiles?.email ?? null)
+      setFounderProfile(profiles ?? null)
       setLoading(false)
     })
   }, [id, router])
@@ -207,8 +217,8 @@ export default function StartupDetailPage() {
           <div className="mt-8">
             <a
               href={
-                founderEmail
-                  ? `mailto:${founderEmail}?subject=Re: ${encodeURIComponent(startup.startup_name)}`
+                founderProfile?.email
+                  ? `mailto:${founderProfile.email}?subject=Re: ${encodeURIComponent(startup.startup_name)}`
                   : `mailto:?subject=Re: ${encodeURIComponent(startup.startup_name)}`
               }
               className="inline-block rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-sm font-medium px-5 py-2.5 transition focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
@@ -217,6 +227,66 @@ export default function StartupDetailPage() {
             </a>
           </div>
         </div>
+
+        {/* Meet the Founder */}
+        {founderProfile && (
+          <div className="mt-6">
+            <h2 className="text-sm font-semibold text-gray-700 mb-3">Meet the Founder</h2>
+            <div
+              onClick={() => router.push(`/people/${founderProfile.user_id}`)}
+              className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3 cursor-pointer hover:border-purple-200 hover:shadow-md transition"
+            >
+              {/* Name + badge */}
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-semibold text-gray-900 text-base leading-tight">
+                  {founderProfile.full_name ?? '—'}
+                </h3>
+                {founderProfile.is_looking_for_startup && (
+                  <span className="flex-shrink-0 text-xs font-medium px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                    Open to joining
+                  </span>
+                )}
+              </div>
+
+              {/* Bio */}
+              {founderProfile.bio && (
+                <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
+                  {founderProfile.bio}
+                </p>
+              )}
+
+              {/* Skills */}
+              {founderProfile.skills && founderProfile.skills.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {founderProfile.skills.map((skill) => (
+                    <span
+                      key={skill}
+                      className="text-xs font-medium bg-purple-100 text-purple-800 px-2 py-0.5 rounded-md"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Industries of interest */}
+              {founderProfile.industries_of_interest && founderProfile.industries_of_interest.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {founderProfile.industries_of_interest.map((ind) => (
+                    <span
+                      key={ind}
+                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        INDUSTRY_COLORS[ind] ?? 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      {ind}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
