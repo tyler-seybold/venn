@@ -72,6 +72,7 @@ export default function DashboardPage() {
   const router = useRouter()
 
   const [authChecked, setAuthChecked] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [tab, setTab] = useState<'startups' | 'people'>('startups')
 
@@ -92,6 +93,7 @@ export default function DashboardPage() {
       if (!data.user) {
         router.replace('/login')
       } else {
+        setUserId(data.user.id)
         setUserEmail(data.user.email ?? null)
         setAuthChecked(true)
       }
@@ -245,7 +247,7 @@ export default function DashboardPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filteredStartups.map((s) => (
-                  <StartupCard key={s.id} startup={s} />
+                  <StartupCard key={s.id} startup={s} currentUserId={userId} />
                 ))}
               </div>
             )}
@@ -317,7 +319,16 @@ function FilterPill({
   )
 }
 
-function StartupCard({ startup: s }: { startup: Startup }) {
+function StartupCard({
+  startup: s,
+  currentUserId,
+}: {
+  startup: Startup
+  currentUserId: string | null
+}) {
+  const router = useRouter()
+  const isOwner = currentUserId !== null && s.founder_id === currentUserId
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3">
       {/* Header: logo + name + stage */}
@@ -392,14 +403,22 @@ function StartupCard({ startup: s }: { startup: Startup }) {
         )}
       </div>
 
-      {/* Send Email */}
-      <div className="mt-auto pt-1">
+      {/* Actions */}
+      <div className="mt-auto pt-1 flex gap-2">
         <a
           href={`mailto:?subject=Re: ${encodeURIComponent(s.startup_name)}`}
-          className="block w-full text-center rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 text-sm font-medium py-2 transition"
+          className="flex-1 text-center rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 text-sm font-medium py-2 transition"
         >
           Send Email
         </a>
+        {isOwner && (
+          <button
+            onClick={() => router.push(`/startup/${s.id}/edit`)}
+            className="px-3 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-medium py-2 transition"
+          >
+            Edit
+          </button>
+        )}
       </div>
     </div>
   )
