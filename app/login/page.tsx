@@ -131,7 +131,7 @@ export default function LoginPage() {
                   maxLength={8}
                   value={code}
                   onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setError('') }}
-                  placeholder="123456"
+                  placeholder="00000000"
                   className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 tracking-widest focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
                 />
               </div>
