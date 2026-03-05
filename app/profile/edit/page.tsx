@@ -48,9 +48,11 @@ export default function ProfileEditPage() {
   const [industries, setIndustries] = useState<string[]>([])
   const [isLooking, setIsLooking] = useState(false)
   const [isFounder, setIsFounder] = useState(false)
+  const [myStartup, setMyStartup] = useState<{ id: string; startup_name: string; stage: string | null; logo_url: string | null } | null>(null)
 
   // Submission state
   const [loading, setLoading] = useState(false)
+  const [leavingStartup, setLeavingStartup] = useState(false)
   const [error, setError] = useState('')
 
   const avatarInputRef = useRef<HTMLInputElement>(null)
@@ -60,6 +62,32 @@ export default function ProfileEditPage() {
     if (!file) return
     setAvatarFile(file)
     setAvatarPreview(URL.createObjectURL(file))
+  }
+
+  async function handleLeaveStartup() {
+    if (!myStartup) return
+    if (!window.confirm(`Are you sure you want to leave ${myStartup.startup_name}? This will delete the startup and cannot be undone.`)) return
+
+    setLeavingStartup(true)
+
+    if (myStartup.logo_url) {
+      const marker = '/startup-logos/'
+      const idx = myStartup.logo_url.indexOf(marker)
+      if (idx !== -1) {
+        await supabase.storage.from('startup-logos').remove([myStartup.logo_url.slice(idx + marker.length)])
+      }
+    }
+
+    const { error: deleteError } = await supabase.from('startups').delete().eq('id', myStartup.id)
+
+    setLeavingStartup(false)
+
+    if (deleteError) {
+      setError(deleteError.message)
+    } else {
+      setMyStartup(null)
+      setIsFounder(false)
+    }
   }
 
   // Auth check + load profile
@@ -74,12 +102,20 @@ export default function ProfileEditPage() {
       setUserId(uid)
       setUserEmail(data.user.email ?? null)
 
-      const [{ data: profile }, { count }] = await Promise.all([
+      const [{ data: profile }, { data: startupData }] = await Promise.all([
         supabase.from('profiles').select('*').eq('user_id', uid).single(),
-        supabase.from('startups').select('id', { count: 'exact', head: true }).eq('founder_id', uid),
+        supabase
+          .from('startups')
+          .select('id, startup_name, stage, logo_url')
+          .eq('founder_id', uid)
+          .limit(1)
+          .maybeSingle(),
       ])
 
-      if (count && count > 0) setIsFounder(true)
+      if (startupData) {
+        setMyStartup(startupData)
+        setIsFounder(true)
+      }
 
       if (profile) {
         setFullName(profile.full_name ?? '')
@@ -212,6 +248,33 @@ export default function ProfileEditPage() {
             </h1>
             <p className="mt-1 text-sm text-gray-500">{userEmail}</p>
           </div>
+
+          {/* Your Startup */}
+          {myStartup && (
+            <div className="mb-8 rounded-xl border border-gray-200 px-4 py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Your Startup</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-semibold text-gray-900 truncate">{myStartup.startup_name}</span>
+                    {myStartup.stage && (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                        {myStartup.stage}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleLeaveStartup}
+                disabled={leavingStartup}
+                className="flex-shrink-0 text-sm font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 rounded-lg px-3 py-1.5 transition disabled:opacity-50"
+              >
+                {leavingStartup ? 'Deleting…' : 'Leave Startup'}
+              </button>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Full name */}
