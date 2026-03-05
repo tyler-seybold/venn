@@ -114,7 +114,7 @@ export default function LoginPage() {
             <form onSubmit={handleVerifyCode} className="space-y-4">
               <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3">
                 <p className="text-sm text-green-800">
-                  We sent a 6-digit code to <span className="font-medium">{email}</span>
+                  We sent an 8-digit code to <span className="font-medium">{email}</span>
                 </p>
               </div>
 
