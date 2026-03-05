@@ -17,6 +17,7 @@ type Startup = {
   description: string | null
   website_url: string | null
   current_ask: string | null
+  founder_email: string | null
 }
 
 type Profile = {
@@ -105,10 +106,15 @@ export default function DashboardPage() {
     if (!authChecked) return
     supabase
       .from('startups')
-      .select('*')
+      .select('*, profiles(email)')
       .order('created_at', { ascending: false })
       .then(({ data }) => {
-        setStartups(data ?? [])
+        setStartups(
+          (data ?? []).map(({ profiles, ...s }) => ({
+            ...s,
+            founder_email: (profiles as { email: string } | null)?.email ?? null,
+          }))
+        )
         setLoadingStartups(false)
       })
   }, [authChecked])
@@ -415,7 +421,7 @@ function StartupCard({
       {/* Actions */}
       <div className="mt-auto pt-1 flex gap-2" onClick={(e) => e.stopPropagation()}>
         <a
-          href={`mailto:?subject=Re: ${encodeURIComponent(s.startup_name)}`}
+          href={`mailto:${s.founder_email ?? ''}?subject=Re: ${encodeURIComponent(s.startup_name)}`}
           className="flex-1 text-center rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 text-sm font-medium py-2 transition"
         >
           Send Email

@@ -216,11 +216,7 @@ export default function StartupDetailPage() {
           {/* Send Email */}
           <div className="mt-8">
             <a
-              href={
-                founderProfile?.email
-                  ? `mailto:${founderProfile.email}?subject=Re: ${encodeURIComponent(startup.startup_name)}`
-                  : `mailto:?subject=Re: ${encodeURIComponent(startup.startup_name)}`
-              }
+              href={`mailto:${founderProfile?.email ?? ''}?subject=Re: ${encodeURIComponent(startup.startup_name)}`}
               className="inline-block rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-sm font-medium px-5 py-2.5 transition focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
             >
               Send Email
