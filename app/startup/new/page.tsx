@@ -334,7 +334,7 @@ export default function NewStartupPage() {
               </label>
               <input
                 id="website"
-                type="url"
+                type="text"
                 value={websiteUrl}
                 onChange={(e) => setWebsiteUrl(e.target.value)}
                 placeholder="https://example.com"
