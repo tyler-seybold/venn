@@ -122,8 +122,8 @@ export default function EditStartupPage() {
         (membersData ?? []).map((m) => ({
           id: m.id,
           user_id: m.user_id,
-          full_name: (m.profiles as { full_name: string | null; email: string | null } | null)?.full_name ?? null,
-          email: (m.profiles as { full_name: string | null; email: string | null } | null)?.email ?? null,
+          full_name: ((m.profiles as unknown as { full_name: string | null; email: string | null }[])[0])?.full_name ?? null,
+          email: ((m.profiles as unknown as { full_name: string | null; email: string | null }[])[0])?.email ?? null,
         }))
       )
 
