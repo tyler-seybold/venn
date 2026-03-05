@@ -105,7 +105,7 @@ export default function NewStartupPage() {
       logoUrl = urlData.publicUrl
     }
 
-    const { error: insertError } = await supabase.from('startups').insert({
+    const { data: newStartup, error: insertError } = await supabase.from('startups').insert({
       founder_id: userId,
       startup_name: startupName,
       logo_url: logoUrl,
@@ -117,15 +117,22 @@ export default function NewStartupPage() {
         ? /^https?:\/\//i.test(websiteUrl) ? websiteUrl : `https://${websiteUrl}`
         : null,
       current_ask: currentAsk || null,
+    }).select('id').single()
+
+    if (insertError || !newStartup) {
+      setLoading(false)
+      setError(insertError?.message ?? 'Failed to create startup')
+      return
+    }
+
+    await supabase.from('startup_members').insert({
+      startup_id: newStartup.id,
+      user_id: userId,
+      role: 'primary',
     })
 
     setLoading(false)
-
-    if (insertError) {
-      setError(insertError.message)
-    } else {
-      router.push('/dashboard')
-    }
+    router.push('/dashboard')
   }
 
   if (!authChecked) {

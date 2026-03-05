@@ -128,13 +128,13 @@ export default function DashboardPage() {
     if (!authChecked) return
     supabase
       .from('profiles')
-      .select('*, startups(id)')
+      .select('*, startup_members(id)')
       .order('full_name', { ascending: true })
       .then(({ data }) => {
         setPeople(
-          (data ?? []).map(({ startups, ...p }) => ({
+          (data ?? []).map(({ startup_members, ...p }) => ({
             ...p,
-            is_founder: Array.isArray(startups) && startups.length > 0,
+            is_founder: Array.isArray(startup_members) && startup_members.length > 0,
           }))
         )
         setLoadingPeople(false)

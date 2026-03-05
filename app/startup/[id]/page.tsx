@@ -35,7 +35,9 @@ type Startup = {
   current_ask: string | null
 }
 
-type FounderProfile = {
+type Member = {
+  id: string
+  role: string
   user_id: string
   full_name: string | null
   email: string | null
@@ -43,6 +45,7 @@ type FounderProfile = {
   skills: string[] | null
   industries_of_interest: string[] | null
   is_looking_for_startup: boolean
+  avatar_url: string | null
 }
 
 export default function StartupDetailPage() {
@@ -51,7 +54,7 @@ export default function StartupDetailPage() {
 
   const [userId, setUserId] = useState<string | null>(null)
   const [startup, setStartup] = useState<Startup | null>(null)
-  const [founderProfile, setFounderProfile] = useState<FounderProfile | null>(null)
+  const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
   const [leavingStartup, setLeavingStartup] = useState(false)
 
@@ -64,32 +67,56 @@ export default function StartupDetailPage() {
 
       setUserId(data.user.id)
 
-      const { data: startupData, error } = await supabase
-        .from('startups')
-        .select('*, profiles(*)')
-        .eq('id', id)
-        .single()
+      const [{ data: startupData, error }, { data: membersData }] = await Promise.all([
+        supabase.from('startups').select('*').eq('id', id).single(),
+        supabase
+          .from('startup_members')
+          .select('id, role, user_id, profiles(*)')
+          .eq('startup_id', id)
+          .order('created_at', { ascending: true }),
+      ])
 
       if (error || !startupData) {
         router.replace('/dashboard')
         return
       }
 
-      const { profiles, ...rest } = startupData as Startup & { profiles: FounderProfile | null }
-      setStartup(rest)
-      setFounderProfile(profiles ?? null)
+      setStartup(startupData)
+      setMembers(
+        (membersData ?? []).map((m) => {
+          const profile = m.profiles as {
+            full_name: string | null
+            email: string | null
+            bio: string | null
+            skills: string[] | null
+            industries_of_interest: string[] | null
+            is_looking_for_startup: boolean
+            avatar_url: string | null
+          } | null
+          return {
+            id: m.id,
+            role: m.role,
+            user_id: m.user_id,
+            full_name: profile?.full_name ?? null,
+            email: profile?.email ?? null,
+            bio: profile?.bio ?? null,
+            skills: profile?.skills ?? null,
+            industries_of_interest: profile?.industries_of_interest ?? null,
+            is_looking_for_startup: profile?.is_looking_for_startup ?? false,
+            avatar_url: profile?.avatar_url ?? null,
+          }
+        })
+      )
       setLoading(false)
     })
   }, [id, router])
 
-  async function handleLeaveStartup() {
+  async function handleLeaveStartup(member: Member) {
     if (!startup) return
-    if (!window.confirm(`Are you sure you want to leave ${startup.startup_name}? You will be detached as the founder.`)) return
+    if (!window.confirm(`Are you sure you want to leave ${startup.startup_name}?`)) return
 
     setLeavingStartup(true)
-
-    await supabase.from('startups').update({ founder_id: null }).eq('id', startup.id)
-
+    await supabase.from('startup_members').delete().eq('id', member.id)
     setLeavingStartup(false)
     router.push('/dashboard')
   }
@@ -104,7 +131,10 @@ export default function StartupDetailPage() {
 
   if (!startup) return null
 
-  const isOwner = userId !== null && startup.founder_id === userId
+  const currentUserMember = members.find((m) => m.user_id === userId) ?? null
+  const isPrimaryFounder = currentUserMember?.role === 'primary'
+  const isCoFounder = currentUserMember?.role === 'co-founder'
+  const primaryMember = members.find((m) => m.role === 'primary') ?? null
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
@@ -148,7 +178,7 @@ export default function StartupDetailPage() {
                 <h1 className="text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
                   {startup.startup_name}
                 </h1>
-                {isOwner && (
+                {isPrimaryFounder && (
                   <button
                     onClick={() => router.push(`/startup/${startup.id}/edit`)}
                     className="flex-shrink-0 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition"
@@ -229,7 +259,7 @@ export default function StartupDetailPage() {
           {/* Send Email */}
           <div className="mt-8">
             <a
-              href={`mailto:${founderProfile?.email ?? ''}?subject=Re: ${encodeURIComponent(startup.startup_name)}`}
+              href={`mailto:${primaryMember?.email ?? ''}?subject=Re: ${encodeURIComponent(startup.startup_name)}`}
               className="inline-block rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-sm font-medium px-5 py-2.5 transition focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
             >
               Send Email
@@ -237,69 +267,83 @@ export default function StartupDetailPage() {
           </div>
         </div>
 
-        {/* Meet the Founder */}
-        {founderProfile && (
+        {/* The Team */}
+        {members.length > 0 && (
           <div className="mt-6">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">Meet the Founder</h2>
-            <div
-              onClick={() => router.push(`/people/${founderProfile.user_id}`)}
-              className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3 cursor-pointer hover:border-purple-200 hover:shadow-md transition"
-            >
-              {/* Name + badge + leave */}
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold text-gray-900 text-base leading-tight">
-                  {founderProfile.full_name ?? '—'}
-                </h3>
-                <div className="flex flex-shrink-0 items-center gap-2">
-                  {isOwner && (
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); handleLeaveStartup() }}
-                      disabled={leavingStartup}
-                      className="text-xs font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 rounded-lg px-2.5 py-1 transition disabled:opacity-50"
-                    >
-                      {leavingStartup ? 'Leaving…' : 'Leave Startup'}
-                    </button>
+            <h2 className="text-sm font-semibold text-gray-700 mb-3">The Team</h2>
+            <div className="flex flex-col gap-4">
+              {members.map((member) => (
+                <div
+                  key={member.id}
+                  onClick={() => router.push(`/people/${member.user_id}`)}
+                  className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3 cursor-pointer hover:border-purple-200 hover:shadow-md transition"
+                >
+                  {/* Name + role badge + leave button */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold text-gray-900 text-base leading-tight">
+                        {member.full_name ?? '—'}
+                      </h3>
+                      <span
+                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                          member.role === 'primary'
+                            ? 'bg-indigo-100 text-indigo-700'
+                            : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        {member.role === 'primary' ? 'Founder' : 'Co-Founder'}
+                      </span>
+                    </div>
+                    {isCoFounder && member.user_id === userId && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleLeaveStartup(member) }}
+                        disabled={leavingStartup}
+                        className="flex-shrink-0 text-xs font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 rounded-lg px-2.5 py-1 transition disabled:opacity-50"
+                      >
+                        {leavingStartup ? 'Leaving…' : 'Leave Startup'}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Bio */}
+                  {member.bio && (
+                    <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
+                      {member.bio}
+                    </p>
+                  )}
+
+                  {/* Skills */}
+                  {member.skills && member.skills.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {member.skills.map((skill) => (
+                        <span
+                          key={skill}
+                          className="text-xs font-medium bg-purple-100 text-purple-800 px-2 py-0.5 rounded-md"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Industries of interest */}
+                  {member.industries_of_interest && member.industries_of_interest.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {member.industries_of_interest.map((ind) => (
+                        <span
+                          key={ind}
+                          className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                            INDUSTRY_COLORS[ind] ?? 'bg-gray-100 text-gray-600'
+                          }`}
+                        >
+                          {ind}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
-              </div>
-
-              {/* Bio */}
-              {founderProfile.bio && (
-                <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
-                  {founderProfile.bio}
-                </p>
-              )}
-
-              {/* Skills */}
-              {founderProfile.skills && founderProfile.skills.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {founderProfile.skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="text-xs font-medium bg-purple-100 text-purple-800 px-2 py-0.5 rounded-md"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Industries of interest */}
-              {founderProfile.industries_of_interest && founderProfile.industries_of_interest.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {founderProfile.industries_of_interest.map((ind) => (
-                    <span
-                      key={ind}
-                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                        INDUSTRY_COLORS[ind] ?? 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {ind}
-                    </span>
-                  ))}
-                </div>
-              )}
+              ))}
             </div>
           </div>
         )}

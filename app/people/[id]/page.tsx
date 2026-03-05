@@ -60,12 +60,12 @@ export default function PersonDetailPage() {
         return
       }
 
-      const [{ data: profileData, error }, { data: startupData }] = await Promise.all([
+      const [{ data: profileData, error }, { data: memberData }] = await Promise.all([
         supabase.from('profiles').select('*').eq('user_id', id).single(),
         supabase
-          .from('startups')
-          .select('id, startup_name, logo_url, founders_display, industry, stage, description')
-          .eq('founder_id', id)
+          .from('startup_members')
+          .select('startup_id, role, startups(id, startup_name, logo_url, founders_display, industry, stage, description)')
+          .eq('user_id', id)
           .order('created_at', { ascending: false }),
       ])
 
@@ -75,7 +75,11 @@ export default function PersonDetailPage() {
       }
 
       setProfile(profileData)
-      setStartups(startupData ?? [])
+      setStartups(
+        (memberData ?? [])
+          .map((m) => m.startups as Startup | null)
+          .filter((s): s is Startup => s !== null)
+      )
       setLoading(false)
     })
   }, [id, router])

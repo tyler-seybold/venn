@@ -50,6 +50,13 @@ export default function EditStartupPage() {
   const [websiteUrl, setWebsiteUrl] = useState('')
   const [currentAsk, setCurrentAsk] = useState('')
 
+  // Co-founders state
+  const [coFounders, setCoFounders] = useState<Array<{ id: string; user_id: string; full_name: string | null; email: string | null }>>([])
+  const [memberSearch, setMemberSearch] = useState('')
+  const [searchResults, setSearchResults] = useState<Array<{ user_id: string; full_name: string | null; email: string | null }>>([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [addingMember, setAddingMember] = useState(false)
+
   // UI state
   const [dataLoaded, setDataLoaded] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -96,10 +103,64 @@ export default function EditStartupPage() {
       setWebsiteUrl(startup.website_url ?? '')
       setCurrentAsk(startup.current_ask ?? '')
 
+      // Load co-founders (exclude primary)
+      const { data: membersData } = await supabase
+        .from('startup_members')
+        .select('id, user_id, role, profiles(full_name, email)')
+        .eq('startup_id', id)
+        .neq('role', 'primary')
+
+      setCoFounders(
+        (membersData ?? []).map((m) => ({
+          id: m.id,
+          user_id: m.user_id,
+          full_name: (m.profiles as { full_name: string | null; email: string | null } | null)?.full_name ?? null,
+          email: (m.profiles as { full_name: string | null; email: string | null } | null)?.email ?? null,
+        }))
+      )
+
       setAuthChecked(true)
       setDataLoaded(true)
     })
   }, [id, router])
+
+  // Co-founder search
+  async function handleMemberSearch(query: string) {
+    setMemberSearch(query)
+    if (!query.trim()) {
+      setSearchResults([])
+      return
+    }
+    setSearchLoading(true)
+    const { data } = await supabase
+      .from('profiles')
+      .select('user_id, full_name, email')
+      .ilike('full_name', `%${query}%`)
+      .limit(8)
+    const existingIds = new Set([...coFounders.map((m) => m.user_id), userId ?? ''])
+    setSearchResults((data ?? []).filter((p) => !existingIds.has(p.user_id)))
+    setSearchLoading(false)
+  }
+
+  async function addCoFounder(profile: { user_id: string; full_name: string | null; email: string | null }) {
+    setAddingMember(true)
+    const { data, error: insertErr } = await supabase
+      .from('startup_members')
+      .insert({ startup_id: id, user_id: profile.user_id, role: 'co-founder' })
+      .select('id')
+      .single()
+    if (!insertErr && data) {
+      setCoFounders((prev) => [...prev, { id: data.id, ...profile }])
+      setSearchResults((prev) => prev.filter((p) => p.user_id !== profile.user_id))
+      setMemberSearch('')
+    }
+    setAddingMember(false)
+  }
+
+  async function removeCoFounder(memberId: string) {
+    await supabase.from('startup_members').delete().eq('id', memberId)
+    setCoFounders((prev) => prev.filter((m) => m.id !== memberId))
+  }
 
   // Logo handlers
   function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -464,6 +525,71 @@ export default function EditStartupPage() {
                 maxLength={ASK_MAX}
                 className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
               />
+            </div>
+
+            {/* Co-Founders */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Co-Founders <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+
+              {/* Current co-founders */}
+              {coFounders.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {coFounders.map((m) => (
+                    <span
+                      key={m.id}
+                      className="flex items-center gap-1.5 bg-purple-50 border border-purple-200 text-purple-800 text-sm font-medium px-3 py-1 rounded-full"
+                    >
+                      {m.full_name ?? m.email ?? 'Unknown'}
+                      <button
+                        type="button"
+                        onClick={() => removeCoFounder(m.id)}
+                        className="text-purple-400 hover:text-purple-700 transition ml-0.5"
+                        aria-label="Remove"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Search input */}
+              <input
+                type="text"
+                value={memberSearch}
+                onChange={(e) => handleMemberSearch(e.target.value)}
+                placeholder="Search by name to add a co-founder…"
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+              />
+
+              {/* Search results */}
+              {searchLoading && (
+                <p className="mt-2 text-xs text-gray-400">Searching…</p>
+              )}
+              {!searchLoading && memberSearch && searchResults.length === 0 && (
+                <p className="mt-2 text-xs text-gray-400">No matching profiles found.</p>
+              )}
+              {searchResults.length > 0 && (
+                <ul className="mt-1 rounded-lg border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+                  {searchResults.map((p) => (
+                    <li key={p.user_id}>
+                      <button
+                        type="button"
+                        disabled={addingMember}
+                        onClick={() => addCoFounder(p)}
+                        className="w-full text-left px-3.5 py-2.5 text-sm text-gray-800 hover:bg-purple-50 transition disabled:opacity-50"
+                      >
+                        <span className="font-medium">{p.full_name ?? '—'}</span>
+                        {p.email && (
+                          <span className="ml-2 text-xs text-gray-400">{p.email}</span>
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
