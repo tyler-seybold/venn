@@ -52,7 +52,6 @@ export default function ProfileEditPage() {
 
   // Submission state
   const [loading, setLoading] = useState(false)
-  const [leavingStartup, setLeavingStartup] = useState(false)
   const [error, setError] = useState('')
 
   const avatarInputRef = useRef<HTMLInputElement>(null)
@@ -62,32 +61,6 @@ export default function ProfileEditPage() {
     if (!file) return
     setAvatarFile(file)
     setAvatarPreview(URL.createObjectURL(file))
-  }
-
-  async function handleLeaveStartup() {
-    if (!myStartup) return
-    if (!window.confirm(`Are you sure you want to leave ${myStartup.startup_name}? This will delete the startup and cannot be undone.`)) return
-
-    setLeavingStartup(true)
-
-    if (myStartup.logo_url) {
-      const marker = '/startup-logos/'
-      const idx = myStartup.logo_url.indexOf(marker)
-      if (idx !== -1) {
-        await supabase.storage.from('startup-logos').remove([myStartup.logo_url.slice(idx + marker.length)])
-      }
-    }
-
-    const { error: deleteError } = await supabase.from('startups').delete().eq('id', myStartup.id)
-
-    setLeavingStartup(false)
-
-    if (deleteError) {
-      setError(deleteError.message)
-    } else {
-      setMyStartup(null)
-      setIsFounder(false)
-    }
   }
 
   // Auth check + load profile
@@ -251,28 +224,24 @@ export default function ProfileEditPage() {
 
           {/* Your Startup */}
           {myStartup && (
-            <div className="mb-8 rounded-xl border border-gray-200 px-4 py-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Your Startup</p>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold text-gray-900 truncate">{myStartup.startup_name}</span>
-                    {myStartup.stage && (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                        {myStartup.stage}
-                      </span>
-                    )}
-                  </div>
+            <div
+              onClick={() => router.push(`/startup/${myStartup.id}`)}
+              className="mb-8 rounded-xl border border-gray-200 px-4 py-3 flex items-center gap-3 cursor-pointer hover:border-purple-200 hover:bg-gray-50 transition"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Your Startup</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-semibold text-gray-900 truncate">{myStartup.startup_name}</span>
+                  {myStartup.stage && (
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                      {myStartup.stage}
+                    </span>
+                  )}
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={handleLeaveStartup}
-                disabled={leavingStartup}
-                className="flex-shrink-0 text-sm font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 rounded-lg px-3 py-1.5 transition disabled:opacity-50"
-              >
-                {leavingStartup ? 'Deleting…' : 'Leave Startup'}
-              </button>
+              <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
             </div>
           )}
 

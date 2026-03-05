@@ -53,6 +53,8 @@ export default function StartupDetailPage() {
   const [startup, setStartup] = useState<Startup | null>(null)
   const [founderProfile, setFounderProfile] = useState<FounderProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [leavingStartup, setLeavingStartup] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -80,6 +82,31 @@ export default function StartupDetailPage() {
       setLoading(false)
     })
   }, [id, router])
+
+  async function handleLeaveStartup() {
+    if (!startup) return
+    if (!window.confirm(`Are you sure you want to leave ${startup.startup_name}? This will delete the startup and cannot be undone.`)) return
+
+    setLeavingStartup(true)
+
+    if (startup.logo_url) {
+      const marker = '/startup-logos/'
+      const idx = startup.logo_url.indexOf(marker)
+      if (idx !== -1) {
+        await supabase.storage.from('startup-logos').remove([startup.logo_url.slice(idx + marker.length)])
+      }
+    }
+
+    const { error } = await supabase.from('startups').delete().eq('id', startup.id)
+
+    setLeavingStartup(false)
+
+    if (error) {
+      setDeleteError(error.message)
+    } else {
+      router.push('/dashboard')
+    }
+  }
 
   if (loading) {
     return (
@@ -223,6 +250,25 @@ export default function StartupDetailPage() {
             </a>
           </div>
         </div>
+
+        {/* Danger zone — founder only */}
+        {isOwner && (
+          <div className="mt-6 bg-white rounded-2xl border border-red-200 px-8 py-6">
+            <h2 className="text-sm font-semibold text-red-700 mb-1">Danger zone</h2>
+            <p className="text-xs text-gray-500 mb-4">
+              Permanently delete this startup. This action cannot be undone.
+            </p>
+            {deleteError && <p className="text-sm text-red-600 mb-3">{deleteError}</p>}
+            <button
+              type="button"
+              onClick={handleLeaveStartup}
+              disabled={leavingStartup}
+              className="rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm font-medium px-4 py-2 transition focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            >
+              {leavingStartup ? 'Deleting…' : 'Leave Startup'}
+            </button>
+          </div>
+        )}
 
         {/* Meet the Founder */}
         {founderProfile && (
