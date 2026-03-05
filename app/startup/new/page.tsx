@@ -113,7 +113,9 @@ export default function NewStartupPage() {
       industry: selectedIndustries.length > 0 ? selectedIndustries : null,
       stage: stage ?? null,
       description: description || null,
-      website_url: websiteUrl || null,
+      website_url: websiteUrl
+        ? /^https?:\/\//i.test(websiteUrl) ? websiteUrl : `https://${websiteUrl}`
+        : null,
       current_ask: currentAsk || null,
     })
 
