@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { Mail } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -114,6 +115,7 @@ export default function DashboardPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [myStartupId, setMyStartupId] = useState<string | null>(null)
   const [tab, setTab] = useState<'startups' | 'people'>('startups')
 
   const [startups, setStartups] = useState<Startup[]>([])
@@ -135,12 +137,12 @@ export default function DashboardPage() {
       } else {
         setUserId(data.user.id)
         setUserEmail(data.user.email ?? null)
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('user_id', data.user.id)
-          .single()
+        const [{ data: profile }, { data: membership }] = await Promise.all([
+          supabase.from('profiles').select('is_admin').eq('user_id', data.user.id).single(),
+          supabase.from('startup_members').select('startup_id').eq('user_id', data.user.id).eq('role', 'primary').maybeSingle(),
+        ])
         setIsAdmin(profile?.is_admin ?? false)
+        setMyStartupId(membership?.startup_id ?? null)
         setAuthChecked(true)
       }
     })
@@ -247,6 +249,14 @@ export default function DashboardPage() {
             >
               Edit Profile
             </button>
+            {myStartupId && (
+              <button
+                onClick={() => router.push(`/startup/${myStartupId}/edit`)}
+                className="text-sm font-medium text-purple-700 hover:text-purple-900 border border-purple-300 rounded-lg px-3 py-1.5 hover:bg-purple-50 transition"
+              >
+                My Startup
+              </button>
+            )}
             <button
               onClick={handleSignOut}
               className="text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition"
@@ -308,7 +318,7 @@ export default function DashboardPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filteredStartups.map((s) => (
-                  <StartupCard key={s.id} startup={s} currentUserId={userId} />
+                  <StartupCard key={s.id} startup={s} />
                 ))}
               </div>
             )}
@@ -430,114 +440,111 @@ function FilterDropdown({
 
 function StartupCard({
   startup: s,
-  currentUserId,
 }: {
   startup: Startup
-  currentUserId: string | null
 }) {
   const router = useRouter()
-  const isOwner = currentUserId !== null && s.founder_id === currentUserId
 
   return (
     <div
-      className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3 cursor-pointer hover:border-purple-200 hover:shadow-md transition"
+      className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col cursor-pointer hover:border-purple-200 hover:shadow-md transition overflow-hidden"
       onClick={() => router.push(`/startup/${s.id}`)}
     >
-      {/* Header: logo + name + stage */}
-      <div className="flex items-start gap-3">
-        {s.logo_url ? (
-          <img
-            src={s.logo_url}
-            alt={`${s.startup_name} logo`}
-            className="w-12 h-12 rounded-xl object-cover flex-shrink-0 border border-gray-100"
-          />
-        ) : (
-          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-lg font-bold text-purple-600">
+      {/* Logo banner */}
+      <div className="px-4 pt-4">
+        <div className="w-full aspect-video rounded-xl overflow-hidden bg-purple-50 flex items-center justify-center">
+          {s.logo_url ? (
+            <img
+              src={s.logo_url}
+              alt={`${s.startup_name} logo`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="text-5xl font-bold text-purple-200">
               {s.startup_name.charAt(0).toUpperCase()}
             </span>
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-gray-900 text-base leading-tight truncate">
-            {s.startup_name}
-          </h3>
-          {s.member_names.length > 0 && (
-            <p className="text-xs text-gray-500 mt-0.5 truncate">{s.member_names.join(', ')}</p>
           )}
         </div>
-        {s.stage && (
-          <span
-            className={`flex-shrink-0 text-xs font-medium px-2 py-1 rounded-full ${
-              STAGE_COLORS[s.stage] ?? 'bg-gray-100 text-gray-600'
-            }`}
-          >
-            {s.stage}
-          </span>
-        )}
       </div>
 
-      {/* Industry tags */}
-      {s.industry && s.industry.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {s.industry.map((ind) => (
+      {/* Content */}
+      <div className="p-4 flex flex-col gap-3 flex-1">
+        {/* Name + stage */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <h3 className="font-semibold text-gray-900 text-base leading-tight truncate">
+              {s.startup_name}
+            </h3>
+            {s.member_names.length > 0 && (
+              <p className="text-xs text-gray-500 mt-0.5 truncate">{s.member_names.join(', ')}</p>
+            )}
+          </div>
+          {s.stage && (
             <span
-              key={ind}
-              className={`text-xs font-medium px-2 py-0.5 rounded-full ${industryColor(ind)}`}
+              className={`flex-shrink-0 text-xs font-medium px-2 py-1 rounded-full ${
+                STAGE_COLORS[s.stage] ?? 'bg-gray-100 text-gray-600'
+              }`}
             >
-              {ind}
+              {s.stage}
             </span>
-          ))}
+          )}
         </div>
-      )}
 
-      {/* Description */}
-      {s.description && (
-        <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{s.description}</p>
-      )}
-
-      {/* Website + Ask */}
-      <div className="flex flex-col gap-1 text-xs text-gray-500">
-        {s.website_url && (
-          <a
-            href={s.website_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 text-purple-600 hover:text-purple-800 hover:underline truncate"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-            <span className="truncate">{s.website_url.replace(/^https?:\/\//, '')}</span>
-          </a>
-        )}
-        {s.current_ask && (
-          <div>
-            <p className="font-semibold text-gray-700">
-              Current Ask{s.current_ask_updated_at ? ` (last updated ${formatDate(s.current_ask_updated_at)})` : ''}:
-            </p>
-            <p className="text-gray-500">{s.current_ask}</p>
+        {/* Industry tags */}
+        {s.industry && s.industry.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {s.industry.map((ind) => (
+              <span
+                key={ind}
+                className={`text-xs font-medium px-2 py-0.5 rounded-full ${industryColor(ind)}`}
+              >
+                {ind}
+              </span>
+            ))}
           </div>
         )}
-      </div>
 
-      {/* Actions */}
-      <div className="mt-auto pt-1 flex gap-2" onClick={(e) => e.stopPropagation()}>
-        <a
-          href={`mailto:${s.founder_email ?? ''}?subject=Re: ${encodeURIComponent(s.startup_name)}`}
-          className="flex-1 text-center rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 text-sm font-medium py-2 transition"
-        >
-          Send Email
-        </a>
-        {isOwner && (
-          <button
-            onClick={() => router.push(`/startup/${s.id}/edit`)}
-            className="px-3 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-medium py-2 transition"
-          >
-            Edit
-          </button>
+        {/* Description */}
+        {s.description && (
+          <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{s.description}</p>
         )}
+
+        {/* Website + Ask */}
+        <div className="flex flex-col gap-1 text-xs text-gray-500">
+          {s.website_url && (
+            <a
+              href={s.website_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-purple-600 hover:text-purple-800 hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <span className="truncate">{s.website_url.replace(/^https?:\/\//, '')}</span>
+            </a>
+          )}
+          {s.current_ask && (
+            <div>
+              <p className="font-semibold text-gray-700">
+                Current Ask{s.current_ask_updated_at ? ` (last updated ${formatDate(s.current_ask_updated_at)})` : ''}:
+              </p>
+              <p className="text-gray-500">{s.current_ask}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="mt-auto pt-1" onClick={(e) => e.stopPropagation()}>
+          <a
+            href={`mailto:${s.founder_email ?? ''}?subject=Re: ${encodeURIComponent(s.startup_name)}`}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 text-xs font-medium px-3 py-1.5 transition"
+          >
+            <Mail className="w-3.5 h-3.5" />
+            Email
+          </a>
+        </div>
       </div>
     </div>
   )
