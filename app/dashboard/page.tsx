@@ -457,7 +457,7 @@ function StartupCard({
             <img
               src={s.logo_url}
               alt={`${s.startup_name} logo`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           ) : (
             <span className="text-5xl font-bold text-purple-200">
