@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
@@ -112,10 +112,10 @@ export default function DashboardPage() {
   const [loadingPeople, setLoadingPeople] = useState(true)
 
   // Startup filters
-  const [startupIndustry, setStartupIndustry] = useState<string | null>(null)
-  const [startupStage, setStartupStage] = useState<string | null>(null)
+  const [startupIndustries, setStartupIndustries] = useState<string[]>([])
+  const [startupStages, setStartupStages] = useState<string[]>([])
   // People filter
-  const [peopleIndustry, setPeopleIndustry] = useState<string | null>(null)
+  const [peopleIndustries, setPeopleIndustries] = useState<string[]>([])
 
   // Auth check
   useEffect(() => {
@@ -179,13 +179,13 @@ export default function DashboardPage() {
 
   // Filtered data
   const filteredStartups = startups.filter((s) => {
-    if (startupIndustry && !s.industry?.includes(startupIndustry)) return false
-    if (startupStage && s.stage !== startupStage) return false
+    if (startupIndustries.length > 0 && !startupIndustries.some((ind) => s.industry?.includes(ind))) return false
+    if (startupStages.length > 0 && !startupStages.includes(s.stage ?? '')) return false
     return true
   })
 
   const filteredPeople = people.filter((p) => {
-    if (peopleIndustry && !p.industries_of_interest?.includes(peopleIndustry)) return false
+    if (peopleIndustries.length > 0 && !peopleIndustries.some((ind) => p.industries_of_interest?.includes(ind))) return false
     return true
   })
 
@@ -254,50 +254,27 @@ export default function DashboardPage() {
         {/* ── Startups Tab ──────────────────────────────────────── */}
         {tab === 'startups' && (
           <div>
-            {/* Top action row: industry filter + Add Your Startup */}
-            <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-              <div className="flex flex-wrap gap-2">
-                <FilterPill
-                  label="All Industries"
-                  active={startupIndustry === null}
-                  onClick={() => setStartupIndustry(null)}
-                />
-                {ALL_INDUSTRIES.map((ind) => (
-                  <FilterPill
-                    key={ind}
-                    label={ind}
-                    active={startupIndustry === ind}
-                    onClick={() =>
-                      setStartupIndustry(startupIndustry === ind ? null : ind)
-                    }
-                  />
-                ))}
-              </div>
+            {/* Filter row */}
+            <div className="flex items-center gap-2 mb-6">
+              <FilterDropdown
+                label="Industry"
+                options={ALL_INDUSTRIES}
+                selected={startupIndustries}
+                onChange={setStartupIndustries}
+              />
+              <FilterDropdown
+                label="Stage"
+                options={ALL_STAGES}
+                selected={startupStages}
+                onChange={setStartupStages}
+              />
+              <div className="flex-1" />
               <button
                 onClick={() => router.push('/startup/new')}
                 className="flex-shrink-0 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-sm font-medium px-4 py-2 transition"
               >
                 + Add Your Startup
               </button>
-            </div>
-
-            {/* Stage filter row */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              <FilterPill
-                label="All Stages"
-                active={startupStage === null}
-                onClick={() => setStartupStage(null)}
-              />
-              {ALL_STAGES.map((stage) => (
-                <FilterPill
-                  key={stage}
-                  label={stage}
-                  active={startupStage === stage}
-                  onClick={() =>
-                    setStartupStage(startupStage === stage ? null : stage)
-                  }
-                />
-              ))}
             </div>
 
             {loadingStartups ? (
@@ -318,22 +295,13 @@ export default function DashboardPage() {
         {tab === 'people' && (
           <div>
             {/* Industry filter */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              <FilterPill
-                label="All Industries"
-                active={peopleIndustry === null}
-                onClick={() => setPeopleIndustry(null)}
+            <div className="flex items-center gap-2 mb-6">
+              <FilterDropdown
+                label="Industry"
+                options={ALL_INDUSTRIES}
+                selected={peopleIndustries}
+                onChange={setPeopleIndustries}
               />
-              {ALL_INDUSTRIES.map((ind) => (
-                <FilterPill
-                  key={ind}
-                  label={ind}
-                  active={peopleIndustry === ind}
-                  onClick={() =>
-                    setPeopleIndustry(peopleIndustry === ind ? null : ind)
-                  }
-                />
-              ))}
             </div>
 
             {loadingPeople ? (
@@ -356,26 +324,83 @@ export default function DashboardPage() {
 
 // ── Sub-components ───────────────────────────────────────────────────────────
 
-function FilterPill({
+function FilterDropdown({
   label,
-  active,
-  onClick,
+  options,
+  selected,
+  onChange,
 }: {
   label: string
-  active: boolean
-  onClick: () => void
+  options: string[]
+  selected: string[]
+  onChange: (val: string[]) => void
 }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    if (open) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [open])
+
+  function toggle(option: string) {
+    onChange(
+      selected.includes(option) ? selected.filter((s) => s !== option) : [...selected, option]
+    )
+  }
+
+  const isActive = selected.length > 0
+
   return (
-    <button
-      onClick={onClick}
-      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
-        active
-          ? 'bg-purple-700 border-purple-700 text-white'
-          : 'bg-white border-gray-300 text-gray-600 hover:border-purple-400 hover:text-purple-700'
-      }`}
-    >
-      {label}
-    </button>
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition ${
+          isActive
+            ? 'border-purple-500 bg-purple-50 text-purple-700'
+            : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+        }`}
+      >
+        <span>{label}</span>
+        {isActive && (
+          <span className="bg-purple-600 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center leading-none">
+            {selected.length}
+          </span>
+        )}
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1 max-h-72 overflow-y-auto">
+          {options.map((opt) => (
+            <label
+              key={opt}
+              className="flex items-center gap-2.5 px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm text-gray-700"
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(opt)}
+                onChange={() => toggle(opt)}
+                className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+              />
+              {opt}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
