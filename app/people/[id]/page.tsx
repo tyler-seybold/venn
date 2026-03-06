@@ -51,7 +51,7 @@ type Startup = {
   id: string
   startup_name: string
   logo_url: string | null
-  founders_display: string | null
+  member_names: string[]
   industry: string[] | null
   stage: string | null
   description: string | null
@@ -76,7 +76,7 @@ export default function PersonDetailPage() {
         supabase.from('profiles').select('*').eq('user_id', id).single(),
         supabase
           .from('startup_members')
-          .select('startup_id, role, startups(id, startup_name, logo_url, founders_display, industry, stage, description)')
+          .select('startup_id, role, startups(id, startup_name, logo_url, industry, stage, description, startup_members(user_id, profiles(full_name)))')
           .eq('user_id', id)
           .order('created_at', { ascending: false }),
       ])
@@ -89,7 +89,25 @@ export default function PersonDetailPage() {
       setProfile(profileData)
       setStartups(
         (memberData ?? [])
-          .map((m) => (Array.isArray(m.startups) ? m.startups[0] : m.startups) as unknown as Startup | null)
+          .map((m) => {
+            const raw = (Array.isArray(m.startups) ? m.startups[0] : m.startups) as unknown as {
+              id: string
+              startup_name: string
+              logo_url: string | null
+              industry: string[] | null
+              stage: string | null
+              description: string | null
+              startup_members: Array<{ user_id: string; profiles: Array<{ full_name: string | null }> | null }>
+            } | null
+            if (!raw) return null
+            const { startup_members, ...rest } = raw
+            return {
+              ...rest,
+              member_names: (startup_members ?? [])
+                .map((sm) => (Array.isArray(sm.profiles) ? sm.profiles[0]?.full_name : null))
+                .filter((n): n is string => typeof n === 'string' && n.length > 0),
+            } as Startup
+          })
           .filter((s): s is Startup => s !== null)
       )
       setLoading(false)
@@ -267,8 +285,8 @@ export default function PersonDetailPage() {
                       )}
                     </div>
 
-                    {s.founders_display && (
-                      <p className="text-xs text-gray-500 mb-2">{s.founders_display}</p>
+                    {s.member_names.length > 0 && (
+                      <p className="text-xs text-gray-500 mb-2">{s.member_names.join(', ')}</p>
                     )}
 
                     {s.industry && s.industry.length > 0 && (

@@ -39,7 +39,6 @@ type Startup = {
   founder_id: string
   startup_name: string
   logo_url: string | null
-  founders_display: string | null
   industry: string[] | null
   stage: string | null
   description: string | null
@@ -200,8 +199,10 @@ export default function StartupDetailPage() {
                   </button>
                 )}
               </div>
-              {startup.founders_display && (
-                <p className="mt-1 text-sm text-gray-500">{startup.founders_display}</p>
+              {members.length > 0 && (
+                <p className="mt-1 text-sm text-gray-500">
+                  {members.map((m) => m.full_name ?? m.email ?? '—').join(', ')}
+                </p>
               )}
             </div>
           </div>

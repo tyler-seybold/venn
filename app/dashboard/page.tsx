@@ -11,7 +11,7 @@ type Startup = {
   founder_id: string
   startup_name: string
   logo_url: string | null
-  founders_display: string | null
+  member_names: string[]
   industry: string[] | null
   stage: string | null
   description: string | null
@@ -141,13 +141,18 @@ export default function DashboardPage() {
     if (!authChecked) return
     supabase
       .from('startups')
-      .select('*, profiles(email)')
+      .select('*, profiles(email), startup_members(user_id, profiles(full_name))')
       .order('created_at', { ascending: false })
       .then(({ data }) => {
         setStartups(
-          (data ?? []).map(({ profiles, ...s }) => ({
+          (data ?? []).map(({ profiles, startup_members, ...s }) => ({
             ...s,
             founder_email: (profiles as { email: string } | null)?.email ?? null,
+            member_names: (
+              (startup_members as Array<{ user_id: string; profiles: Array<{ full_name: string | null }> | null }>) ?? []
+            )
+              .map((m) => (Array.isArray(m.profiles) ? m.profiles[0]?.full_name : null))
+              .filter((n): n is string => typeof n === 'string' && n.length > 0),
           }))
         )
         setLoadingStartups(false)
@@ -438,8 +443,8 @@ function StartupCard({
           <h3 className="font-semibold text-gray-900 text-base leading-tight truncate">
             {s.startup_name}
           </h3>
-          {s.founders_display && (
-            <p className="text-xs text-gray-500 mt-0.5 truncate">{s.founders_display}</p>
+          {s.member_names.length > 0 && (
+            <p className="text-xs text-gray-500 mt-0.5 truncate">{s.member_names.join(', ')}</p>
           )}
         </div>
         {s.stage && (

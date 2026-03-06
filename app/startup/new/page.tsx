@@ -44,7 +44,6 @@ export default function NewStartupPage() {
   const [startupName, setStartupName] = useState('')
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
-  const [foundersDisplay, setFoundersDisplay] = useState('')
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([])
   const [stage, setStage] = useState<Stage | null>(null)
   const [description, setDescription] = useState('')
@@ -121,7 +120,7 @@ export default function NewStartupPage() {
       founder_id: userId,
       startup_name: startupName,
       logo_url: logoUrl,
-      founders_display: foundersDisplay,
+      founders_display: null,
       industry: selectedIndustries.length > 0 ? selectedIndustries : null,
       stage: stage ?? null,
       description: description || null,
@@ -252,23 +251,6 @@ export default function NewStartupPage() {
                 onChange={handleLogoChange}
                 className="hidden"
               />
-            </div>
-
-            {/* Founders display names */}
-            <div>
-              <label htmlFor="founders" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Founders <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="founders"
-                type="text"
-                required
-                value={foundersDisplay}
-                onChange={(e) => setFoundersDisplay(e.target.value)}
-                placeholder="Jane Smith, John Doe"
-                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-              />
-              <p className="mt-1 text-xs text-gray-400">Separate multiple founders with commas</p>
             </div>
 
             {/* Industry */}

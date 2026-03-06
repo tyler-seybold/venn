@@ -55,7 +55,6 @@ export default function EditStartupPage() {
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [logoRemoved, setLogoRemoved] = useState(false)
-  const [foundersDisplay, setFoundersDisplay] = useState('')
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([])
   const [stage, setStage] = useState<Stage | null>(null)
   const [description, setDescription] = useState('')
@@ -116,7 +115,6 @@ export default function EditStartupPage() {
       setStartupName(startup.startup_name)
       setExistingLogoUrl(startup.logo_url ?? null)
       setLogoPreview(startup.logo_url ?? null)
-      setFoundersDisplay(startup.founders_display ?? '')
       setSelectedIndustries(startup.industry ?? [])
       setStage((startup.stage as Stage) ?? null)
       setDescription(startup.description ?? '')
@@ -258,7 +256,6 @@ export default function EditStartupPage() {
       .update({
         startup_name: startupName,
         logo_url: logoUrl,
-        founders_display: foundersDisplay,
         industry: selectedIndustries.length > 0 ? selectedIndustries : null,
         stage: stage ?? null,
         description: description || null,
@@ -413,23 +410,6 @@ export default function EditStartupPage() {
                 onChange={handleLogoChange}
                 className="hidden"
               />
-            </div>
-
-            {/* Founders display names */}
-            <div>
-              <label htmlFor="founders" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Founders <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="founders"
-                type="text"
-                required
-                value={foundersDisplay}
-                onChange={(e) => setFoundersDisplay(e.target.value)}
-                placeholder="Jane Smith, John Doe"
-                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-              />
-              <p className="mt-1 text-xs text-gray-400">Separate multiple founders with commas</p>
             </div>
 
             {/* Industry */}
