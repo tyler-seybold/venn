@@ -344,7 +344,7 @@ export default function DashboardPage() {
             ) : filteredPeople.length === 0 ? (
               <EmptyState message="No people match the selected filters." />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                 {filteredPeople.map((p) => (
                   <PersonCard key={p.user_id} person={p} />
                 ))}
@@ -556,70 +556,60 @@ function PersonCard({ person: p }: { person: Profile }) {
 
   return (
     <div
-      className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3 cursor-pointer hover:border-purple-200 hover:shadow-md transition"
+      className="bg-white rounded-3xl border border-gray-200 shadow-sm px-5 pt-8 pb-6 flex flex-col items-center gap-3 cursor-pointer hover:border-purple-200 hover:shadow-md transition"
       onClick={() => router.push(`/people/${p.user_id}`)}
     >
-      {/* Header */}
-      <div className="flex items-start gap-3">
-        {p.avatar_url ? (
-          <img
-            src={p.avatar_url}
-            alt={p.full_name ?? 'Avatar'}
-            className="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-sm font-bold text-purple-600">
-              {(p.full_name ?? '?').charAt(0).toUpperCase()}
+      {/* Avatar */}
+      {p.avatar_url ? (
+        <img
+          src={p.avatar_url}
+          alt={p.full_name ?? 'Avatar'}
+          className="w-20 h-20 rounded-full object-cover border border-gray-200 flex-shrink-0"
+        />
+      ) : (
+        <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+          <span className="text-2xl font-bold text-purple-600">
+            {(p.full_name ?? '?').charAt(0).toUpperCase()}
+          </span>
+        </div>
+      )}
+
+      {/* Name */}
+      <h3 className="text-base font-semibold text-gray-900 text-center leading-tight">
+        {p.full_name ?? '—'}
+      </h3>
+
+      {/* Badges */}
+      {(p.is_founder || p.is_looking_for_startup) && (
+        <div className="flex flex-wrap justify-center gap-1.5">
+          {p.is_founder && (
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
+              Founder
             </span>
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-gray-900 text-base leading-tight truncate">
-              {p.full_name ?? '—'}
-            </h3>
-            <div className="flex flex-shrink-0 gap-1">
-              {p.is_founder && (
-                <span className="text-xs font-medium px-2 py-1 rounded-full bg-indigo-100 text-indigo-700">
-                  Founder
-                </span>
-              )}
-              {!p.is_founder && p.is_looking_for_startup && (
-                <span className="text-xs font-medium px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                  Open to joining
-                </span>
-              )}
-            </div>
-          </div>
-          {p.degree_program && (
-            <p className="text-xs text-gray-500 mt-0.5">{p.degree_program}</p>
+          )}
+          {!p.is_founder && p.is_looking_for_startup && (
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
+              Open to joining
+            </span>
           )}
         </div>
-      </div>
+      )}
+
+      {/* Degree + year */}
+      {(p.degree_program || p.graduation_year) && (
+        <p className="text-xs text-gray-400 text-center leading-snug">
+          {[p.degree_program, p.graduation_year].filter(Boolean).join(' · ')}
+        </p>
+      )}
 
       {/* Bio */}
       {p.bio && (
-        <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{p.bio}</p>
+        <p className="text-xs text-gray-500 text-center leading-relaxed line-clamp-2">{p.bio}</p>
       )}
 
-      {/* Skills */}
-      {p.skills && p.skills.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {p.skills.map((skill) => (
-            <span
-              key={skill}
-              className="text-xs font-medium bg-purple-100 text-purple-800 px-2 py-0.5 rounded-md"
-            >
-              {skill}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Industries of interest */}
+      {/* Industry pills */}
       {p.industries_of_interest && p.industries_of_interest.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap justify-center gap-1.5">
           {p.industries_of_interest.map((ind) => (
             <span
               key={ind}
@@ -631,9 +621,23 @@ function PersonCard({ person: p }: { person: Profile }) {
         </div>
       )}
 
+      {/* Skills */}
+      {p.skills && p.skills.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-1.5">
+          {p.skills.map((skill) => (
+            <span
+              key={skill}
+              className="text-xs font-medium bg-purple-100 text-purple-800 px-2 py-0.5 rounded-md"
+            >
+              {skill}
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* Actions */}
       {(p.email || p.slack_handle) && (
-        <div className="mt-auto pt-1 flex gap-2" onClick={(e) => e.stopPropagation()}>
+        <div className="mt-auto pt-2 flex justify-center gap-2" onClick={(e) => e.stopPropagation()}>
           {p.email && (
             <a
               href={`mailto:${p.email}`}
