@@ -154,9 +154,6 @@ export default function DashboardPage() {
       .select('*, profiles(email), startup_members(user_id, profiles(full_name))')
       .order('created_at', { ascending: false })
       .then(({ data }) => {
-        if (data?.[0]) {
-          console.log('[dashboard] sample startup_members:', JSON.stringify(data[0].startup_members, null, 2))
-        }
         setStartups(
           (data ?? []).map(({ profiles, startup_members, ...s }) => {
             const members = (startup_members as Array<{ user_id: string; profiles: unknown }>) ?? []
@@ -516,12 +513,12 @@ function StartupCard({
           </a>
         )}
         {s.current_ask && (
-          <p>
-            <span className="font-medium text-gray-700">
+          <div>
+            <p className="font-semibold text-gray-700">
               Current Ask{s.current_ask_updated_at ? ` (last updated ${formatDate(s.current_ask_updated_at)})` : ''}:
-            </span>{' '}
-            {s.current_ask}
-          </p>
+            </p>
+            <p className="text-gray-500">{s.current_ask}</p>
+          </div>
         )}
       </div>
 
