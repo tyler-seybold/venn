@@ -248,7 +248,7 @@ export default function PersonDetailPage() {
           {profile.slack_handle && (
             <div className="mt-6">
               <a
-                href={`https://kellogg-mba.slack.com/team/@${profile.slack_handle}`}
+                href={`slack://user?team=T&id=${profile.slack_handle}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 rounded-lg border border-green-300 text-green-700 hover:bg-green-50 text-xs font-medium px-3 py-1.5 transition"

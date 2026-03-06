@@ -635,7 +635,7 @@ function PersonCard({ person: p }: { person: Profile }) {
       {p.slack_handle && (
         <div className="mt-auto pt-1" onClick={(e) => e.stopPropagation()}>
           <a
-            href={`https://kellogg-mba.slack.com/team/@${p.slack_handle}`}
+            href={`slack://user?team=T&id=${p.slack_handle}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-lg border border-green-300 text-green-700 hover:bg-green-50 text-xs font-medium px-3 py-1.5 transition"

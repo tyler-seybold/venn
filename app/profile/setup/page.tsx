@@ -148,7 +148,7 @@ export default function ProfileSetupPage() {
       degree_program: degreeProgram || null,
       avatar_url: avatarUrl,
       bio: bio || null,
-      slack_handle: slackHandle ? slackHandle.replace(/^@/, '') : null,
+      slack_handle: slackHandle || null,
       skills: skills.length > 0 ? skills : null,
       industries_of_interest: industries.length > 0 ? industries : null,
       is_looking_for_startup: isLooking,
@@ -298,7 +298,7 @@ export default function ProfileSetupPage() {
                 type="text"
                 value={slackHandle}
                 onChange={(e) => setSlackHandle(e.target.value)}
-                placeholder="@yourhandle"
+                placeholder="Your Slack User ID (e.g. U0000000000)"
                 className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
               />
             </div>
