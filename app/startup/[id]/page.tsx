@@ -104,7 +104,10 @@ export default function StartupDetailPage() {
             is_looking_for_startup: boolean
             avatar_url: string | null
           }
-          const profile = ((m.profiles as unknown as ProfileData[])[0]) ?? null
+          const raw = m.profiles as unknown
+          const profile: ProfileData | null = Array.isArray(raw)
+            ? (raw as ProfileData[])[0] ?? null
+            : (raw as ProfileData | null) ?? null
           return {
             id: m.id,
             role: m.role,

@@ -104,7 +104,7 @@ export default function PersonDetailPage() {
             return {
               ...rest,
               member_names: (startup_members ?? [])
-                .map((sm) => (Array.isArray(sm.profiles) ? sm.profiles[0]?.full_name : null))
+                .map((sm) => (sm.profiles as Array<{ full_name: string | null }>)?.[0]?.full_name ?? null)
                 .filter((n): n is string => typeof n === 'string' && n.length > 0),
             } as Startup
           })

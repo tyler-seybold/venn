@@ -149,9 +149,9 @@ export default function DashboardPage() {
             ...s,
             founder_email: (profiles as { email: string } | null)?.email ?? null,
             member_names: (
-              (startup_members as Array<{ user_id: string; profiles: Array<{ full_name: string | null }> | null }>) ?? []
+              (startup_members as Array<{ user_id: string; profiles: unknown }>) ?? []
             )
-              .map((m) => (Array.isArray(m.profiles) ? m.profiles[0]?.full_name : null))
+              .map((m) => (m.profiles as Array<{ full_name: string | null }>)?.[0]?.full_name ?? null)
               .filter((n): n is string => typeof n === 'string' && n.length > 0),
           }))
         )
