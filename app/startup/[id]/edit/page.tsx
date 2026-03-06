@@ -5,14 +5,26 @@ import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 const INDUSTRIES = [
-  'Technology',
-  'Healthcare',
-  'Finance',
-  'Consumer Products',
-  'Education Services',
+  'Apparel',
   'Business Services',
+  'Climate',
+  'Consumer Products',
+  'Consumer Services',
+  'Education',
+  'Energy',
+  'Financial Services',
+  'Fintech',
   'Food & Beverage',
-  'Other',
+  'Gaming',
+  'Health & Wellness',
+  'Healthcare',
+  'Logistics',
+  'Media',
+  'Medical Devices',
+  'Real Estate / PropTech',
+  'Social Impact',
+  'Technology',
+  'Travel & Hospitality',
 ]
 
 const STAGES = ['Ideation', 'MVP', 'Beta Client/Pilot', 'Revenue-generating'] as const

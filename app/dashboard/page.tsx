@@ -37,27 +37,51 @@ type Profile = {
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const ALL_INDUSTRIES = [
-  'Technology',
-  'Healthcare',
-  'Finance',
-  'Consumer Products',
-  'Education Services',
+  'Apparel',
   'Business Services',
+  'Climate',
+  'Consumer Products',
+  'Consumer Services',
+  'Education',
+  'Energy',
+  'Financial Services',
+  'Fintech',
   'Food & Beverage',
-  'Other',
+  'Gaming',
+  'Health & Wellness',
+  'Healthcare',
+  'Logistics',
+  'Media',
+  'Medical Devices',
+  'Real Estate / PropTech',
+  'Social Impact',
+  'Technology',
+  'Travel & Hospitality',
 ]
 
 const ALL_STAGES = ['Ideation', 'MVP', 'Beta Client/Pilot', 'Revenue-generating']
 
 const INDUSTRY_COLORS: Record<string, string> = {
-  Technology: 'bg-blue-100 text-blue-700',
-  Healthcare: 'bg-green-100 text-green-700',
-  Finance: 'bg-yellow-100 text-yellow-700',
-  'Consumer Products': 'bg-orange-100 text-orange-700',
-  'Education Services': 'bg-purple-100 text-purple-700',
+  Apparel: 'bg-pink-100 text-pink-700',
   'Business Services': 'bg-indigo-100 text-indigo-700',
+  Climate: 'bg-teal-100 text-teal-700',
+  'Consumer Products': 'bg-orange-100 text-orange-700',
+  'Consumer Services': 'bg-amber-100 text-amber-700',
+  Education: 'bg-purple-100 text-purple-700',
+  Energy: 'bg-yellow-100 text-yellow-700',
+  'Financial Services': 'bg-emerald-100 text-emerald-700',
+  Fintech: 'bg-cyan-100 text-cyan-700',
   'Food & Beverage': 'bg-red-100 text-red-700',
-  Other: 'bg-gray-100 text-gray-600',
+  Gaming: 'bg-violet-100 text-violet-700',
+  'Health & Wellness': 'bg-lime-100 text-lime-700',
+  Healthcare: 'bg-green-100 text-green-700',
+  Logistics: 'bg-stone-100 text-stone-700',
+  Media: 'bg-rose-100 text-rose-700',
+  'Medical Devices': 'bg-sky-100 text-sky-700',
+  'Real Estate / PropTech': 'bg-fuchsia-100 text-fuchsia-700',
+  'Social Impact': 'bg-blue-100 text-blue-700',
+  Technology: 'bg-slate-100 text-slate-700',
+  'Travel & Hospitality': 'bg-gray-100 text-gray-700',
 }
 
 const STAGE_COLORS: Record<string, string> = {
