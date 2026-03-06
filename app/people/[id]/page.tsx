@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { MessageSquare } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 const INDUSTRY_COLORS: Record<string, string> = {
@@ -39,6 +40,7 @@ type Profile = {
   full_name: string | null
   email: string | null
   bio: string | null
+  slack_handle: string | null
   skills: string[] | null
   industries_of_interest: string[] | null
   is_looking_for_startup: boolean
@@ -239,6 +241,21 @@ export default function PersonDetailPage() {
                   </span>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Slack */}
+          {profile.slack_handle && (
+            <div className="mt-6">
+              <a
+                href={`https://kellogg-mba.slack.com/team/@${profile.slack_handle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-green-300 text-green-700 hover:bg-green-50 text-xs font-medium px-3 py-1.5 transition"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                Slack
+              </a>
             </div>
           )}
         </div>

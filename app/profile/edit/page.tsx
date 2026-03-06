@@ -55,6 +55,7 @@ export default function ProfileEditPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [bio, setBio] = useState('')
+  const [slackHandle, setSlackHandle] = useState('')
   const [skills, setSkills] = useState<string[]>([])
   const [skillInput, setSkillInput] = useState('')
   const [industries, setIndustries] = useState<string[]>([])
@@ -109,6 +110,7 @@ export default function ProfileEditPage() {
         setExistingAvatarUrl(profile.avatar_url ?? null)
         setAvatarPreview(profile.avatar_url ?? null)
         setBio(profile.bio ?? '')
+        setSlackHandle(profile.slack_handle ?? '')
         setSkills(profile.skills ?? [])
         setIndustries(profile.industries_of_interest ?? [])
         setIsLooking(profile.is_looking_for_startup ?? false)
@@ -182,6 +184,7 @@ export default function ProfileEditPage() {
         degree_program: degreeProgram || null,
         avatar_url: avatarUrl,
         bio: bio || null,
+        slack_handle: slackHandle ? slackHandle.replace(/^@/, '') : null,
         skills: skills.length > 0 ? skills : null,
         industries_of_interest: industries.length > 0 ? industries : null,
         is_looking_for_startup: isLooking,
@@ -359,6 +362,21 @@ export default function ProfileEditPage() {
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="A short intro about yourself…"
                 className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition resize-none"
+              />
+            </div>
+
+            {/* Slack handle */}
+            <div>
+              <label htmlFor="slackHandle" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Slack handle <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <input
+                id="slackHandle"
+                type="text"
+                value={slackHandle}
+                onChange={(e) => setSlackHandle(e.target.value)}
+                placeholder="@yourhandle"
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
               />
             </div>
 

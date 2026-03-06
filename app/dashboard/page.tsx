@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail } from 'lucide-react'
+import { Mail, MessageSquare } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -36,6 +36,7 @@ type Profile = {
   full_name: string | null
   email: string | null
   bio: string | null
+  slack_handle: string | null
   skills: string[] | null
   industries_of_interest: string[] | null
   is_looking_for_startup: boolean
@@ -627,6 +628,21 @@ function PersonCard({ person: p }: { person: Profile }) {
               {ind}
             </span>
           ))}
+        </div>
+      )}
+
+      {/* Actions */}
+      {p.slack_handle && (
+        <div className="mt-auto pt-1" onClick={(e) => e.stopPropagation()}>
+          <a
+            href={`https://kellogg-mba.slack.com/team/@${p.slack_handle}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-green-300 text-green-700 hover:bg-green-50 text-xs font-medium px-3 py-1.5 transition"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            Slack
+          </a>
         </div>
       )}
     </div>
