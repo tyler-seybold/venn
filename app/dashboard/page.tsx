@@ -554,114 +554,115 @@ function StartupCard({
 function PersonCard({ person: p }: { person: Profile }) {
   const router = useRouter()
 
+  const badge = p.is_founder
+    ? { label: 'Founder', className: 'bg-indigo-500/80 text-white' }
+    : p.is_looking_for_startup
+    ? { label: 'Open to joining', className: 'bg-emerald-500/80 text-white' }
+    : null
+
   return (
     <div
-      className="bg-white rounded-3xl border border-gray-200 shadow-sm px-5 pt-8 pb-6 flex flex-col items-center gap-3 cursor-pointer hover:border-purple-200 hover:shadow-md transition"
+      className="bg-white rounded-[2.5rem] border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden cursor-pointer hover:border-purple-200 hover:shadow-md transition"
       onClick={() => router.push(`/people/${p.user_id}`)}
     >
-      {/* Avatar */}
-      {p.avatar_url ? (
-        <img
-          src={p.avatar_url}
-          alt={p.full_name ?? 'Avatar'}
-          className="w-20 h-20 rounded-full object-cover border border-gray-200 flex-shrink-0"
-        />
-      ) : (
-        <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-          <span className="text-2xl font-bold text-purple-600">
-            {(p.full_name ?? '?').charAt(0).toUpperCase()}
+      {/* Photo / placeholder — full-width, bleeds to edges */}
+      <div className="relative w-full aspect-square rounded-t-[2.5rem] overflow-hidden bg-purple-100 flex-shrink-0">
+        {p.avatar_url ? (
+          <img
+            src={p.avatar_url}
+            alt={p.full_name ?? 'Avatar'}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="text-5xl font-bold text-purple-400">
+              {(p.full_name ?? '?').charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
+        {/* Status badge overlay */}
+        {badge && (
+          <span className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm ${badge.className}`}>
+            {badge.label}
           </span>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Name */}
-      <h3 className="text-base font-semibold text-gray-900 text-center leading-tight">
-        {p.full_name ?? '—'}
-      </h3>
+      {/* Card body */}
+      <div className="w-full flex flex-col items-center gap-2.5 px-4 pt-4 pb-5">
+        {/* Name */}
+        <h3 className="text-base font-semibold text-gray-900 text-center leading-tight">
+          {p.full_name ?? '—'}
+        </h3>
 
-      {/* Badges */}
-      {(p.is_founder || p.is_looking_for_startup) && (
-        <div className="flex flex-wrap justify-center gap-1.5">
-          {p.is_founder && (
-            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
-              Founder
-            </span>
-          )}
-          {!p.is_founder && p.is_looking_for_startup && (
-            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
-              Open to joining
-            </span>
-          )}
-        </div>
-      )}
+        {/* Degree + year */}
+        {(p.degree_program || p.graduation_year) && (
+          <p className="text-xs text-gray-400 text-center leading-snug">
+            {[p.degree_program, p.graduation_year].filter(Boolean).join(' · ')}
+          </p>
+        )}
 
-      {/* Degree + year */}
-      {(p.degree_program || p.graduation_year) && (
-        <p className="text-xs text-gray-400 text-center leading-snug">
-          {[p.degree_program, p.graduation_year].filter(Boolean).join(' · ')}
-        </p>
-      )}
+        {/* Bio */}
+        {p.bio && (
+          <p className="text-xs text-gray-500 text-center leading-relaxed line-clamp-2">{p.bio}</p>
+        )}
 
-      {/* Bio */}
-      {p.bio && (
-        <p className="text-xs text-gray-500 text-center leading-relaxed line-clamp-2">{p.bio}</p>
-      )}
+        {/* Industry pills */}
+        {p.industries_of_interest && p.industries_of_interest.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {p.industries_of_interest.map((ind) => (
+              <span
+                key={ind}
+                className={`text-xs font-medium px-2 py-0.5 rounded-full ${industryColor(ind)}`}
+              >
+                {ind}
+              </span>
+            ))}
+          </div>
+        )}
 
-      {/* Industry pills */}
-      {p.industries_of_interest && p.industries_of_interest.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-1.5">
-          {p.industries_of_interest.map((ind) => (
-            <span
-              key={ind}
-              className={`text-xs font-medium px-2 py-0.5 rounded-full ${industryColor(ind)}`}
-            >
-              {ind}
-            </span>
-          ))}
-        </div>
-      )}
+        {/* Skills */}
+        {p.skills && p.skills.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {p.skills.map((skill) => (
+              <span
+                key={skill}
+                className="text-xs font-medium bg-purple-100 text-purple-800 px-2 py-0.5 rounded-md"
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+        )}
 
-      {/* Skills */}
-      {p.skills && p.skills.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-1.5">
-          {p.skills.map((skill) => (
-            <span
-              key={skill}
-              className="text-xs font-medium bg-purple-100 text-purple-800 px-2 py-0.5 rounded-md"
-            >
-              {skill}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Actions */}
-      {(p.email || p.slack_handle) && (
-        <div className="mt-auto pt-2 flex justify-center gap-2" onClick={(e) => e.stopPropagation()}>
-          {p.email && (
-            <a
-              href={`mailto:${p.email}`}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 text-xs font-medium px-3 py-1.5 transition"
-            >
-              <Mail className="w-3.5 h-3.5" />
-              Email
-            </a>
-          )}
-          {p.slack_handle && (
-            <a
-              href={`slack://user?team=T0AUF6SQ7&id=${p.slack_handle}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-gray-700 hover:bg-gray-800 text-white text-xs font-medium px-3 py-1.5 transition"
-            >
-              <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-                <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
-              </svg>
-              Slack
-            </a>
-          )}
-        </div>
-      )}
+        {/* Actions */}
+        {(p.email || p.slack_handle) && (
+          <div className="mt-auto pt-1 flex justify-center gap-2" onClick={(e) => e.stopPropagation()}>
+            {p.email && (
+              <a
+                href={`mailto:${p.email}`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 text-xs font-medium px-3 py-1.5 transition"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                Email
+              </a>
+            )}
+            {p.slack_handle && (
+              <a
+                href={`slack://user?team=T0AUF6SQ7&id=${p.slack_handle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-gray-700 hover:bg-gray-800 text-white text-xs font-medium px-3 py-1.5 transition"
+              >
+                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
+                  <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
+                </svg>
+                Slack
+              </a>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
