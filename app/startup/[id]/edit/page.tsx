@@ -60,6 +60,7 @@ export default function EditStartupPage() {
   const [description, setDescription] = useState('')
   const [websiteUrl, setWebsiteUrl] = useState('')
   const [currentAsk, setCurrentAsk] = useState('')
+  const [originalCurrentAsk, setOriginalCurrentAsk] = useState('')
 
   // Co-founders state
   const [coFounders, setCoFounders] = useState<Array<{ id: string; user_id: string; full_name: string | null; email: string | null }>>([])
@@ -120,6 +121,7 @@ export default function EditStartupPage() {
       setDescription(startup.description ?? '')
       setWebsiteUrl(startup.website_url ?? '')
       setCurrentAsk(startup.current_ask ?? '')
+      setOriginalCurrentAsk(startup.current_ask ?? '')
 
       // Load co-founders (exclude primary)
       const { data: membersData } = await supabase
@@ -261,6 +263,9 @@ export default function EditStartupPage() {
         description: description || null,
         website_url: normalizedUrl,
         current_ask: currentAsk || null,
+        ...(currentAsk !== originalCurrentAsk
+          ? { current_ask_updated_at: currentAsk ? new Date().toISOString() : null }
+          : {}),
       })
       .eq('id', id)
 

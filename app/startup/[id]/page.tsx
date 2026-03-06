@@ -44,6 +44,16 @@ type Startup = {
   description: string | null
   website_url: string | null
   current_ask: string | null
+  current_ask_updated_at: string | null
+}
+
+function formatDate(iso: string | null): string | null {
+  if (!iso) return null
+  const d = new Date(iso)
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const yyyy = d.getFullYear()
+  return `${mm}/${dd}/${yyyy}`
 }
 
 type Member = {
@@ -267,7 +277,7 @@ export default function StartupDetailPage() {
           {startup.current_ask && (
             <div className="mb-6">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Current Ask
+                Current Ask{startup.current_ask_updated_at ? ` (last updated ${formatDate(startup.current_ask_updated_at)})` : ''}
               </h2>
               <p className="text-sm text-gray-700">{startup.current_ask}</p>
             </div>

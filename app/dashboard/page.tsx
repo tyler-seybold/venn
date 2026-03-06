@@ -17,7 +17,17 @@ type Startup = {
   description: string | null
   website_url: string | null
   current_ask: string | null
+  current_ask_updated_at: string | null
   founder_email: string | null
+}
+
+function formatDate(iso: string | null): string | null {
+  if (!iso) return null
+  const d = new Date(iso)
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const yyyy = d.getFullYear()
+  return `${mm}/${dd}/${yyyy}`
 }
 
 type Profile = {
@@ -144,16 +154,28 @@ export default function DashboardPage() {
       .select('*, profiles(email), startup_members(user_id, profiles(full_name))')
       .order('created_at', { ascending: false })
       .then(({ data }) => {
+        if (data?.[0]) {
+          console.log('[dashboard] sample startup_members:', JSON.stringify(data[0].startup_members, null, 2))
+        }
         setStartups(
-          (data ?? []).map(({ profiles, startup_members, ...s }) => ({
-            ...s,
-            founder_email: (profiles as { email: string } | null)?.email ?? null,
-            member_names: (
-              (startup_members as Array<{ user_id: string; profiles: unknown }>) ?? []
-            )
-              .map((m) => (m.profiles as Array<{ full_name: string | null }>)?.[0]?.full_name ?? null)
-              .filter((n): n is string => typeof n === 'string' && n.length > 0),
-          }))
+          (data ?? []).map(({ profiles, startup_members, ...s }) => {
+            const members = (startup_members as Array<{ user_id: string; profiles: unknown }>) ?? []
+            const member_names = members
+              .map((m) => {
+                const p = m.profiles
+                // profiles may be a single object or an array depending on Supabase join type
+                const name = Array.isArray(p)
+                  ? (p as Array<{ full_name: string | null }>)[0]?.full_name
+                  : (p as { full_name: string | null } | null)?.full_name
+                return name ?? null
+              })
+              .filter((n): n is string => typeof n === 'string' && n.length > 0)
+            return {
+              ...s,
+              founder_email: (profiles as { email: string } | null)?.email ?? null,
+              member_names,
+            }
+          })
         )
         setLoadingStartups(false)
       })
@@ -484,14 +506,21 @@ function StartupCard({
             href={s.website_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-purple-600 hover:text-purple-800 hover:underline truncate"
+            className="flex items-center gap-1 text-purple-600 hover:text-purple-800 hover:underline truncate"
+            onClick={(e) => e.stopPropagation()}
           >
-            {s.website_url.replace(/^https?:\/\//, '')}
+            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+            <span className="truncate">{s.website_url.replace(/^https?:\/\//, '')}</span>
           </a>
         )}
         {s.current_ask && (
           <p>
-            <span className="font-medium text-gray-700">Ask:</span> {s.current_ask}
+            <span className="font-medium text-gray-700">
+              Current Ask{s.current_ask_updated_at ? ` (last updated ${formatDate(s.current_ask_updated_at)})` : ''}:
+            </span>{' '}
+            {s.current_ask}
           </p>
         )}
       </div>
