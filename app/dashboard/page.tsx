@@ -44,6 +44,7 @@ type Profile = {
   degree_program: string | null
   avatar_url: string | null
   is_founder: boolean
+  startup_name: string | null
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -186,14 +187,24 @@ export default function DashboardPage() {
     if (!authChecked) return
     supabase
       .from('profiles')
-      .select('*, startup_members(id)')
+      .select('*, startup_members(id, startups(startup_name))')
       .order('full_name', { ascending: true })
       .then(({ data }) => {
         setPeople(
-          (data ?? []).map(({ startup_members, ...p }) => ({
-            ...p,
-            is_founder: Array.isArray(startup_members) && startup_members.length > 0,
-          }))
+          (data ?? []).map(({ startup_members, ...p }) => {
+            const members = (startup_members as Array<{ id: string; startups: unknown }>) ?? []
+            const firstStartup = members[0]?.startups
+            const startup_name = firstStartup
+              ? Array.isArray(firstStartup)
+                ? (firstStartup as Array<{ startup_name: string | null }>)[0]?.startup_name ?? null
+                : (firstStartup as { startup_name: string | null }).startup_name ?? null
+              : null
+            return {
+              ...p,
+              is_founder: members.length > 0,
+              startup_name,
+            }
+          })
         )
         setLoadingPeople(false)
       })
@@ -594,6 +605,11 @@ function PersonCard({ person: p }: { person: Profile }) {
         <h3 className="text-base font-semibold text-gray-900 text-center leading-tight">
           {p.full_name ?? '—'}
         </h3>
+
+        {/* Startup name */}
+        {p.startup_name && (
+          <p className="text-sm text-gray-500 text-center leading-tight -mt-1">{p.startup_name}</p>
+        )}
 
         {/* Degree + year */}
         {(p.degree_program || p.graduation_year) && (
