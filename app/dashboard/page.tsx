@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, ChevronDown, ChevronRight } from 'lucide-react'
+import { Mail, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -567,18 +567,17 @@ function StartupCard({
         {/* Website + Ask */}
         <div className="flex flex-col gap-1 text-xs text-gray-500">
           {s.website_url && (
-            <a
-              href={s.website_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-brand hover:text-brand hover:underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-              <span className="truncate">{s.website_url.replace(/^https?:\/\//, '')}</span>
-            </a>
+            <div onClick={(e) => e.stopPropagation()}>
+              <a
+                href={s.website_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-light text-brand hover:bg-brand-light text-xs font-medium px-3 py-1.5 transition"
+              >
+                <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
+                Startup Website
+              </a>
+            </div>
           )}
           {s.current_ask && (
             <div>
@@ -600,6 +599,17 @@ function StartupCard({
             Email
           </a>
         </div>
+      </div>
+
+      {/* View Startup button */}
+      <div className="w-full border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={() => router.push(`/startup/${s.id}`)}
+          className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-brand bg-brand-light hover:bg-brand-light/70 transition"
+        >
+          View Startup
+          <ChevronRight className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   )
