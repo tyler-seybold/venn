@@ -625,11 +625,11 @@ function PersonCard({ person: p }: { person: Profile }) {
 
   return (
     <div
-      className="bg-white rounded-[3rem] border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden cursor-pointer hover:border-brand-light hover:shadow-md hover:-translate-y-0.5 transition-all"
+      className="bg-white rounded-[5rem] border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden cursor-pointer hover:border-brand-light hover:shadow-md hover:-translate-y-0.5 transition-all"
       onClick={() => router.push(`/people/${p.user_id}`)}
     >
       {/* Photo / placeholder — full-width, bleeds to edges */}
-      <div className="relative w-full aspect-square rounded-t-[3rem] overflow-hidden bg-brand-light flex-shrink-0">
+      <div className="relative w-full aspect-square rounded-t-[5rem] overflow-hidden bg-brand-light flex-shrink-0">
         {p.avatar_url ? (
           <img
             src={p.avatar_url}
