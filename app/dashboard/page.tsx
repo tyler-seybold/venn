@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail } from 'lucide-react'
+import { Mail, ChevronDown } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -118,6 +118,10 @@ export default function DashboardPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [myStartupId, setMyStartupId] = useState<string | null>(null)
+  const [myFullName, setMyFullName] = useState<string | null>(null)
+  const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
   const [tab, setTab] = useState<'startups' | 'people'>('startups')
 
   const [startups, setStartups] = useState<Startup[]>([])
@@ -140,15 +144,28 @@ export default function DashboardPage() {
         setUserId(data.user.id)
         setUserEmail(data.user.email ?? null)
         const [{ data: profile }, { data: membership }] = await Promise.all([
-          supabase.from('profiles').select('is_admin').eq('user_id', data.user.id).single(),
+          supabase.from('profiles').select('is_admin, full_name, avatar_url').eq('user_id', data.user.id).single(),
           supabase.from('startup_members').select('startup_id').eq('user_id', data.user.id).eq('role', 'primary').maybeSingle(),
         ])
         setIsAdmin(profile?.is_admin ?? false)
+        setMyFullName(profile?.full_name ?? null)
+        setMyAvatarUrl(profile?.avatar_url ?? null)
         setMyStartupId(membership?.startup_id ?? null)
         setAuthChecked(true)
       }
     })
   }, [router])
+
+  // Close user menu on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    if (menuOpen) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [menuOpen])
 
   // Fetch startups
   useEffect(() => {
@@ -243,38 +260,64 @@ export default function DashboardPage() {
           <span className="text-base font-semibold text-gray-900 tracking-tight">
             Kellogg Student Ventures
           </span>
-          <div className="flex items-center gap-3">
-            {userEmail && (
-              <span className="hidden sm:block text-sm text-gray-500">{userEmail}</span>
-            )}
-            {isAdmin && (
-              <button
-                onClick={() => router.push('/admin')}
-                className="text-sm font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 rounded-lg px-3 py-1.5 hover:bg-red-50 transition"
-              >
-                Admin
-              </button>
-            )}
+          {/* User menu */}
+          <div className="relative" ref={menuRef}>
             <button
-              onClick={() => router.push('/profile/edit')}
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition"
+              onClick={() => setMenuOpen((o) => !o)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition"
             >
-              Edit Profile
+              {/* Avatar */}
+              <div className="w-7 h-7 rounded-full overflow-hidden bg-purple-200 flex items-center justify-center flex-shrink-0">
+                {myAvatarUrl ? (
+                  <img src={myAvatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-xs font-bold text-purple-700">
+                    {(myFullName ?? userEmail ?? '?').charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[160px] truncate">
+                {myFullName ?? userEmail ?? ''}
+              </span>
+              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
             </button>
-            {myStartupId && (
-              <button
-                onClick={() => router.push(`/startup/${myStartupId}/edit`)}
-                className="text-sm font-medium text-purple-700 hover:text-purple-900 border border-purple-300 rounded-lg px-3 py-1.5 hover:bg-purple-50 transition"
-              >
-                My Startup
-              </button>
+
+            {menuOpen && (
+              <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1 overflow-hidden">
+                <button
+                  onClick={() => { setMenuOpen(false); router.push('/profile/edit') }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                >
+                  Edit Profile
+                </button>
+                {myStartupId && (
+                  <button
+                    onClick={() => { setMenuOpen(false); router.push(`/startup/${myStartupId}/edit`) }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                  >
+                    My Startup
+                  </button>
+                )}
+                <div className="border-t border-gray-100 my-1" />
+                {isAdmin && (
+                  <>
+                    <button
+                      onClick={() => { setMenuOpen(false); router.push('/admin') }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition"
+                    >
+                      Admin
+                    </button>
+                    <div className="border-t border-gray-100 my-1" />
+                  </>
+                )}
+                <button
+                  onClick={() => { setMenuOpen(false); handleSignOut() }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition"
+                >
+                  Sign Out
+                </button>
+              </div>
             )}
-            <button
-              onClick={handleSignOut}
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition"
-            >
-              Sign Out
-            </button>
           </div>
         </div>
       </nav>
