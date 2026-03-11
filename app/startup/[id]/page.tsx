@@ -184,7 +184,7 @@ export default function StartupDetailPage() {
 
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
           {/* Logo / placeholder — full-width top banner */}
-          <div className="w-full aspect-video bg-brand-light flex items-center justify-center overflow-hidden">
+          <div className="w-full aspect-[16/6] bg-brand-light flex items-center justify-center overflow-hidden">
             {startup.logo_url ? (
               <img
                 src={startup.logo_url}
@@ -278,7 +278,7 @@ export default function StartupDetailPage() {
               <div className="mt-6">
                 <a
                   href={`mailto:${primaryMember.email}?subject=Re: ${encodeURIComponent(startup.startup_name)}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-brand-light text-brand hover:bg-brand-light text-xs font-medium px-3 py-1.5 transition"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-medium px-3 py-1.5 transition"
                 >
                   <Mail className="w-3.5 h-3.5" />
                   Email

@@ -147,24 +147,25 @@ export default function PersonDetailPage() {
         </button>
 
         {/* Profile card */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 mb-6">
-          {/* Header — centered with large avatar */}
-          <div className="flex flex-col items-center text-center mb-6">
-            {/* Avatar */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-6">
+          {/* Photo / placeholder — full-width top banner */}
+          <div className="w-full aspect-[16/6] bg-brand-light flex items-center justify-center overflow-hidden">
             {profile.avatar_url ? (
               <img
                 src={profile.avatar_url}
                 alt={profile.full_name ?? 'Avatar'}
-                className="w-40 h-40 rounded-full object-cover border border-gray-200 mb-4"
+                className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-40 h-40 rounded-full bg-brand-light flex items-center justify-center mb-4">
-                <span className="text-6xl font-bold text-brand">
-                  {(profile.full_name ?? '?').charAt(0).toUpperCase()}
-                </span>
-              </div>
+              <span className="text-8xl font-bold text-brand/20">
+                {(profile.full_name ?? '?').charAt(0).toUpperCase()}
+              </span>
             )}
+          </div>
 
+          <div className="p-8">
+          {/* Header */}
+          <div className="flex flex-col items-center text-center mb-6">
             {/* Name */}
             <h1 className="text-2xl font-semibold text-gray-900 tracking-tight leading-tight mb-2">
               {profile.full_name ?? '—'}
@@ -202,7 +203,7 @@ export default function PersonDetailPage() {
                 {profile.email && (
                   <a
                     href={`mailto:${profile.email}`}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-brand-light text-brand hover:bg-brand-light text-xs font-medium px-3 py-1.5 transition"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-medium px-3 py-1.5 transition"
                   >
                     <Mail className="w-3.5 h-3.5" />
                     Email
@@ -276,6 +277,7 @@ export default function PersonDetailPage() {
               </div>
             </div>
           )}
+          </div>
         </div>
 
         {/* Their Startups */}

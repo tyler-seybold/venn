@@ -594,7 +594,7 @@ function StartupCard({
         <div className="mt-auto pt-1" onClick={(e) => e.stopPropagation()}>
           <a
             href={`mailto:${s.founder_email ?? ''}?subject=Re: ${encodeURIComponent(s.startup_name)}`}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-brand-light text-brand hover:bg-brand-light text-xs font-medium px-3 py-1.5 transition"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-medium px-3 py-1.5 transition"
           >
             <Mail className="w-3.5 h-3.5" />
             Email
@@ -660,7 +660,7 @@ function PersonCard({ person: p }: { person: Profile }) {
             {p.email && (
               <a
                 href={`mailto:${p.email}`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-light text-brand hover:bg-brand-light text-xs font-medium px-3 py-1.5 transition"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-medium px-3 py-1.5 transition"
               >
                 <Mail className="w-3.5 h-3.5" />
                 Email
