@@ -60,8 +60,6 @@ export default function ProfileEditPage() {
   const [skillInput, setSkillInput] = useState('')
   const [industries, setIndustries] = useState<string[]>([])
   const [isLooking, setIsLooking] = useState(false)
-  const [isFounder, setIsFounder] = useState(false)
-  const [myStartup, setMyStartup] = useState<{ id: string; startup_name: string; stage: string | null; logo_url: string | null } | null>(null)
 
   // Submission state
   const [loading, setLoading] = useState(false)
@@ -88,20 +86,7 @@ export default function ProfileEditPage() {
       setUserId(uid)
       setUserEmail(data.user.email ?? null)
 
-      const [{ data: profile }, { data: startupData }] = await Promise.all([
-        supabase.from('profiles').select('*').eq('user_id', uid).single(),
-        supabase
-          .from('startups')
-          .select('id, startup_name, stage, logo_url')
-          .eq('founder_id', uid)
-          .limit(1)
-          .maybeSingle(),
-      ])
-
-      if (startupData) {
-        setMyStartup(startupData)
-        setIsFounder(true)
-      }
+      const { data: profile } = await supabase.from('profiles').select('*').eq('user_id', uid).single()
 
       if (profile) {
         setFullName(profile.full_name ?? '')
@@ -236,29 +221,6 @@ export default function ProfileEditPage() {
             </h1>
             <p className="mt-1 text-sm text-gray-500">{userEmail}</p>
           </div>
-
-          {/* Your Startup */}
-          {myStartup && (
-            <div
-              onClick={() => router.push(`/startup/${myStartup.id}`)}
-              className="mb-8 rounded-xl border border-gray-200 px-4 py-3 flex items-center gap-3 cursor-pointer hover:border-brand-light hover:bg-gray-50 transition"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Your Startup</p>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-semibold text-gray-900 truncate">{myStartup.startup_name}</span>
-                  {myStartup.stage && (
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                      {myStartup.stage}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Full name */}
@@ -441,26 +403,21 @@ export default function ProfileEditPage() {
             </div>
 
             {/* Looking for startup toggle */}
-            <div className={`flex items-center justify-between rounded-lg border px-4 py-3 ${isFounder ? 'border-gray-100 bg-gray-50' : 'border-gray-200'}`}>
+            <div className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
               <div>
-                <p className={`text-sm font-medium ${isFounder ? 'text-gray-400' : 'text-gray-700'}`}>Looking to join a startup?</p>
-                {isFounder ? (
-                  <p className="text-xs text-gray-400 mt-0.5">Disabled — automatically off for founders</p>
-                ) : (
-                  <p className="text-xs text-gray-400 mt-0.5">Founders can find and reach out to you</p>
-                )}
+                <p className="text-sm font-medium text-gray-700">Looking to join a startup?</p>
+                <p className="text-xs text-gray-400 mt-0.5">Founders can find and reach out to you</p>
               </div>
               <button
                 type="button"
-                onClick={() => !isFounder && setIsLooking(!isLooking)}
-                disabled={isFounder}
+                onClick={() => setIsLooking(!isLooking)}
                 className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 ${
-                  isFounder ? 'bg-gray-200 cursor-not-allowed' : isLooking ? 'bg-brand' : 'bg-gray-200'
+                  isLooking ? 'bg-brand' : 'bg-gray-200'
                 }`}
               >
                 <span
                   className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${
-                    !isFounder && isLooking ? 'translate-x-5' : 'translate-x-0'
+                    isLooking ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
               </button>
