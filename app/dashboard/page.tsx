@@ -312,7 +312,7 @@ export default function DashboardPage() {
                 )}
                 <button
                   onClick={() => { setMenuOpen(false); handleSignOut() }}
-                  className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition"
+                  className="w-full text-left px-4 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition"
                 >
                   Sign Out
                 </button>
@@ -346,13 +346,13 @@ export default function DashboardPage() {
             {/* Filter row */}
             <div className="flex items-center gap-2 mb-6">
               <FilterDropdown
-                label="Industry"
+                label="Filter by Industry"
                 options={ALL_INDUSTRIES}
                 selected={startupIndustries}
                 onChange={setStartupIndustries}
               />
               <FilterDropdown
-                label="Stage"
+                label="Filter by Stage"
                 options={ALL_STAGES}
                 selected={startupStages}
                 onChange={setStartupStages}
@@ -386,7 +386,7 @@ export default function DashboardPage() {
             {/* Industry filter */}
             <div className="flex items-center gap-2 mb-6">
               <FilterDropdown
-                label="Industry"
+                label="Filter by Industry"
                 options={ALL_INDUSTRIES}
                 selected={peopleIndustries}
                 onChange={setPeopleIndustries}
