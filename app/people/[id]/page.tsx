@@ -148,40 +148,45 @@ export default function PersonDetailPage() {
 
         {/* Profile card */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 mb-6">
-          {/* Header */}
-          <div className="flex items-start gap-5 mb-6">
+          {/* Header — centered with large avatar */}
+          <div className="flex flex-col items-center text-center mb-6">
+            {/* Avatar */}
             {profile.avatar_url ? (
               <img
                 src={profile.avatar_url}
                 alt={profile.full_name ?? 'Avatar'}
-                className="w-20 h-20 rounded-full object-cover border border-gray-200 flex-shrink-0"
+                className="w-40 h-40 rounded-full object-cover border border-gray-200 mb-4"
               />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-brand-light flex items-center justify-center flex-shrink-0">
-                <span className="text-3xl font-bold text-brand">
+              <div className="w-40 h-40 rounded-full bg-brand-light flex items-center justify-center mb-4">
+                <span className="text-6xl font-bold text-brand">
                   {(profile.full_name ?? '?').charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-3">
-                <h1 className="text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
-                  {profile.full_name ?? '—'}
-                </h1>
-                <div className="flex flex-shrink-0 gap-1.5">
-                  {startups.length > 0 && (
-                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
-                      Founder
-                    </span>
-                  )}
-                  {startups.length === 0 && profile.is_looking_for_startup && (
-                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                      Open to joining
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+
+            {/* Name */}
+            <h1 className="text-2xl font-semibold text-gray-900 tracking-tight leading-tight mb-2">
+              {profile.full_name ?? '—'}
+            </h1>
+
+            {/* Status badges */}
+            <div className="flex gap-1.5 mb-2">
+              {startups.length > 0 && (
+                <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
+                  Founder
+                </span>
+              )}
+              {startups.length === 0 && profile.is_looking_for_startup && (
+                <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                  Open to joining
+                </span>
+              )}
+            </div>
+
+            {/* Degree + year */}
+            {(profile.degree_program || profile.graduation_year) && (
+              <div className="flex flex-wrap justify-center gap-x-3 gap-y-0.5">
                 {profile.degree_program && (
                   <span className="text-sm text-gray-500">{profile.degree_program}</span>
                 )}
@@ -189,7 +194,35 @@ export default function PersonDetailPage() {
                   <span className="text-sm text-gray-500">{profile.graduation_year}</span>
                 )}
               </div>
-            </div>
+            )}
+
+            {/* Contact buttons */}
+            {(profile.email || profile.slack_handle) && (
+              <div className="flex gap-2 mt-4">
+                {profile.email && (
+                  <a
+                    href={`mailto:${profile.email}`}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-brand-light text-brand hover:bg-brand-light text-xs font-medium px-3 py-1.5 transition"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    Email
+                  </a>
+                )}
+                {profile.slack_handle && (
+                  <a
+                    href={`slack://user?team=T0AUF6SQ7&id=${profile.slack_handle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-gray-700 hover:bg-gray-800 text-white text-xs font-medium px-3 py-1.5 transition"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
+                      <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
+                    </svg>
+                    Slack
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
           <hr className="border-gray-100 mb-6" />
@@ -241,34 +274,6 @@ export default function PersonDetailPage() {
                   </span>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Contact actions */}
-          {(profile.email || profile.slack_handle) && (
-            <div className="mt-6 flex gap-2">
-              {profile.email && (
-                <a
-                  href={`mailto:${profile.email}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-brand-light text-brand hover:bg-brand-light text-xs font-medium px-3 py-1.5 transition"
-                >
-                  <Mail className="w-3.5 h-3.5" />
-                  Email
-                </a>
-              )}
-              {profile.slack_handle && (
-                <a
-                  href={`slack://user?team=T0AUF6SQ7&id=${profile.slack_handle}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-gray-700 hover:bg-gray-800 text-white text-xs font-medium px-3 py-1.5 transition"
-                >
-                  <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-                    <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
-                  </svg>
-                  Slack
-                </a>
-              )}
             </div>
           )}
         </div>
