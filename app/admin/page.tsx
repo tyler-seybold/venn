@@ -121,7 +121,7 @@ export default function AdminPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -164,7 +164,7 @@ export default function AdminPage() {
               onClick={() => setTab(t)}
               className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${
                 tab === t
-                  ? 'border-purple-600 text-purple-700'
+                  ? 'border-brand text-brand'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -204,7 +204,7 @@ export default function AdminPage() {
                       <div className="flex items-center justify-end gap-2 whitespace-nowrap">
                         <button
                           onClick={() => router.push(`/admin/profile/${s.user_id}/edit`)}
-                          className="text-xs font-medium text-purple-700 hover:text-purple-900 border border-purple-200 hover:border-purple-400 rounded-lg px-2.5 py-1 transition"
+                          className="text-xs font-medium text-brand hover:text-brand-hover border border-brand-light hover:border-brand rounded-lg px-2.5 py-1 transition"
                         >
                           Edit Profile
                         </button>
@@ -261,7 +261,7 @@ export default function AdminPage() {
                       <div className="flex items-center justify-end gap-2 whitespace-nowrap">
                         <button
                           onClick={() => router.push(`/startup/${s.id}/edit`)}
-                          className="text-xs font-medium text-purple-700 hover:text-purple-900 border border-purple-200 hover:border-purple-400 rounded-lg px-2.5 py-1 transition"
+                          className="text-xs font-medium text-brand hover:text-brand-hover border border-brand-light hover:border-brand rounded-lg px-2.5 py-1 transition"
                         >
                           Edit
                         </button>

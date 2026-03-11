@@ -10,7 +10,7 @@ const INDUSTRY_COLORS: Record<string, string> = {
   Climate: 'bg-teal-100 text-teal-700',
   'Consumer Products': 'bg-orange-100 text-orange-700',
   'Consumer Services': 'bg-amber-100 text-amber-700',
-  Education: 'bg-purple-100 text-purple-700',
+  Education: 'bg-brand-light text-brand',
   Energy: 'bg-yellow-100 text-yellow-700',
   'Financial Services': 'bg-emerald-100 text-emerald-700',
   Fintech: 'bg-cyan-100 text-cyan-700',
@@ -149,7 +149,7 @@ export default function StartupDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -191,8 +191,8 @@ export default function StartupDetailPage() {
                 className="w-20 h-20 rounded-2xl object-cover border border-gray-100 flex-shrink-0"
               />
             ) : (
-              <div className="w-20 h-20 rounded-2xl bg-purple-100 flex items-center justify-center flex-shrink-0">
-                <span className="text-3xl font-bold text-purple-600">
+              <div className="w-20 h-20 rounded-2xl bg-brand-light flex items-center justify-center flex-shrink-0">
+                <span className="text-3xl font-bold text-brand">
                   {startup.startup_name.charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -266,7 +266,7 @@ export default function StartupDetailPage() {
                 href={startup.website_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-purple-600 hover:text-purple-800 hover:underline"
+                className="text-sm text-brand hover:text-brand hover:underline"
               >
                 {startup.website_url.replace(/^https?:\/\//, '')}
               </a>
@@ -287,7 +287,7 @@ export default function StartupDetailPage() {
           <div className="mt-8">
             <a
               href={`mailto:${primaryMember?.email ?? ''}?subject=Re: ${encodeURIComponent(startup.startup_name)}`}
-              className="inline-block rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-sm font-medium px-5 py-2.5 transition focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              className="inline-block rounded-lg bg-brand hover:bg-brand-hover text-white text-sm font-medium px-5 py-2.5 transition focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
             >
               Send Email
             </a>
@@ -303,7 +303,7 @@ export default function StartupDetailPage() {
                 <div
                   key={member.id}
                   onClick={() => router.push(`/people/${member.user_id}`)}
-                  className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3 cursor-pointer hover:border-purple-200 hover:shadow-md transition"
+                  className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3 cursor-pointer hover:border-brand-light hover:shadow-md transition"
                 >
                   {/* Name + role badge + leave button */}
                   <div className="flex items-start justify-between gap-2">
@@ -346,7 +346,7 @@ export default function StartupDetailPage() {
                       {member.skills.map((skill) => (
                         <span
                           key={skill}
-                          className="text-xs font-medium bg-purple-100 text-purple-800 px-2 py-0.5 rounded-md"
+                          className="text-xs font-medium bg-brand-light text-brand px-2 py-0.5 rounded-md"
                         >
                           {skill}
                         </span>

@@ -80,7 +80,7 @@ const INDUSTRY_COLORS: Record<string, string> = {
   Climate: 'bg-teal-100 text-teal-700',
   'Consumer Products': 'bg-orange-100 text-orange-700',
   'Consumer Services': 'bg-amber-100 text-amber-700',
-  Education: 'bg-purple-100 text-purple-700',
+  Education: 'bg-brand-light text-brand',
   Energy: 'bg-yellow-100 text-yellow-700',
   'Financial Services': 'bg-emerald-100 text-emerald-700',
   Fintech: 'bg-cyan-100 text-cyan-700',
@@ -247,7 +247,7 @@ export default function DashboardPage() {
   if (!authChecked) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -267,11 +267,11 @@ export default function DashboardPage() {
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition"
             >
               {/* Avatar */}
-              <div className="w-7 h-7 rounded-full overflow-hidden bg-purple-200 flex items-center justify-center flex-shrink-0">
+              <div className="w-7 h-7 rounded-full overflow-hidden bg-brand-light flex items-center justify-center flex-shrink-0">
                 {myAvatarUrl ? (
                   <img src={myAvatarUrl} alt="avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-xs font-bold text-purple-700">
+                  <span className="text-xs font-bold text-brand">
                     {(myFullName ?? userEmail ?? '?').charAt(0).toUpperCase()}
                   </span>
                 )}
@@ -331,7 +331,7 @@ export default function DashboardPage() {
               onClick={() => setTab(t)}
               className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${
                 tab === t
-                  ? 'border-purple-600 text-purple-700'
+                  ? 'border-brand text-brand'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -360,7 +360,7 @@ export default function DashboardPage() {
               <div className="flex-1" />
               <button
                 onClick={() => router.push('/startup/new')}
-                className="flex-shrink-0 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-sm font-medium px-4 py-2 transition"
+                className="flex-shrink-0 rounded-lg bg-brand hover:bg-brand-hover text-white text-sm font-medium px-4 py-2 transition"
               >
                 + Add Your Startup
               </button>
@@ -451,13 +451,13 @@ function FilterDropdown({
         onClick={() => setOpen((o) => !o)}
         className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition ${
           isActive
-            ? 'border-purple-500 bg-purple-50 text-purple-700'
+            ? 'border-brand bg-brand-light text-brand'
             : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
         }`}
       >
         <span>{label}</span>
         {isActive && (
-          <span className="bg-purple-600 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center leading-none">
+          <span className="bg-brand text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center leading-none">
             {selected.length}
           </span>
         )}
@@ -482,7 +482,7 @@ function FilterDropdown({
                 type="checkbox"
                 checked={selected.includes(opt)}
                 onChange={() => toggle(opt)}
-                className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                className="w-4 h-4 rounded border-gray-300 text-brand focus:ring-brand cursor-pointer"
               />
               {opt}
             </label>
@@ -502,12 +502,12 @@ function StartupCard({
 
   return (
     <div
-      className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col cursor-pointer hover:border-purple-200 hover:shadow-md transition overflow-hidden"
+      className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col cursor-pointer hover:border-brand-light hover:shadow-md transition overflow-hidden"
       onClick={() => router.push(`/startup/${s.id}`)}
     >
       {/* Logo banner */}
       <div className="px-4 pt-4">
-        <div className="w-full aspect-video rounded-xl overflow-hidden bg-purple-50 flex items-center justify-center">
+        <div className="w-full aspect-video rounded-xl overflow-hidden bg-brand-light flex items-center justify-center">
           {s.logo_url ? (
             <img
               src={s.logo_url}
@@ -515,7 +515,7 @@ function StartupCard({
               className="w-full h-full object-contain"
             />
           ) : (
-            <span className="text-5xl font-bold text-purple-200">
+            <span className="text-5xl font-bold text-brand/30">
               {s.startup_name.charAt(0).toUpperCase()}
             </span>
           )}
@@ -571,7 +571,7 @@ function StartupCard({
               href={s.website_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 text-purple-600 hover:text-purple-800 hover:underline"
+              className="flex items-center gap-1 text-brand hover:text-brand hover:underline"
               onClick={(e) => e.stopPropagation()}
             >
               <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -594,7 +594,7 @@ function StartupCard({
         <div className="mt-auto pt-1" onClick={(e) => e.stopPropagation()}>
           <a
             href={`mailto:${s.founder_email ?? ''}?subject=Re: ${encodeURIComponent(s.startup_name)}`}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 text-xs font-medium px-3 py-1.5 transition"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-brand-light text-brand hover:bg-brand-light text-xs font-medium px-3 py-1.5 transition"
           >
             <Mail className="w-3.5 h-3.5" />
             Email
@@ -616,11 +616,11 @@ function PersonCard({ person: p }: { person: Profile }) {
 
   return (
     <div
-      className="bg-white rounded-[3rem] border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden cursor-pointer hover:border-purple-200 hover:shadow-md hover:-translate-y-0.5 transition-all"
+      className="bg-white rounded-[3rem] border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden cursor-pointer hover:border-brand-light hover:shadow-md hover:-translate-y-0.5 transition-all"
       onClick={() => router.push(`/people/${p.user_id}`)}
     >
       {/* Photo / placeholder — full-width, bleeds to edges */}
-      <div className="relative w-full aspect-square rounded-t-[3rem] overflow-hidden bg-purple-100 flex-shrink-0">
+      <div className="relative w-full aspect-square rounded-t-[3rem] overflow-hidden bg-brand-light flex-shrink-0">
         {p.avatar_url ? (
           <img
             src={p.avatar_url}
@@ -629,7 +629,7 @@ function PersonCard({ person: p }: { person: Profile }) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-5xl font-bold text-purple-400">
+            <span className="text-5xl font-bold text-brand/50">
               {(p.full_name ?? '?').charAt(0).toUpperCase()}
             </span>
           </div>
@@ -660,7 +660,7 @@ function PersonCard({ person: p }: { person: Profile }) {
             {p.email && (
               <a
                 href={`mailto:${p.email}`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 text-xs font-medium px-3 py-1.5 transition"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-light text-brand hover:bg-brand-light text-xs font-medium px-3 py-1.5 transition"
               >
                 <Mail className="w-3.5 h-3.5" />
                 Email
@@ -687,7 +687,7 @@ function PersonCard({ person: p }: { person: Profile }) {
       <div className="w-full mt-3 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={() => router.push(`/people/${p.user_id}`)}
-          className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 transition"
+          className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-brand bg-brand-light hover:bg-brand-light transition"
         >
           View Profile
           <ChevronRight className="w-3.5 h-3.5" />
@@ -700,7 +700,7 @@ function PersonCard({ person: p }: { person: Profile }) {
 function LoadingSpinner() {
   return (
     <div className="flex justify-center py-16">
-      <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" />
     </div>
   )
 }

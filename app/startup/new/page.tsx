@@ -150,7 +150,7 @@ export default function NewStartupPage() {
   if (!authChecked) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -199,7 +199,7 @@ export default function NewStartupPage() {
                 value={startupName}
                 onChange={(e) => setStartupName(e.target.value)}
                 placeholder="Acme Inc."
-                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
               />
             </div>
 
@@ -227,7 +227,7 @@ export default function NewStartupPage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 hover:border-purple-400 hover:text-purple-600 transition w-full justify-center"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 hover:border-brand hover:text-brand transition w-full justify-center"
                 >
                   <svg
                     className="w-4 h-4"
@@ -269,8 +269,8 @@ export default function NewStartupPage() {
                       onClick={() => toggleIndustry(industry)}
                       className={`px-3 py-1.5 rounded-full text-sm font-medium border transition ${
                         selected
-                          ? 'bg-purple-700 border-purple-700 text-white'
-                          : 'bg-white border-gray-300 text-gray-600 hover:border-purple-400 hover:text-purple-700'
+                          ? 'bg-brand border-brand text-white'
+                          : 'bg-white border-gray-300 text-gray-600 hover:border-brand hover:text-brand'
                       }`}
                     >
                       {industry}
@@ -293,8 +293,8 @@ export default function NewStartupPage() {
                     onClick={() => setStage(stage === s ? null : s)}
                     className={`px-3 py-1.5 rounded-full text-sm font-medium border transition ${
                       stage === s
-                        ? 'bg-purple-700 border-purple-700 text-white'
-                        : 'bg-white border-gray-300 text-gray-600 hover:border-purple-400 hover:text-purple-700'
+                        ? 'bg-brand border-brand text-white'
+                        : 'bg-white border-gray-300 text-gray-600 hover:border-brand hover:text-brand'
                     }`}
                   >
                     {s}
@@ -325,7 +325,7 @@ export default function NewStartupPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="What does your startup do? Who is it for?"
                 maxLength={DESC_MAX}
-                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition resize-none"
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition resize-none"
               />
             </div>
 
@@ -340,7 +340,7 @@ export default function NewStartupPage() {
                 value={websiteUrl}
                 onChange={(e) => setWebsiteUrl(e.target.value)}
                 placeholder="https://example.com"
-                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
               />
             </div>
 
@@ -365,7 +365,7 @@ export default function NewStartupPage() {
                 onChange={(e) => setCurrentAsk(e.target.value)}
                 placeholder="e.g. Looking for a technical co-founder"
                 maxLength={ASK_MAX}
-                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
               />
             </div>
 
@@ -374,7 +374,7 @@ export default function NewStartupPage() {
             <button
               type="submit"
               disabled={loading || description.length > DESC_MAX || currentAsk.length > ASK_MAX}
-              className="w-full rounded-lg bg-purple-700 hover:bg-purple-800 disabled:bg-purple-400 text-white text-sm font-medium py-2.5 transition focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              className="w-full rounded-lg bg-brand hover:bg-brand-hover disabled:bg-brand/60 text-white text-sm font-medium py-2.5 transition focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
             >
               {loading ? 'Saving…' : 'Add Startup'}
             </button>

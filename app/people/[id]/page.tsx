@@ -11,7 +11,7 @@ const INDUSTRY_COLORS: Record<string, string> = {
   Climate: 'bg-teal-100 text-teal-700',
   'Consumer Products': 'bg-orange-100 text-orange-700',
   'Consumer Services': 'bg-amber-100 text-amber-700',
-  Education: 'bg-purple-100 text-purple-700',
+  Education: 'bg-brand-light text-brand',
   Energy: 'bg-yellow-100 text-yellow-700',
   'Financial Services': 'bg-emerald-100 text-emerald-700',
   Fintech: 'bg-cyan-100 text-cyan-700',
@@ -119,7 +119,7 @@ export default function PersonDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -157,8 +157,8 @@ export default function PersonDetailPage() {
                 className="w-20 h-20 rounded-full object-cover border border-gray-200 flex-shrink-0"
               />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                <span className="text-3xl font-bold text-purple-600">
+              <div className="w-20 h-20 rounded-full bg-brand-light flex items-center justify-center flex-shrink-0">
+                <span className="text-3xl font-bold text-brand">
                   {(profile.full_name ?? '?').charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -214,7 +214,7 @@ export default function PersonDetailPage() {
                 {profile.skills.map((skill) => (
                   <span
                     key={skill}
-                    className="text-xs font-medium bg-purple-100 text-purple-800 px-2.5 py-1 rounded-md"
+                    className="text-xs font-medium bg-brand-light text-brand px-2.5 py-1 rounded-md"
                   >
                     {skill}
                   </span>
@@ -250,7 +250,7 @@ export default function PersonDetailPage() {
               {profile.email && (
                 <a
                   href={`mailto:${profile.email}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 text-xs font-medium px-3 py-1.5 transition"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-brand-light text-brand hover:bg-brand-light text-xs font-medium px-3 py-1.5 transition"
                 >
                   <Mail className="w-3.5 h-3.5" />
                   Email
@@ -282,7 +282,7 @@ export default function PersonDetailPage() {
                 <div
                   key={s.id}
                   onClick={() => router.push(`/startup/${s.id}`)}
-                  className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-start gap-4 cursor-pointer hover:border-purple-200 hover:shadow-md transition"
+                  className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-start gap-4 cursor-pointer hover:border-brand-light hover:shadow-md transition"
                 >
                   {/* Logo */}
                   {s.logo_url ? (
@@ -292,8 +292,8 @@ export default function PersonDetailPage() {
                       className="w-12 h-12 rounded-xl object-cover border border-gray-100 flex-shrink-0"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-lg font-bold text-purple-600">
+                    <div className="w-12 h-12 rounded-xl bg-brand-light flex items-center justify-center flex-shrink-0">
+                      <span className="text-lg font-bold text-brand">
                         {s.startup_name.charAt(0).toUpperCase()}
                       </span>
                     </div>

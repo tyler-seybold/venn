@@ -187,7 +187,7 @@ export default function AdminProfileEditPage() {
   if (!dataLoaded) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -229,7 +229,7 @@ export default function AdminProfileEditPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Jane Smith"
-                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
               />
             </div>
 
@@ -249,7 +249,7 @@ export default function AdminProfileEditPage() {
                     <button
                       type="button"
                       onClick={() => avatarInputRef.current?.click()}
-                      className="text-sm text-purple-600 hover:text-purple-800 transition"
+                      className="text-sm text-brand hover:text-brand transition"
                     >
                       Change
                     </button>
@@ -258,7 +258,7 @@ export default function AdminProfileEditPage() {
                   <button
                     type="button"
                     onClick={() => avatarInputRef.current?.click()}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 hover:border-purple-400 hover:text-purple-600 transition"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 hover:border-brand hover:text-brand transition"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 0L8 8m4-4l4 4" />
@@ -284,7 +284,7 @@ export default function AdminProfileEditPage() {
                 value={graduationYear}
                 onChange={(e) => setGraduationYear(e.target.value)}
                 placeholder="2026"
-                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
               />
             </div>
 
@@ -297,7 +297,7 @@ export default function AdminProfileEditPage() {
                 id="degreeProgram"
                 value={degreeProgram}
                 onChange={(e) => setDegreeProgram(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition bg-white"
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition bg-white"
               >
                 <option value="">Select a program…</option>
                 {DEGREE_PROGRAMS.map((p) => (
@@ -317,7 +317,7 @@ export default function AdminProfileEditPage() {
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="A short intro about yourself…"
-                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition resize-none"
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition resize-none"
               />
             </div>
 
@@ -326,11 +326,11 @@ export default function AdminProfileEditPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Skills <span className="text-gray-400 font-normal">(optional)</span>
               </label>
-              <div className="w-full min-h-[42px] rounded-lg border border-gray-300 px-3 py-2 flex flex-wrap gap-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition">
+              <div className="w-full min-h-[42px] rounded-lg border border-gray-300 px-3 py-2 flex flex-wrap gap-1.5 focus-within:ring-2 focus-within:ring-brand focus-within:border-transparent transition">
                 {skills.map((skill) => (
-                  <span key={skill} className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 text-xs font-medium px-2 py-1 rounded-md">
+                  <span key={skill} className="inline-flex items-center gap-1 bg-brand-light text-brand text-xs font-medium px-2 py-1 rounded-md">
                     {skill}
-                    <button type="button" onClick={() => removeSkill(skill)} className="hover:text-purple-600 leading-none">×</button>
+                    <button type="button" onClick={() => removeSkill(skill)} className="hover:text-brand leading-none">×</button>
                   </span>
                 ))}
                 <input
@@ -361,8 +361,8 @@ export default function AdminProfileEditPage() {
                       onClick={() => toggleIndustry(industry)}
                       className={`px-3 py-1.5 rounded-full text-sm font-medium border transition ${
                         selected
-                          ? 'bg-purple-700 border-purple-700 text-white'
-                          : 'bg-white border-gray-300 text-gray-600 hover:border-purple-400 hover:text-purple-700'
+                          ? 'bg-brand border-brand text-white'
+                          : 'bg-white border-gray-300 text-gray-600 hover:border-brand hover:text-brand'
                       }`}
                     >
                       {industry}
@@ -381,8 +381,8 @@ export default function AdminProfileEditPage() {
               <button
                 type="button"
                 onClick={() => setIsLooking(!isLooking)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
-                  isLooking ? 'bg-purple-700' : 'bg-gray-200'
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 ${
+                  isLooking ? 'bg-brand' : 'bg-gray-200'
                 }`}
               >
                 <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${isLooking ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -394,7 +394,7 @@ export default function AdminProfileEditPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-purple-700 hover:bg-purple-800 disabled:bg-purple-400 text-white text-sm font-medium py-2.5 transition focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              className="w-full rounded-lg bg-brand hover:bg-brand-hover disabled:bg-brand/60 text-white text-sm font-medium py-2.5 transition focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
             >
               {loading ? 'Saving…' : 'Save Changes'}
             </button>
