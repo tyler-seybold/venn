@@ -616,11 +616,11 @@ function PersonCard({ person: p }: { person: Profile }) {
 
   return (
     <div
-      className="bg-white rounded-[2.5rem] border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden cursor-pointer hover:border-purple-200 hover:shadow-md transition"
+      className="bg-white rounded-[3rem] border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden cursor-pointer hover:border-purple-200 hover:shadow-md transition"
       onClick={() => router.push(`/people/${p.user_id}`)}
     >
       {/* Photo / placeholder — full-width, bleeds to edges */}
-      <div className="relative w-full aspect-square rounded-t-[2.5rem] overflow-hidden bg-purple-100 flex-shrink-0">
+      <div className="relative w-full aspect-square rounded-t-[3rem] overflow-hidden bg-purple-100 flex-shrink-0">
         {p.avatar_url ? (
           <img
             src={p.avatar_url}
@@ -652,46 +652,6 @@ function PersonCard({ person: p }: { person: Profile }) {
         {/* Startup name */}
         {p.startup_name && (
           <p className="text-sm text-gray-500 text-center leading-tight -mt-1">{p.startup_name}</p>
-        )}
-
-        {/* Degree + year */}
-        {(p.degree_program || p.graduation_year) && (
-          <p className="text-xs text-gray-400 text-center leading-snug">
-            {[p.degree_program, p.graduation_year].filter(Boolean).join(' · ')}
-          </p>
-        )}
-
-        {/* Bio */}
-        {p.bio && (
-          <p className="text-xs text-gray-500 text-center leading-relaxed line-clamp-2">{p.bio}</p>
-        )}
-
-        {/* Industry pills */}
-        {p.industries_of_interest && p.industries_of_interest.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-1.5">
-            {p.industries_of_interest.map((ind) => (
-              <span
-                key={ind}
-                className={`text-xs font-medium px-2 py-0.5 rounded-full ${industryColor(ind)}`}
-              >
-                {ind}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Skills */}
-        {p.skills && p.skills.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-1.5">
-            {p.skills.map((skill) => (
-              <span
-                key={skill}
-                className="text-xs font-medium bg-purple-100 text-purple-800 px-2 py-0.5 rounded-md"
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
         )}
 
         {/* Actions */}
