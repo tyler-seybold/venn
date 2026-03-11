@@ -65,6 +65,7 @@ export default function PersonDetailPage() {
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [startups, setStartups] = useState<Startup[]>([])
+  const [myStartupIds, setMyStartupIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -74,13 +75,16 @@ export default function PersonDetailPage() {
         return
       }
 
-      const [{ data: profileData, error }, { data: memberData }] = await Promise.all([
+      const currentUserId = data.user.id
+
+      const [{ data: profileData, error }, { data: memberData }, { data: myMemberships }] = await Promise.all([
         supabase.from('profiles').select('*').eq('user_id', id).single(),
         supabase
           .from('startup_members')
           .select('startup_id, role, startups(id, startup_name, logo_url, industry, stage, description, startup_members(user_id, profiles(full_name)))')
           .eq('user_id', id)
           .order('created_at', { ascending: false }),
+        supabase.from('startup_members').select('startup_id').eq('user_id', currentUserId),
       ])
 
       if (error || !profileData) {
@@ -88,6 +92,7 @@ export default function PersonDetailPage() {
         return
       }
 
+      setMyStartupIds(new Set((myMemberships ?? []).map((m) => m.startup_id)))
       setProfile(profileData)
       setStartups(
         (memberData ?? [])
@@ -149,12 +154,12 @@ export default function PersonDetailPage() {
         {/* Profile card */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-6">
           {/* Photo / placeholder — full-width top banner */}
-          <div className="w-full aspect-[16/6] bg-brand-light flex items-center justify-center overflow-hidden">
+          <div className="w-full aspect-[16/6] bg-gray-50 flex items-center justify-center overflow-hidden">
             {profile.avatar_url ? (
               <img
                 src={profile.avatar_url}
                 alt={profile.full_name ?? 'Avatar'}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             ) : (
               <span className="text-8xl font-bold text-brand/20">
@@ -307,18 +312,28 @@ export default function PersonDetailPage() {
                   )}
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h3 className="font-semibold text-gray-900 text-base leading-tight">
-                        {s.startup_name}
-                      </h3>
-                      {s.stage && (
-                        <span
-                          className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                            STAGE_COLORS[s.stage] ?? 'bg-gray-100 text-gray-600'
-                          }`}
+                    <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold text-gray-900 text-base leading-tight">
+                          {s.startup_name}
+                        </h3>
+                        {s.stage && (
+                          <span
+                            className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                              STAGE_COLORS[s.stage] ?? 'bg-gray-100 text-gray-600'
+                            }`}
+                          >
+                            {s.stage}
+                          </span>
+                        )}
+                      </div>
+                      {myStartupIds.has(s.id) && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); router.push(`/startup/${s.id}/edit`) }}
+                          className="flex-shrink-0 text-xs font-medium text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-2.5 py-1 hover:bg-gray-50 transition"
                         >
-                          {s.stage}
-                        </span>
+                          Edit
+                        </button>
                       )}
                     </div>
 
