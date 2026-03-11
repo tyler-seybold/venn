@@ -169,42 +169,12 @@ export default function PersonDetailPage() {
           </div>
 
           <div className="p-8">
-          {/* Header */}
-          <div className="flex flex-col items-center text-center mb-6">
-            {/* Name */}
-            <h1 className="text-2xl font-semibold text-gray-900 tracking-tight leading-tight mb-2">
-              {profile.full_name ?? '—'}
-            </h1>
-
-            {/* Status badges */}
-            <div className="flex gap-1.5 mb-2">
-              {startups.length > 0 && (
-                <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
-                  Founder
-                </span>
-              )}
-              {startups.length === 0 && profile.is_looking_for_startup && (
-                <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                  Open to joining
-                </span>
-              )}
-            </div>
-
-            {/* Degree + year */}
-            {(profile.degree_program || profile.graduation_year) && (
-              <div className="flex flex-wrap justify-center gap-x-3 gap-y-0.5">
-                {profile.degree_program && (
-                  <span className="text-sm text-gray-500">{profile.degree_program}</span>
-                )}
-                {profile.graduation_year && (
-                  <span className="text-sm text-gray-500">{profile.graduation_year}</span>
-                )}
-              </div>
-            )}
-
-            {/* Contact buttons */}
-            {(profile.email || profile.slack_handle) && (
-              <div className="flex gap-2 mt-4">
+            {/* Header: name + contact buttons */}
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <h1 className="text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
+                {profile.full_name ?? '—'}
+              </h1>
+              <div className="flex items-center gap-2 flex-shrink-0">
                 {profile.email && (
                   <a
                     href={`mailto:${profile.email}`}
@@ -228,8 +198,27 @@ export default function PersonDetailPage() {
                   </a>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+
+            {/* Badges + degree/year */}
+            <div className="flex flex-wrap items-center gap-2 mb-6">
+              {startups.length > 0 && (
+                <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
+                  Founder
+                </span>
+              )}
+              {startups.length === 0 && profile.is_looking_for_startup && (
+                <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                  Open to joining
+                </span>
+              )}
+              {profile.degree_program && (
+                <span className="text-sm text-gray-500">{profile.degree_program}</span>
+              )}
+              {profile.graduation_year && (
+                <span className="text-sm text-gray-500">{profile.graduation_year}</span>
+              )}
+            </div>
 
           <hr className="border-gray-100 mb-6" />
 
