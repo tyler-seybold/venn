@@ -507,7 +507,7 @@ function StartupCard({
     >
       {/* Logo banner */}
       <div className="px-4 pt-4">
-        <div className="w-full aspect-video rounded-xl overflow-hidden bg-brand-light flex items-center justify-center">
+        <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-brand-light flex items-center justify-center">
           {s.logo_url ? (
             <img
               src={s.logo_url}
@@ -519,12 +519,22 @@ function StartupCard({
               {s.startup_name.charAt(0).toUpperCase()}
             </span>
           )}
+          {/* Stage badge overlay */}
+          {s.stage && (
+            <span
+              className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm ${
+                STAGE_COLORS[s.stage] ?? 'bg-gray-100/80 text-gray-600'
+              }`}
+            >
+              {s.stage}
+            </span>
+          )}
         </div>
       </div>
 
       {/* Content */}
       <div className="p-4 flex flex-col gap-3 flex-1">
-        {/* Name + stage */}
+        {/* Name + website button */}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <h3 className="font-semibold text-gray-900 text-base leading-tight truncate">
@@ -534,14 +544,18 @@ function StartupCard({
               <p className="text-xs text-gray-500 mt-0.5 truncate">{s.member_names.join(', ')}</p>
             )}
           </div>
-          {s.stage && (
-            <span
-              className={`flex-shrink-0 text-xs font-medium px-2 py-1 rounded-full ${
-                STAGE_COLORS[s.stage] ?? 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {s.stage}
-            </span>
+          {s.website_url && (
+            <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+              <a
+                href={s.website_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-light text-brand hover:bg-brand-light text-xs font-medium px-3 py-1.5 transition"
+              >
+                <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
+                Startup Website
+              </a>
+            </div>
           )}
         </div>
 
@@ -564,30 +578,15 @@ function StartupCard({
           <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{s.description}</p>
         )}
 
-        {/* Website + Ask */}
-        <div className="flex flex-col gap-1 text-xs text-gray-500">
-          {s.website_url && (
-            <div onClick={(e) => e.stopPropagation()}>
-              <a
-                href={s.website_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-light text-brand hover:bg-brand-light text-xs font-medium px-3 py-1.5 transition"
-              >
-                <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
-                Startup Website
-              </a>
-            </div>
-          )}
-          {s.current_ask && (
-            <div>
-              <p className="font-semibold text-gray-700">
-                Current Ask{s.current_ask_updated_at ? ` (last updated ${formatDate(s.current_ask_updated_at)})` : ''}:
-              </p>
-              <p className="text-gray-500">{s.current_ask}</p>
-            </div>
-          )}
-        </div>
+        {/* Current Ask */}
+        {s.current_ask && (
+          <div className="text-xs text-gray-500">
+            <p className="font-semibold text-gray-700">
+              Current Ask{s.current_ask_updated_at ? ` (last updated ${formatDate(s.current_ask_updated_at)})` : ''}:
+            </p>
+            <p>{s.current_ask}</p>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="mt-auto pt-1" onClick={(e) => e.stopPropagation()}>
