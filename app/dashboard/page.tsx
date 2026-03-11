@@ -117,7 +117,7 @@ export default function DashboardPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [myStartupId, setMyStartupId] = useState<string | null>(null)
+  const [hasStartup, setHasStartup] = useState(false)
   const [myFullName, setMyFullName] = useState<string | null>(null)
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -145,12 +145,12 @@ export default function DashboardPage() {
         setUserEmail(data.user.email ?? null)
         const [{ data: profile }, { data: membership }] = await Promise.all([
           supabase.from('profiles').select('is_admin, full_name, avatar_url').eq('user_id', data.user.id).single(),
-          supabase.from('startup_members').select('startup_id').eq('user_id', data.user.id).eq('role', 'primary').maybeSingle(),
+          supabase.from('startup_members').select('startup_id').eq('user_id', data.user.id).eq('role', 'primary'),
         ])
         setIsAdmin(profile?.is_admin ?? false)
         setMyFullName(profile?.full_name ?? null)
         setMyAvatarUrl(profile?.avatar_url ?? null)
-        setMyStartupId(membership?.startup_id ?? null)
+        setHasStartup((membership ?? []).length > 0)
         setAuthChecked(true)
       }
     })
@@ -290,12 +290,12 @@ export default function DashboardPage() {
                 >
                   Edit Profile
                 </button>
-                {myStartupId && (
+                {hasStartup && userId && (
                   <button
-                    onClick={() => { setMenuOpen(false); router.push(`/startup/${myStartupId}/edit`) }}
+                    onClick={() => { setMenuOpen(false); router.push(`/people/${userId}`) }}
                     className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
                   >
-                    My Startup
+                    My Startups
                   </button>
                 )}
                 <div className="border-t border-gray-100 my-1" />
