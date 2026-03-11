@@ -645,7 +645,7 @@ function PersonCard({ person: p }: { person: Profile }) {
         )}
         {/* Status badge overlay */}
         {badge && (
-          <span className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm ${badge.className}`}>
+          <span className={`absolute top-6 left-6 text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm ${badge.className}`}>
             {badge.label}
           </span>
         )}
