@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, ChevronDown } from 'lucide-react'
+import { Mail, ChevronDown, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -616,7 +616,7 @@ function PersonCard({ person: p }: { person: Profile }) {
 
   return (
     <div
-      className="bg-white rounded-[3rem] border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden cursor-pointer hover:border-purple-200 hover:shadow-md transition"
+      className="bg-white rounded-[3rem] border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden cursor-pointer hover:border-purple-200 hover:shadow-md hover:-translate-y-0.5 transition-all"
       onClick={() => router.push(`/people/${p.user_id}`)}
     >
       {/* Photo / placeholder — full-width, bleeds to edges */}
@@ -643,7 +643,7 @@ function PersonCard({ person: p }: { person: Profile }) {
       </div>
 
       {/* Card body */}
-      <div className="w-full flex flex-col items-center gap-2.5 px-4 pt-4 pb-5">
+      <div className="w-full flex flex-col items-center gap-2.5 px-4 pt-4 pb-0">
         {/* Name */}
         <h3 className="text-base font-semibold text-gray-900 text-center leading-tight">
           {p.full_name ?? '—'}
@@ -654,9 +654,9 @@ function PersonCard({ person: p }: { person: Profile }) {
           <p className="text-sm text-gray-500 text-center leading-tight -mt-1">{p.startup_name}</p>
         )}
 
-        {/* Actions */}
+        {/* Email / Slack buttons */}
         {(p.email || p.slack_handle) && (
-          <div className="mt-auto pt-1 flex justify-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <div className="flex justify-center gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
             {p.email && (
               <a
                 href={`mailto:${p.email}`}
@@ -681,6 +681,17 @@ function PersonCard({ person: p }: { person: Profile }) {
             )}
           </div>
         )}
+      </div>
+
+      {/* View Profile button */}
+      <div className="w-full mt-3 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={() => router.push(`/people/${p.user_id}`)}
+          className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 transition"
+        >
+          View Profile
+          <ChevronRight className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   )
