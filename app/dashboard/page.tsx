@@ -258,7 +258,7 @@ export default function DashboardPage() {
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <span className="text-base font-semibold text-gray-900 tracking-tight">
-            Kellogg Student Ventures
+            Venn
           </span>
           {/* User menu */}
           <div className="relative" ref={menuRef}>
