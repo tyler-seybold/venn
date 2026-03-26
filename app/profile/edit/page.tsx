@@ -97,7 +97,7 @@ export default function ProfileEditPage() {
         setBio(profile.bio ?? '')
         setSlackHandle(profile.slack_handle ?? '')
         setSkills(profile.skills ?? [])
-        setIndustries(profile.industries_of_interest ?? [])
+        setIndustries(profile.industries ?? [])
         setIsLooking(profile.is_looking_for_startup ?? false)
       }
 
@@ -171,7 +171,7 @@ export default function ProfileEditPage() {
         bio: bio || null,
         slack_handle: slackHandle || null,
         skills: skills.length > 0 ? skills : null,
-        industries_of_interest: industries.length > 0 ? industries : null,
+        industries: industries.length > 0 ? industries : null,
         is_looking_for_startup: isLooking,
       })
       .eq('user_id', userId)

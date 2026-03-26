@@ -42,7 +42,7 @@ type Profile = {
   bio: string | null
   slack_handle: string | null
   skills: string[] | null
-  industries_of_interest: string[] | null
+  industries: string[] | null
   is_looking_for_startup: boolean
   graduation_year: number | null
   degree_program: string | null
@@ -252,13 +252,13 @@ export default function PersonDetailPage() {
           )}
 
           {/* Industries of interest */}
-          {profile.industries_of_interest && profile.industries_of_interest.length > 0 && (
+          {profile.industries && profile.industries.length > 0 && (
             <div>
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 Industries of Interest
               </h2>
               <div className="flex flex-wrap gap-1.5">
-                {profile.industries_of_interest.map((ind) => (
+                {profile.industries.map((ind) => (
                   <span
                     key={ind}
                     className={`text-xs font-medium px-2.5 py-1 rounded-full ${

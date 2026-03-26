@@ -65,7 +65,7 @@ type Member = {
   email: string | null
   bio: string | null
   skills: string[] | null
-  industries_of_interest: string[] | null
+  industries: string[] | null
   is_looking_for_startup: boolean
   avatar_url: string | null
 }
@@ -111,7 +111,7 @@ export default function StartupDetailPage() {
             email: string | null
             bio: string | null
             skills: string[] | null
-            industries_of_interest: string[] | null
+            industries: string[] | null
             is_looking_for_startup: boolean
             avatar_url: string | null
           }
@@ -127,7 +127,7 @@ export default function StartupDetailPage() {
             email: profile?.email ?? null,
             bio: profile?.bio ?? null,
             skills: profile?.skills ?? null,
-            industries_of_interest: profile?.industries_of_interest ?? null,
+            industries: profile?.industries ?? null,
             is_looking_for_startup: profile?.is_looking_for_startup ?? false,
             avatar_url: profile?.avatar_url ?? null,
           }
@@ -349,9 +349,9 @@ export default function StartupDetailPage() {
                   )}
 
                   {/* Industries of interest */}
-                  {member.industries_of_interest && member.industries_of_interest.length > 0 && (
+                  {member.industries && member.industries.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
-                      {member.industries_of_interest.map((ind) => (
+                      {member.industries.map((ind) => (
                         <span
                           key={ind}
                           className={`text-xs font-medium px-2 py-0.5 rounded-full ${

@@ -150,7 +150,7 @@ export default function ProfileSetupPage() {
       bio: bio || null,
       slack_handle: slackHandle || null,
       skills: skills.length > 0 ? skills : null,
-      industries_of_interest: industries.length > 0 ? industries : null,
+      industries: industries.length > 0 ? industries : null,
       is_looking_for_startup: isLooking,
     })
 

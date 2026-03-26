@@ -19,7 +19,7 @@ create table profiles (
   email        text,
   bio          text,
   skills                  text[],
-  industries_of_interest  text[],
+  industries              text[],
   is_looking_for_startup  boolean not null default false,
   is_admin                boolean not null default false,
   graduation_year         integer,

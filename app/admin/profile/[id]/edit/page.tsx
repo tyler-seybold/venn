@@ -112,7 +112,7 @@ export default function AdminProfileEditPage() {
       setAvatarPreview(profile.avatar_url ?? null)
       setBio(profile.bio ?? '')
       setSkills(profile.skills ?? [])
-      setIndustries(profile.industries_of_interest ?? [])
+      setIndustries(profile.industries ?? [])
       setIsLooking(profile.is_looking_for_startup ?? false)
       setDataLoaded(true)
     })
@@ -170,7 +170,7 @@ export default function AdminProfileEditPage() {
         avatar_url: avatarUrl,
         bio: bio || null,
         skills: skills.length > 0 ? skills : null,
-        industries_of_interest: industries.length > 0 ? industries : null,
+        industries: industries.length > 0 ? industries : null,
         is_looking_for_startup: isLooking,
       })
       .eq('user_id', targetUserId)

@@ -38,7 +38,7 @@ type Profile = {
   bio: string | null
   slack_handle: string | null
   skills: string[] | null
-  industries_of_interest: string[] | null
+  industries: string[] | null
   is_looking_for_startup: boolean
   graduation_year: number | null
   degree_program: string | null
@@ -240,7 +240,7 @@ export default function DashboardPage() {
   })
 
   const filteredPeople = people.filter((p) => {
-    if (peopleIndustries.length > 0 && !peopleIndustries.some((ind) => p.industries_of_interest?.includes(ind))) return false
+    if (peopleIndustries.length > 0 && !peopleIndustries.some((ind) => p.industries?.includes(ind))) return false
     return true
   })
 
