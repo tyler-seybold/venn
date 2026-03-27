@@ -173,6 +173,13 @@ export default function ProfileEditPage() {
     if (updateError) {
       setError(updateError.message)
     } else {
+      if (lookingFor.trim()) {
+        fetch('/api/inference/intent-tags', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ looking_for: lookingFor.trim(), user_id: userId }),
+        }).catch(() => {})
+      }
       router.push('/dashboard')
     }
   }

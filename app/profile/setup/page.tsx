@@ -152,6 +152,13 @@ export default function ProfileSetupPage() {
     if (insertError) {
       setError(insertError.message)
     } else {
+      if (lookingFor.trim()) {
+        fetch('/api/inference/intent-tags', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ looking_for: lookingFor.trim(), user_id: userId }),
+        }).catch(() => {})
+      }
       router.push('/onboarding/startup')
     }
   }
