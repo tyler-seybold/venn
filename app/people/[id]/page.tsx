@@ -82,6 +82,7 @@ export default function PersonDetailPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [startups, setStartups] = useState<Startup[]>([])
   const [myStartupIds, setMyStartupIds] = useState<Set<string>>(new Set())
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -92,6 +93,7 @@ export default function PersonDetailPage() {
       }
 
       const currentUserId = data.user.id
+      setCurrentUserId(currentUserId)
 
       const [{ data: profileData, error }, { data: memberData }, { data: myMemberships }] = await Promise.all([
         supabase.from('profiles').select('*').eq('user_id', id).single(),
@@ -191,7 +193,14 @@ export default function PersonDetailPage() {
                 <h1 className="text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
                   {profile.full_name ?? '—'}
                 </h1>
-                {profile.email && (
+                {currentUserId === profile.user_id ? (
+                  <button
+                    onClick={() => router.push('/profile/edit')}
+                    className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-medium px-3 py-1.5 transition"
+                  >
+                    Edit Profile
+                  </button>
+                ) : profile.email && (
                   <a
                     href={`mailto:${profile.email}`}
                     className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-medium px-3 py-1.5 transition"
