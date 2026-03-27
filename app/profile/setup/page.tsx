@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
@@ -49,9 +49,21 @@ export default function ProfileSetupPage() {
   const [lookingFor, setLookingFor] = useState('')
   const [cofounderInterest, setCofounderInterest] = useState(false)
 
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAvatarFile(file)
+    setAvatarPreview(URL.createObjectURL(file))
+  }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -103,10 +115,27 @@ export default function ProfileSetupPage() {
     setFieldErrors({})
     setLoading(true)
 
+    let avatarUrl: string | null = null
+    if (avatarFile) {
+      const ext = avatarFile.name.split('.').pop()
+      const path = `${userId}/${Date.now()}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, avatarFile, { upsert: true })
+      if (uploadError) {
+        setError(`Photo upload failed: ${uploadError.message}`)
+        setLoading(false)
+        return
+      }
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
+      avatarUrl = urlData.publicUrl
+    }
+
     const { error: insertError } = await supabase.from('profiles').insert({
       user_id:            userId,
       email:              userEmail,
       full_name:          fullName,
+      avatar_url:         avatarUrl,
       graduation_year:    graduationYear ? parseInt(graduationYear, 10) : null,
       degree_program:     degreeProgram || null,
       bio:                bio || null,
@@ -160,6 +189,43 @@ export default function ProfileSetupPage() {
                 placeholder="Jane Smith"
                 className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
               />
+            </div>
+
+            {/* 2. Profile photo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Profile photo <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <div className="flex items-center gap-4">
+                {avatarPreview ? (
+                  <>
+                    <img
+                      src={avatarPreview}
+                      alt="Avatar preview"
+                      className="w-16 h-16 rounded-full object-cover border border-gray-200 flex-shrink-0"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="text-sm text-brand hover:text-brand transition"
+                    >
+                      Change
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 hover:border-brand hover:text-brand transition"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 0L8 8m4-4l4 4" />
+                    </svg>
+                    Upload photo
+                  </button>
+                )}
+                <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+              </div>
             </div>
 
             {/* 2. Anticipated graduation year */}
