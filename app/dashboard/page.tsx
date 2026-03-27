@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, ChevronDown, ChevronRight, ExternalLink, Sparkles, Rocket, Users } from 'lucide-react'
+import { Mail, ChevronDown, ChevronRight, ExternalLink, Sparkles, Rocket, Users, ThumbsUp, ThumbsDown } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { getMatchLabel, getMatchLabelColor } from '@/config/matching'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,6 +46,37 @@ type Profile = {
   avatar_url: string | null
   is_founder: boolean
   startup_name: string | null
+}
+
+type MatchWithProfile = {
+  id: string
+  user_id_1: string
+  user_id_2: string
+  match_type: string
+  match_score: number | null
+  blurb: string | null
+  week_of: string | null
+  feedback_1: 'up' | 'down' | null
+  feedback_1_reason: string | null
+  feedback_2: 'up' | 'down' | null
+  feedback_2_reason: string | null
+  created_at: string
+  matched_name: string | null
+  matched_avatar: string | null
+  matched_bio: string | null
+}
+
+function getWeekOf(date: Date): string {
+  const d = new Date(date)
+  const day = d.getDay() // 0 = Sunday
+  const diff = day === 0 ? -6 : 1 - day // shift back to Monday
+  d.setDate(d.getDate() + diff)
+  return d.toISOString().split('T')[0]
+}
+
+function formatWeekOf(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00')
+  return `Week of ${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -139,6 +171,10 @@ export default function DashboardPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const [tab, setTab] = useState<'matches' | 'startups' | 'people'>('matches')
+
+  const [matches, setMatches] = useState<MatchWithProfile[]>([])
+  const [loadingMatches, setLoadingMatches] = useState(true)
+  const [showPastMatches, setShowPastMatches] = useState(false)
 
   const [startups, setStartups] = useState<Startup[]>([])
   const [people, setPeople] = useState<Profile[]>([])
@@ -242,6 +278,49 @@ export default function DashboardPage() {
         setLoadingPeople(false)
       })
   }, [authChecked])
+
+  // Fetch matches
+  useEffect(() => {
+    if (!authChecked || !userId) return
+    ;(async () => {
+      const { data: matchRows } = await supabase
+        .from('matches')
+        .select('*')
+        .or(`user_id_1.eq.${userId},user_id_2.eq.${userId}`)
+        .order('created_at', { ascending: false })
+
+      if (!matchRows || matchRows.length === 0) {
+        setMatches([])
+        setLoadingMatches(false)
+        return
+      }
+
+      const otherIds = [...new Set(
+        matchRows.map((m) => m.user_id_1 === userId ? m.user_id_2 : m.user_id_1)
+      )]
+
+      const { data: profileRows } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, avatar_url, bio')
+        .in('user_id', otherIds)
+
+      const profileMap = Object.fromEntries(
+        (profileRows ?? []).map((p) => [p.user_id, p])
+      )
+
+      setMatches(matchRows.map((m) => {
+        const otherId = m.user_id_1 === userId ? m.user_id_2 : m.user_id_1
+        const prof = profileMap[otherId] ?? null
+        return {
+          ...m,
+          matched_name: prof?.full_name ?? null,
+          matched_avatar: prof?.avatar_url ?? null,
+          matched_bio: prof?.bio ?? null,
+        }
+      }))
+      setLoadingMatches(false)
+    })()
+  }, [authChecked, userId])
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -373,11 +452,66 @@ export default function DashboardPage() {
 
           {/* ── Your Matches Tab ────────────────────────────────── */}
           {tab === 'matches' && (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <Sparkles className="w-10 h-10 text-brand/30 mb-4" />
-              <p className="text-sm text-gray-400">
-                Your matches will appear here once the first digest runs.
-              </p>
+            <div>
+              {loadingMatches ? (
+                <LoadingSpinner />
+              ) : matches.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
+                  <Sparkles className="w-10 h-10 text-brand/30" />
+                  <p className="text-sm text-gray-400 max-w-sm">
+                    No matches yet — your first matches will appear once the digest runs. Make sure your profile is complete to enter the match pool.
+                  </p>
+                  <button
+                    onClick={() => router.push('/profile/edit')}
+                    className="rounded-lg bg-brand hover:bg-brand-hover text-white text-sm font-medium px-4 py-2 transition"
+                  >
+                    Complete Your Profile
+                  </button>
+                </div>
+              ) : (() => {
+                const currentWeekOf = getWeekOf(new Date())
+                const thisWeek = matches.filter((m) => m.week_of === currentWeekOf)
+                const past = matches.filter((m) => m.week_of !== currentWeekOf)
+                return (
+                  <div className="flex flex-col gap-8">
+                    {/* This Week */}
+                    <div>
+                      <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                        This Week
+                      </h2>
+                      {thisWeek.length === 0 ? (
+                        <p className="text-sm text-gray-400">No new matches this week yet.</p>
+                      ) : (
+                        <div className="flex flex-col gap-4">
+                          {thisWeek.map((m) => (
+                            <MatchCard key={m.id} match={m} currentUserId={userId!} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Past Matches */}
+                    {past.length > 0 && (
+                      <div>
+                        <button
+                          onClick={() => setShowPastMatches((v) => !v)}
+                          className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-600 transition mb-4"
+                        >
+                          <ChevronRight className={`w-3.5 h-3.5 transition-transform ${showPastMatches ? 'rotate-90' : ''}`} />
+                          Past Matches ({past.length})
+                        </button>
+                        {showPastMatches && (
+                          <div className="flex flex-col gap-4">
+                            {past.map((m) => (
+                              <MatchCard key={m.id} match={m} currentUserId={userId!} />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
             </div>
           )}
 
@@ -472,6 +606,127 @@ export default function DashboardPage() {
 }
 
 // ── Sub-components ───────────────────────────────────────────────────────────
+
+function MatchCard({
+  match: m,
+  currentUserId,
+}: {
+  match: MatchWithProfile
+  currentUserId: string
+}) {
+  const isUser1 = m.user_id_1 === currentUserId
+  const [thumb, setThumb] = useState<'up' | 'down' | null>(
+    (isUser1 ? m.feedback_1 : m.feedback_2) ?? null
+  )
+  const [reason, setReason] = useState(
+    (isUser1 ? m.feedback_1_reason : m.feedback_2_reason) ?? ''
+  )
+  const [saving, setSaving] = useState(false)
+
+  async function handleThumb(value: 'up' | 'down') {
+    const next = thumb === value ? null : value
+    setThumb(next)
+    setSaving(true)
+    const col = isUser1 ? 'feedback_1' : 'feedback_2'
+    await supabase.from('matches').update({ [col]: next }).eq('id', m.id)
+    setSaving(false)
+  }
+
+  async function handleReasonBlur() {
+    const col = isUser1 ? 'feedback_1_reason' : 'feedback_2_reason'
+    await supabase.from('matches').update({ [col]: reason || null }).eq('id', m.id)
+  }
+
+  const label = m.match_score != null ? getMatchLabel(m.match_score) : null
+  const labelColor = label ? getMatchLabelColor(label) : '#757575'
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex flex-col gap-4 max-w-2xl">
+      {/* Header: avatar + name + bio snippet + label */}
+      <div className="flex items-start gap-4">
+        <div className="w-12 h-12 rounded-full overflow-hidden bg-brand-light flex items-center justify-center flex-shrink-0">
+          {m.matched_avatar ? (
+            <img src={m.matched_avatar} alt={m.matched_name ?? ''} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-lg font-bold text-brand/50">
+              {(m.matched_name ?? '?').charAt(0).toUpperCase()}
+            </span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-semibold text-gray-900 text-sm">{m.matched_name ?? 'Unknown'}</h3>
+            {label && (
+              <span
+                className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: labelColor + '20', color: labelColor }}
+              >
+                {label}
+              </span>
+            )}
+          </div>
+          {m.matched_bio && (
+            <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+              {m.matched_bio.length > 100 ? m.matched_bio.slice(0, 100) + '…' : m.matched_bio}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Blurb */}
+      {m.blurb && (
+        <p className="text-sm text-gray-700 leading-relaxed">{m.blurb}</p>
+      )}
+
+      {/* Footer: date + thumbs */}
+      <div className="flex items-center gap-3 pt-1 border-t border-gray-100">
+        {m.week_of && (
+          <span className="text-xs text-gray-400">{formatWeekOf(m.week_of)}</span>
+        )}
+        <div className="flex items-center gap-1.5 ml-auto">
+          <button
+            onClick={() => handleThumb('up')}
+            disabled={saving}
+            className={`p-1.5 rounded-lg transition ${
+              thumb === 'up'
+                ? 'bg-green-100 text-green-600'
+                : 'text-gray-400 hover:bg-green-50 hover:text-green-600'
+            }`}
+          >
+            <ThumbsUp className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => handleThumb('down')}
+            disabled={saving}
+            className={`p-1.5 rounded-lg transition ${
+              thumb === 'down'
+                ? 'bg-red-100 text-red-600'
+                : 'text-gray-400 hover:bg-red-50 hover:text-red-600'
+            }`}
+          >
+            <ThumbsDown className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Reason input — visible after thumbing */}
+      {thumb !== null && (
+        <input
+          type="text"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          onBlur={handleReasonBlur}
+          placeholder={
+            thumb === 'up'
+              ? 'What made this a good match? (optional)'
+              : 'What missed the mark? (optional)'
+          }
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
+        />
+      )}
+    </div>
+  )
+}
 
 function FilterDropdown({
   label,
