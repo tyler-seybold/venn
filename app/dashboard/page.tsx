@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react'
+import { Mail, ChevronDown, ChevronRight, ExternalLink, Sparkles, Rocket, Users } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -138,7 +138,7 @@ export default function DashboardPage() {
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
-  const [tab, setTab] = useState<'startups' | 'people'>('startups')
+  const [tab, setTab] = useState<'matches' | 'startups' | 'people'>('matches')
 
   const [startups, setStartups] = useState<Startup[]>([])
   const [people, setPeople] = useState<Profile[]>([])
@@ -338,91 +338,135 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tabs */}
-        <div className="flex gap-1 mb-8 border-b border-gray-200">
-          {(['startups', 'people'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${
-                tab === t
-                  ? 'border-brand text-brand'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {t === 'startups' ? 'Startups' : 'People'}
-            </button>
-          ))}
-        </div>
+      {/* ── Body: sidebar + content ──────────────────────────── */}
+      <div className="flex">
 
-        {/* ── Startups Tab ──────────────────────────────────────── */}
-        {tab === 'startups' && (
-          <div>
-            {/* Filter row */}
-            <div className="flex items-center gap-2 mb-6">
-              <FilterDropdown
-                label="Filter by Industry"
-                options={ALL_INDUSTRIES}
-                selected={startupIndustries}
-                onChange={setStartupIndustries}
-              />
-              <FilterDropdown
-                label="Filter by Stage"
-                options={ALL_STAGES}
-                selected={startupStages}
-                onChange={setStartupStages}
-              />
-              <div className="flex-1" />
+        {/* Left sidebar — desktop only */}
+        <aside className="hidden md:flex flex-col w-56 flex-shrink-0 bg-white border-r border-gray-200 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto">
+          <nav className="flex flex-col gap-1 p-3 pt-4">
+            {([
+              { key: 'matches',  label: 'Your Matches', Icon: Sparkles },
+              { key: 'startups', label: 'Startups',     Icon: Rocket   },
+              { key: 'people',   label: 'People',       Icon: Users    },
+            ] as const).map(({ key, label, Icon }) => (
               <button
-                onClick={() => router.push('/startup/new')}
-                className="flex-shrink-0 rounded-lg bg-brand hover:bg-brand-hover text-white text-sm font-medium px-4 py-2 transition"
+                key={key}
+                onClick={() => setTab(key)}
+                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition text-left w-full ${
+                  tab === key
+                    ? 'bg-brand-light text-brand'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                }`}
               >
-                + Add Your Startup
+                {tab === key && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-brand" />
+                )}
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                {label}
               </button>
+            ))}
+          </nav>
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
+
+          {/* ── Your Matches Tab ────────────────────────────────── */}
+          {tab === 'matches' && (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <Sparkles className="w-10 h-10 text-brand/30 mb-4" />
+              <p className="text-sm text-gray-400">
+                Your matches will appear here once the first digest runs.
+              </p>
             </div>
+          )}
 
-            {loadingStartups ? (
-              <LoadingSpinner />
-            ) : filteredStartups.length === 0 ? (
-              <EmptyState message="No startups match the selected filters." />
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filteredStartups.map((s) => (
-                  <StartupCard key={s.id} startup={s} />
-                ))}
+          {/* ── Startups Tab ────────────────────────────────────── */}
+          {tab === 'startups' && (
+            <div>
+              <div className="flex items-center gap-2 mb-6">
+                <FilterDropdown
+                  label="Filter by Industry"
+                  options={ALL_INDUSTRIES}
+                  selected={startupIndustries}
+                  onChange={setStartupIndustries}
+                />
+                <FilterDropdown
+                  label="Filter by Stage"
+                  options={ALL_STAGES}
+                  selected={startupStages}
+                  onChange={setStartupStages}
+                />
+                <div className="flex-1" />
+                <button
+                  onClick={() => router.push('/startup/new')}
+                  className="flex-shrink-0 rounded-lg bg-brand hover:bg-brand-hover text-white text-sm font-medium px-4 py-2 transition"
+                >
+                  + Add Your Startup
+                </button>
               </div>
-            )}
-          </div>
-        )}
 
-        {/* ── People Tab ────────────────────────────────────────── */}
-        {tab === 'people' && (
-          <div>
-            {/* Industry filter */}
-            <div className="flex items-center gap-2 mb-6">
-              <FilterDropdown
-                label="Filter by Industry"
-                options={ALL_INDUSTRIES}
-                selected={peopleIndustries}
-                onChange={setPeopleIndustries}
-              />
+              {loadingStartups ? (
+                <LoadingSpinner />
+              ) : filteredStartups.length === 0 ? (
+                <EmptyState message="No startups match the selected filters." />
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {filteredStartups.map((s) => (
+                    <StartupCard key={s.id} startup={s} />
+                  ))}
+                </div>
+              )}
             </div>
+          )}
 
-            {loadingPeople ? (
-              <LoadingSpinner />
-            ) : filteredPeople.length === 0 ? (
-              <EmptyState message="No people match the selected filters." />
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                {filteredPeople.map((p) => (
-                  <PersonCard key={p.user_id} person={p} />
-                ))}
+          {/* ── People Tab ──────────────────────────────────────── */}
+          {tab === 'people' && (
+            <div>
+              <div className="flex items-center gap-2 mb-6">
+                <FilterDropdown
+                  label="Filter by Industry"
+                  options={ALL_INDUSTRIES}
+                  selected={peopleIndustries}
+                  onChange={setPeopleIndustries}
+                />
               </div>
-            )}
-          </div>
-        )}
-      </main>
+
+              {loadingPeople ? (
+                <LoadingSpinner />
+              ) : filteredPeople.length === 0 ? (
+                <EmptyState message="No people match the selected filters." />
+              ) : (
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                  {filteredPeople.map((p) => (
+                    <PersonCard key={p.user_id} person={p} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* Bottom tab bar — mobile only */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10 flex">
+        {([
+          { key: 'matches',  label: 'Your Matches', Icon: Sparkles },
+          { key: 'startups', label: 'Startups',     Icon: Rocket   },
+          { key: 'people',   label: 'People',       Icon: Users    },
+        ] as const).map(({ key, label, Icon }) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 text-xs font-medium transition ${
+              tab === key ? 'text-brand' : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <Icon className="w-5 h-5" />
+            {label}
+          </button>
+        ))}
+      </nav>
     </div>
   )
 }
