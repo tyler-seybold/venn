@@ -6,26 +6,34 @@ import { Mail } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 const INDUSTRY_COLORS: Record<string, string> = {
+  Advertising: 'bg-orange-100 text-orange-700',
+  AI: 'bg-indigo-100 text-indigo-700',
   Apparel: 'bg-pink-100 text-pink-700',
-  'Business Services': 'bg-indigo-100 text-indigo-700',
+  B2B: 'bg-amber-100 text-amber-700',
+  Biotech: 'bg-lime-100 text-lime-700',
   Climate: 'bg-teal-100 text-teal-700',
-  'Consumer Products': 'bg-orange-100 text-orange-700',
-  'Consumer Services': 'bg-amber-100 text-amber-700',
+  CPG: 'bg-orange-100 text-orange-700',
   Education: 'bg-brand-light text-brand',
   Energy: 'bg-yellow-100 text-yellow-700',
   'Financial Services': 'bg-emerald-100 text-emerald-700',
   Fintech: 'bg-cyan-100 text-cyan-700',
+  'Fitness & Wellness': 'bg-lime-100 text-lime-700',
   'Food & Beverage': 'bg-red-100 text-red-700',
   Gaming: 'bg-violet-100 text-violet-700',
-  'Health & Wellness': 'bg-lime-100 text-lime-700',
   Healthcare: 'bg-green-100 text-green-700',
-  Logistics: 'bg-stone-100 text-stone-700',
+  Hospitality: 'bg-amber-100 text-amber-700',
+  'Leisure/Travel & Tourism': 'bg-gray-100 text-gray-700',
+  'Logistics & Supply Chain': 'bg-stone-100 text-stone-700',
+  Manufacturing: 'bg-zinc-100 text-zinc-700',
   Media: 'bg-rose-100 text-rose-700',
   'Medical Devices': 'bg-sky-100 text-sky-700',
-  'Real Estate / PropTech': 'bg-fuchsia-100 text-fuchsia-700',
+  Pharma: 'bg-purple-100 text-purple-700',
+  'Real Estate': 'bg-fuchsia-100 text-fuchsia-700',
   'Social Impact': 'bg-blue-100 text-blue-700',
-  Technology: 'bg-slate-100 text-slate-700',
-  'Travel & Hospitality': 'bg-gray-100 text-gray-700',
+  Sports: 'bg-green-100 text-green-700',
+  Sustainability: 'bg-teal-100 text-teal-700',
+  Tech: 'bg-slate-100 text-slate-700',
+  Transportation: 'bg-orange-100 text-orange-700',
 }
 
 const STAGE_COLORS: Record<string, string> = {
@@ -35,15 +43,23 @@ const STAGE_COLORS: Record<string, string> = {
   'Revenue-generating': 'bg-green-100 text-green-700',
 }
 
+const INDUSTRY_OPENNESS_LABELS: Record<string, string> = {
+  strong_preferences: 'Has strong industry preferences',
+  some_preferences:   'Has some preferences but is open',
+  open_to_anything:   'Open to anything',
+}
+
 type Profile = {
   user_id: string
   full_name: string | null
   email: string | null
   bio: string | null
-  slack_handle: string | null
   skills: string[] | null
   industries: string[] | null
-  is_looking_for_startup: boolean
+  industry_openness: string | null
+  role_orientation: string[] | null
+  looking_for: string | null
+  cofounder_interest: boolean | null
   graduation_year: number | null
   degree_program: string | null
   avatar_url: string | null
@@ -131,146 +147,168 @@ export default function PersonDetailPage() {
 
   if (!profile) return null
 
+  const opennessLabel = profile.industry_openness
+    ? INDUSTRY_OPENNESS_LABELS[profile.industry_openness] ?? null
+    : null
+
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="w-full max-w-2xl mx-auto">
+
         {/* Back button */}
         <button
           onClick={() => router.push('/dashboard')}
           className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition"
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
           Back to Dashboard
         </button>
 
         {/* Profile card */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-6">
-          {/* Photo / placeholder — full-width top banner */}
-          <div className="w-full aspect-[16/6] bg-gray-50 flex items-center justify-center overflow-hidden">
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.full_name ?? 'Avatar'}
-                className="w-full h-full object-contain"
-              />
-            ) : (
-              <span className="text-8xl font-bold text-brand/20">
-                {(profile.full_name ?? '?').charAt(0).toUpperCase()}
-              </span>
-            )}
-          </div>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 mb-6">
 
-          <div className="p-8">
-            {/* Header: name + contact buttons */}
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <h1 className="text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
-                {profile.full_name ?? '—'}
-              </h1>
-              <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Avatar + name + meta */}
+          <div className="flex items-start gap-5 mb-6">
+            {/* Circular avatar */}
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-brand-light flex items-center justify-center flex-shrink-0">
+              {profile.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.full_name ?? 'Avatar'}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-3xl font-bold text-brand/50">
+                  {(profile.full_name ?? '?').charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-0 pt-1">
+              <div className="flex items-start justify-between gap-3">
+                <h1 className="text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
+                  {profile.full_name ?? '—'}
+                </h1>
                 {profile.email && (
                   <a
                     href={`mailto:${profile.email}`}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-medium px-3 py-1.5 transition"
+                    className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-medium px-3 py-1.5 transition"
                   >
                     <Mail className="w-3.5 h-3.5" />
                     Email
                   </a>
                 )}
-                {profile.slack_handle && (
-                  <a
-                    href={`slack://user?team=T0AUF6SQ7&id=${profile.slack_handle}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-gray-700 hover:bg-gray-800 text-white text-xs font-medium px-3 py-1.5 transition"
-                  >
-                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-                      <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
-                    </svg>
-                    Slack
-                  </a>
-                )}
               </div>
-            </div>
 
-            {/* Badges + degree/year */}
-            <div className="flex flex-wrap items-center gap-2 mb-6">
+              {/* Grad year + degree */}
+              {(profile.graduation_year || profile.degree_program) && (
+                <p className="mt-1 text-sm text-gray-500">
+                  {[profile.degree_program, profile.graduation_year].filter(Boolean).join(' · ')}
+                </p>
+              )}
+
+              {/* Founder badge */}
               {startups.length > 0 && (
-                <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
+                <span className="inline-block mt-2 text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
                   Founder
                 </span>
               )}
-              {startups.length === 0 && profile.is_looking_for_startup && (
-                <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                  Open to joining
-                </span>
-              )}
-              {profile.degree_program && (
-                <span className="text-sm text-gray-500">{profile.degree_program}</span>
-              )}
-              {profile.graduation_year && (
-                <span className="text-sm text-gray-500">{profile.graduation_year}</span>
-              )}
             </div>
+          </div>
 
           <hr className="border-gray-100 mb-6" />
 
-          {/* Bio */}
-          {profile.bio && (
-            <div className="mb-6">
-              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Bio
-              </h2>
-              <p className="text-sm text-gray-700 leading-relaxed">{profile.bio}</p>
-            </div>
-          )}
+          <div className="flex flex-col gap-6">
 
-          {/* Skills */}
-          {profile.skills && profile.skills.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Skills
-              </h2>
-              <div className="flex flex-wrap gap-1.5">
-                {profile.skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="text-xs font-medium bg-brand-light text-brand px-2.5 py-1 rounded-md"
-                  >
-                    {skill}
-                  </span>
-                ))}
+            {/* Bio */}
+            {profile.bio && (
+              <div>
+                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Bio</h2>
+                <p className="text-sm text-gray-700 leading-relaxed">{profile.bio}</p>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Industries of interest */}
-          {profile.industries && profile.industries.length > 0 && (
-            <div>
-              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Industries of Interest
-              </h2>
-              <div className="flex flex-wrap gap-1.5">
-                {profile.industries.map((ind) => (
-                  <span
-                    key={ind}
-                    className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                      INDUSTRY_COLORS[ind] ?? 'bg-gray-100 text-gray-600'
-                    }`}
-                  >
-                    {ind}
-                  </span>
-                ))}
+            {/* Skills */}
+            {profile.skills && profile.skills.length > 0 && (
+              <div>
+                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Skills</h2>
+                <div className="flex flex-wrap gap-1.5">
+                  {profile.skills.map((skill) => (
+                    <span
+                      key={skill}
+                      className="text-xs font-medium bg-brand-light text-brand px-2.5 py-1 rounded-full"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Industry interests */}
+            {profile.industries && profile.industries.length > 0 && (
+              <div>
+                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Industry Interests</h2>
+                <div className="flex flex-wrap gap-1.5">
+                  {profile.industries.map((ind) => (
+                    <span
+                      key={ind}
+                      className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                        INDUSTRY_COLORS[ind] ?? 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      {ind}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Industry openness */}
+            {opennessLabel && (
+              <div>
+                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Industry Openness</h2>
+                <p className="text-sm text-gray-700">{opennessLabel}</p>
+              </div>
+            )}
+
+            {/* Role orientation */}
+            {profile.role_orientation && profile.role_orientation.length > 0 && (
+              <div>
+                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Role Orientation</h2>
+                <div className="flex flex-wrap gap-1.5">
+                  {profile.role_orientation.map((role) => (
+                    <span
+                      key={role}
+                      className="text-xs font-medium bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full"
+                    >
+                      {role}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Looking for */}
+            {profile.looking_for && (
+              <div>
+                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Looking For</h2>
+                <p className="text-sm text-gray-700 leading-relaxed">{profile.looking_for}</p>
+              </div>
+            )}
+
+            {/* Co-founder interest */}
+            {profile.cofounder_interest != null && (
+              <div>
+                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Co-founder Interest</h2>
+                <p className="text-sm text-gray-700">
+                  {profile.cofounder_interest ? 'Yes, interested in finding a co-founder' : 'Not currently looking for a co-founder'}
+                </p>
+              </div>
+            )}
+
           </div>
         </div>
 
@@ -356,6 +394,7 @@ export default function PersonDetailPage() {
             </div>
           </div>
         )}
+
       </div>
     </div>
   )
