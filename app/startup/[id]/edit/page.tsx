@@ -270,10 +270,7 @@ export default function EditStartupPage() {
         stage: stage ?? null,
         description: description || null,
         website_url: normalizedUrl,
-        current_ask: currentAsk || null,
-        ...(currentAsk !== originalCurrentAsk
-          ? { current_ask_updated_at: currentAsk ? new Date().toISOString() : null }
-          : {}),
+        // current_ask and current_ask_updated_at omitted — hidden from UI
       })
       .eq('id', id)
 

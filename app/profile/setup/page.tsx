@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 
 const SKILLS = [
   'Engineering', 'Finance', 'Marketing', 'Operations', 'Design',
-  'Legal', 'Sales', 'Product', 'Data/Analytics',
+  'Legal', 'Sales', 'Product', 'Data/Analytics', 'Social Media',
 ]
 
 const INDUSTRIES = [
@@ -65,8 +65,22 @@ export default function ProfileSetupPage() {
     })
   }, [router])
 
+  const [industryCapMessage, setIndustryCapMessage] = useState(false)
+
   function toggleItem(list: string[], setList: (v: string[]) => void, item: string) {
     setList(list.includes(item) ? list.filter((i) => i !== item) : [...list, item])
+  }
+
+  function toggleIndustry(industry: string) {
+    if (industries.includes(industry)) {
+      setIndustries(industries.filter((i) => i !== industry))
+      setIndustryCapMessage(false)
+    } else if (industries.length >= 6) {
+      setIndustryCapMessage(true)
+    } else {
+      setIndustries([...industries, industry])
+      setIndustryCapMessage(false)
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -231,7 +245,7 @@ export default function ProfileSetupPage() {
             {/* 6. Industry interests */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Industry interests <span className="text-red-500">*</span>
+                Industry interests (choose up to 6) <span className="text-red-500">*</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {INDUSTRIES.map((industry) => {
@@ -240,7 +254,7 @@ export default function ProfileSetupPage() {
                     <button
                       key={industry}
                       type="button"
-                      onClick={() => toggleItem(industries, setIndustries, industry)}
+                      onClick={() => toggleIndustry(industry)}
                       className={`px-3 py-1.5 rounded-full text-sm font-medium border transition ${
                         selected
                           ? 'bg-brand border-brand text-white'
@@ -252,6 +266,7 @@ export default function ProfileSetupPage() {
                   )
                 })}
               </div>
+              {industryCapMessage && <p className="mt-1.5 text-xs text-gray-500">Maximum 6 industries selected</p>}
               {fieldErrors.industries && <p className="mt-1.5 text-xs text-red-600">{fieldErrors.industries}</p>}
             </div>
 

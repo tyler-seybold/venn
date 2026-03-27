@@ -135,8 +135,7 @@ export default function NewStartupPage() {
       website_url: websiteUrl
         ? /^https?:\/\//i.test(websiteUrl) ? websiteUrl : `https://${websiteUrl}`
         : null,
-      current_ask: currentAsk || null,
-      current_ask_updated_at: currentAsk ? new Date().toISOString() : null,
+      // current_ask and current_ask_updated_at omitted — hidden from UI
     }).select('id').single()
 
     if (insertError || !newStartup) {
