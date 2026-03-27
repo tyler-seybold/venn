@@ -50,51 +50,67 @@ type Profile = {
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const ALL_INDUSTRIES = [
+  'Advertising',
+  'AI',
   'Apparel',
-  'Business Services',
+  'B2B',
+  'Biotech',
   'Climate',
-  'Consumer Products',
-  'Consumer Services',
+  'CPG',
   'Education',
   'Energy',
   'Financial Services',
   'Fintech',
+  'Fitness & Wellness',
   'Food & Beverage',
   'Gaming',
-  'Health & Wellness',
   'Healthcare',
-  'Logistics',
+  'Hospitality',
+  'Leisure/Travel & Tourism',
+  'Logistics & Supply Chain',
+  'Manufacturing',
   'Media',
   'Medical Devices',
-  'Real Estate / PropTech',
+  'Pharma',
+  'Real Estate',
   'Social Impact',
-  'Technology',
-  'Travel & Hospitality',
+  'Sports',
+  'Sustainability',
+  'Tech',
+  'Transportation',
 ]
 
 const ALL_STAGES = ['Ideation', 'MVP', 'Beta Client/Pilot', 'Revenue-generating']
 
 const INDUSTRY_COLORS: Record<string, string> = {
+  Advertising: 'bg-orange-100 text-orange-700',
+  AI: 'bg-indigo-100 text-indigo-700',
   Apparel: 'bg-pink-100 text-pink-700',
-  'Business Services': 'bg-indigo-100 text-indigo-700',
+  B2B: 'bg-amber-100 text-amber-700',
+  Biotech: 'bg-lime-100 text-lime-700',
   Climate: 'bg-teal-100 text-teal-700',
-  'Consumer Products': 'bg-orange-100 text-orange-700',
-  'Consumer Services': 'bg-amber-100 text-amber-700',
+  CPG: 'bg-orange-100 text-orange-700',
   Education: 'bg-brand-light text-brand',
   Energy: 'bg-yellow-100 text-yellow-700',
   'Financial Services': 'bg-emerald-100 text-emerald-700',
   Fintech: 'bg-cyan-100 text-cyan-700',
+  'Fitness & Wellness': 'bg-lime-100 text-lime-700',
   'Food & Beverage': 'bg-red-100 text-red-700',
   Gaming: 'bg-violet-100 text-violet-700',
-  'Health & Wellness': 'bg-lime-100 text-lime-700',
   Healthcare: 'bg-green-100 text-green-700',
-  Logistics: 'bg-stone-100 text-stone-700',
+  Hospitality: 'bg-amber-100 text-amber-700',
+  'Leisure/Travel & Tourism': 'bg-gray-100 text-gray-700',
+  'Logistics & Supply Chain': 'bg-stone-100 text-stone-700',
+  Manufacturing: 'bg-zinc-100 text-zinc-700',
   Media: 'bg-rose-100 text-rose-700',
   'Medical Devices': 'bg-sky-100 text-sky-700',
-  'Real Estate / PropTech': 'bg-fuchsia-100 text-fuchsia-700',
+  Pharma: 'bg-purple-100 text-purple-700',
+  'Real Estate': 'bg-fuchsia-100 text-fuchsia-700',
   'Social Impact': 'bg-blue-100 text-blue-700',
-  Technology: 'bg-slate-100 text-slate-700',
-  'Travel & Hospitality': 'bg-gray-100 text-gray-700',
+  Sports: 'bg-green-100 text-green-700',
+  Sustainability: 'bg-teal-100 text-teal-700',
+  Tech: 'bg-slate-100 text-slate-700',
+  Transportation: 'bg-orange-100 text-orange-700',
 }
 
 const STAGE_COLORS: Record<string, string> = {
@@ -578,15 +594,15 @@ function StartupCard({
           <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{s.description}</p>
         )}
 
-        {/* Current Ask */}
-        {s.current_ask && (
+        {/* Current Ask — hidden from UI (field preserved in DB/types) */}
+        {/* {s.current_ask && (
           <div className="text-xs text-gray-500">
             <p className="font-semibold text-gray-700">
               Current Ask{s.current_ask_updated_at ? ` (last updated ${formatDate(s.current_ask_updated_at)})` : ''}:
             </p>
             <p>{s.current_ask}</p>
           </div>
-        )}
+        )} */}
 
         {/* Actions */}
         <div className="mt-auto pt-1" onClick={(e) => e.stopPropagation()}>

@@ -263,15 +263,15 @@ export default function StartupDetailPage() {
               </div>
             )}
 
-            {/* Current ask */}
-            {startup.current_ask && (
+            {/* Current ask — hidden from UI (field preserved in DB/types) */}
+            {/* {startup.current_ask && (
               <div className="mb-6">
                 <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                   Current Ask{startup.current_ask_updated_at ? ` (last updated ${formatDate(startup.current_ask_updated_at)})` : ''}
                 </h2>
                 <p className="text-sm text-gray-700">{startup.current_ask}</p>
               </div>
-            )}
+            )} */}
 
             {/* Email button */}
             {primaryMember?.email && (

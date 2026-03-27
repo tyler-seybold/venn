@@ -5,26 +5,34 @@ import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 const INDUSTRIES = [
+  'Advertising',
+  'AI',
   'Apparel',
-  'Business Services',
+  'B2B',
+  'Biotech',
   'Climate',
-  'Consumer Products',
-  'Consumer Services',
+  'CPG',
   'Education',
   'Energy',
   'Financial Services',
   'Fintech',
+  'Fitness & Wellness',
   'Food & Beverage',
   'Gaming',
-  'Health & Wellness',
   'Healthcare',
-  'Logistics',
+  'Hospitality',
+  'Leisure/Travel & Tourism',
+  'Logistics & Supply Chain',
+  'Manufacturing',
   'Media',
   'Medical Devices',
-  'Real Estate / PropTech',
+  'Pharma',
+  'Real Estate',
   'Social Impact',
-  'Technology',
-  'Travel & Hospitality',
+  'Sports',
+  'Sustainability',
+  'Tech',
+  'Transportation',
 ]
 
 const STAGES = ['Ideation', 'MVP', 'Beta Client/Pilot', 'Revenue-generating'] as const
@@ -507,8 +515,8 @@ export default function EditStartupPage() {
               />
             </div>
 
-            {/* Current ask */}
-            <div>
+            {/* Current ask — hidden from UI (field preserved in DB/types) */}
+            {/* <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label htmlFor="currentAsk" className="block text-sm font-medium text-gray-700">
                   Current ask <span className="text-gray-400 font-normal">(optional)</span>
@@ -530,7 +538,7 @@ export default function EditStartupPage() {
                 maxLength={ASK_MAX}
                 className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
               />
-            </div>
+            </div> */}
 
             {/* Co-Founders */}
             <div>
@@ -601,7 +609,7 @@ export default function EditStartupPage() {
 
             <button
               type="submit"
-              disabled={loading || description.length > DESC_MAX || currentAsk.length > ASK_MAX}
+              disabled={loading || description.length > DESC_MAX /* || currentAsk.length > ASK_MAX */}
               className="w-full rounded-lg bg-brand hover:bg-brand-hover disabled:bg-brand/60 text-white text-sm font-medium py-2.5 transition focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
             >
               {loading ? 'Saving…' : 'Save Changes'}
