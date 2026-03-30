@@ -21,8 +21,12 @@ function currentWeekOf(): string {
 export async function POST(req: NextRequest) {
   // ── 1. Auth ──────────────────────────────────────────────────────────────────
   const authHeader = req.headers.get('authorization') ?? ''
-  const secret = process.env.MATCHING_SECRET
-  if (!secret || authHeader !== `Bearer ${secret}`) {
+  const matchingSecret = process.env.MATCHING_SECRET
+  const cronSecret = process.env.CRON_SECRET
+  const authorized =
+    (matchingSecret && authHeader === `Bearer ${matchingSecret}`) ||
+    (cronSecret && authHeader === `Bearer ${cronSecret}`)
+  if (!authorized) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
 
