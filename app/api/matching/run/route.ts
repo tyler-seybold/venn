@@ -176,7 +176,14 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── 8. Summary ───────────────────────────────────────────────────────────────
+  // ── 8. Trigger email job (non-blocking) ──────────────────────────────────────
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+  fetch(`${baseUrl}/api/email/send-matches?week_of=${weekOf}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${process.env.MATCHING_SECRET}` },
+  }).catch(() => {})
+
+  // ── 9. Summary ───────────────────────────────────────────────────────────────
   return NextResponse.json({
     success: true,
     peopleMatches:  peopleMatchCount.value,
