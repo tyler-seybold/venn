@@ -20,13 +20,19 @@ const MISSING_LABELS: Partial<Record<keyof CompletenessBreakdown, string>> = {
   industries_breadth: 'Add 3+ industry interests',
 }
 
+const MISSING_HREFS: Partial<Record<keyof CompletenessBreakdown, string>> = {
+  personality_quiz: '/profile/quiz',
+}
+
+type MissingItem = { label: string; href?: string }
+
 // SVG circle progress (r=26, so circumference ≈ 163.4)
 const RADIUS = 26
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
 export default function ProfileCompletenessCard({ userId }: { userId: string | null }) {
   const [score, setScore] = useState<number | null>(null)
-  const [missing, setMissing] = useState<string[]>([])
+  const [missing, setMissing] = useState<MissingItem[]>([])
 
   useEffect(() => {
     if (!userId) return
@@ -39,16 +45,16 @@ export default function ProfileCompletenessCard({ userId }: { userId: string | n
         if (!data) return
         const result = calculateCompleteness(data as Record<string, unknown>)
         setScore(result.score)
-        const missingItems = (Object.keys(result.breakdown) as (keyof CompletenessBreakdown)[])
+        const missingItems: MissingItem[] = (Object.keys(result.breakdown) as (keyof CompletenessBreakdown)[])
           .filter((key) => result.breakdown[key] === 0 && key in MISSING_LABELS)
-          .map((key) => MISSING_LABELS[key]!)
+          .map((key) => ({ label: MISSING_LABELS[key]!, href: MISSING_HREFS[key] }))
 
         // looking_for / looking_for_extended are mutually exclusive: only show one
         const lf = typeof data.looking_for === 'string' ? data.looking_for : ''
         if (lf.length < 100) {
-          missingItems.push("Tell us what you're looking for in connections")
+          missingItems.push({ label: "Tell us what you're looking for in connections" })
         } else if (lf.length < 200) {
-          missingItems.push("Expand your 'Looking for' response with more detail")
+          missingItems.push({ label: "Expand your 'Looking for' response with more detail" })
         }
 
         setMissing(missingItems)
@@ -128,10 +134,16 @@ export default function ProfileCompletenessCard({ userId }: { userId: string | n
       {/* Missing items checklist */}
       {missing.length > 0 && (
         <ul className="mt-4 space-y-1.5 border-t border-gray-100 pt-4">
-          {missing.map((label) => (
+          {missing.map(({ label, href }) => (
             <li key={label} className="flex items-start gap-2 text-xs text-gray-500">
               <span className="mt-0.5 w-3.5 h-3.5 flex-shrink-0 rounded-full border border-gray-300 bg-white" />
-              {label}
+              {href ? (
+                <Link href={href} className="hover:text-[#4E2A84] hover:underline transition-colors">
+                  {label}
+                </Link>
+              ) : (
+                label
+              )}
             </li>
           ))}
         </ul>
