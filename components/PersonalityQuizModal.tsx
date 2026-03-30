@@ -63,18 +63,23 @@ type Props = {
 }
 
 export default function PersonalityQuizModal({ isOpen, onClose, userId, onComplete }: Props) {
-  const [step, setStep]             = useState(0)
-  const [answers, setAnswers]       = useState<Record<string, string | null>>({})
-  const [textInput, setTextInput]   = useState('')
-  const [visible, setVisible]       = useState(true)
-  const [selected, setSelected]     = useState<'A' | 'B' | null>(null)
-  const [reviewMode, setReviewMode] = useState(false)
+  const [step, setStep]               = useState(0)
+  const [answers, setAnswers]         = useState<Record<string, string | null>>({})
+  const [textInput, setTextInput]     = useState('')
+  const [visible, setVisible]         = useState(true)
+  const [selected, setSelected]       = useState<'A' | 'B' | null>(null)
+  const [reviewMode, setReviewMode]   = useState(false)
+  const [loadingAnswers, setLoadingAnswers] = useState(false)
   const savedRef = useRef(false)
 
-  // On open: fetch existing answers to pre-populate, reset nav state
+  // On open: fetch existing answers to pre-populate, reset nav state.
+  // loadingAnswers blocks the question UI from rendering until the fetch
+  // settles so answers are never overwritten by a stale empty-state render.
   useEffect(() => {
     if (!isOpen) return
+    let cancelled = false
     savedRef.current = false
+    setLoadingAnswers(true)
     setStep(0); setTextInput(''); setSelected(null); setReviewMode(false); setVisible(true)
     supabase
       .from('profiles')
@@ -82,13 +87,16 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
       .eq('user_id', userId)
       .single()
       .then(({ data }) => {
+        if (cancelled) return
         const pq = data?.personality_quiz
-        if (pq && typeof pq === 'object' && !Array.isArray(pq)) {
-          setAnswers(pq as Record<string, string | null>)
-        } else {
-          setAnswers({})
-        }
+        setAnswers(
+          pq && typeof pq === 'object' && !Array.isArray(pq)
+            ? (pq as Record<string, string | null>)
+            : {}
+        )
+        setLoadingAnswers(false)
       })
+    return () => { cancelled = true }
   }, [isOpen, userId])
 
   // Scroll lock
@@ -269,6 +277,19 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
   }
 
   // ── Question screen ────────────────────────────────────────────────────────
+
+  if (loadingAnswers) {
+    return (
+      <Overlay>
+        <Card>
+          <Header title="Personality Quiz" />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-full border-2 border-[#4E2A84] border-t-transparent animate-spin" />
+          </div>
+        </Card>
+      </Overlay>
+    )
+  }
 
   const question = QUESTIONS[step]
   const progressPct = (step / TOTAL) * 100
