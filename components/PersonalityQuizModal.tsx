@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { calculateCompleteness } from '@/lib/completeness'
@@ -51,7 +51,7 @@ const QUESTIONS: Question[] = [
 ]
 
 const TOTAL = QUESTIONS.length
-// Steps: 0–11 = questions, 12 = review, 13 = done
+// Steps: 0–11 = questions, 12 = review
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -63,21 +63,33 @@ type Props = {
 }
 
 export default function PersonalityQuizModal({ isOpen, onClose, userId, onComplete }: Props) {
-  const [step, setStep]           = useState(0)
-  const [answers, setAnswers]     = useState<Record<string, string | null>>({})
-  const [textInput, setTextInput] = useState('')
-  const [visible, setVisible]     = useState(true)
-  const [selected, setSelected]   = useState<'A' | 'B' | null>(null)
+  const [step, setStep]             = useState(0)
+  const [answers, setAnswers]       = useState<Record<string, string | null>>({})
+  const [textInput, setTextInput]   = useState('')
+  const [visible, setVisible]       = useState(true)
+  const [selected, setSelected]     = useState<'A' | 'B' | null>(null)
   const [reviewMode, setReviewMode] = useState(false)
-  const [saving, setSaving]       = useState(false)
+  const savedRef = useRef(false)
 
-  // Reset every time the modal opens
+  // On open: fetch existing answers to pre-populate, reset nav state
   useEffect(() => {
-    if (isOpen) {
-      setStep(0); setAnswers({}); setTextInput('')
-      setSelected(null); setReviewMode(false); setVisible(true); setSaving(false)
-    }
-  }, [isOpen])
+    if (!isOpen) return
+    savedRef.current = false
+    setStep(0); setTextInput(''); setSelected(null); setReviewMode(false); setVisible(true)
+    supabase
+      .from('profiles')
+      .select('personality_quiz')
+      .eq('user_id', userId)
+      .single()
+      .then(({ data }) => {
+        const pq = data?.personality_quiz
+        if (pq && typeof pq === 'object' && !Array.isArray(pq)) {
+          setAnswers(pq as Record<string, string | null>)
+        } else {
+          setAnswers({})
+        }
+      })
+  }, [isOpen, userId])
 
   // Scroll lock
   useEffect(() => {
@@ -87,18 +99,58 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
 
   if (!isOpen) return null
 
+  // ── Close wrapper — refreshes completeness card if anything was saved ───────
+
+  function handleClose() {
+    if (savedRef.current) onComplete()
+    onClose()
+  }
+
+  // ── Auto-save after each answer ────────────────────────────────────────────
+
+  async function persistAnswers(newAnswers: Record<string, string | null>) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, bio, skills, industries, industry_openness, looking_for, graduation_year, degree_program, avatar_url, role_orientation')
+      .eq('user_id', userId)
+      .single()
+
+    const { score } = calculateCompleteness({
+      ...(profile ?? {}),
+      personality_quiz: newAnswers,
+    } as Record<string, unknown>)
+
+    await supabase
+      .from('profiles')
+      .update({ personality_quiz: newAnswers, completeness_score: score })
+      .eq('user_id', userId)
+
+    savedRef.current = true
+  }
+
   // ── Transitions ────────────────────────────────────────────────────────────
 
   function fade(callback: () => void) {
     setVisible(false)
-    setTimeout(() => { callback(); setTextInput(''); setSelected(null); setVisible(true) }, 200)
+    setTimeout(() => { callback(); setSelected(null); setVisible(true) }, 200)
+  }
+
+  function textInputForStep(stepIndex: number, nextAnswers: Record<string, string | null>): string {
+    if (stepIndex < TOTAL && QUESTIONS[stepIndex].type === 'text') {
+      const existing = nextAnswers[QUESTIONS[stepIndex].id]
+      return typeof existing === 'string' ? existing : ''
+    }
+    return ''
   }
 
   function advance(newAnswers: Record<string, string | null>) {
+    const nextStep = reviewMode ? 12 : step + 1
+    persistAnswers(newAnswers).catch(() => {})
     fade(() => {
       setAnswers(newAnswers)
-      setStep(reviewMode ? 12 : step + 1)
+      setStep(nextStep)
       setReviewMode(false)
+      setTextInput(textInputForStep(nextStep, newAnswers))
     })
   }
 
@@ -115,35 +167,23 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
   }
 
   function handleSkip() {
-    advance({ ...answers, [QUESTIONS[step].id]: null })
+    const newAnswers = { ...answers, [QUESTIONS[step].id]: null }
+    persistAnswers(newAnswers).catch(() => {})
+    fade(() => {
+      setAnswers(newAnswers)
+      const nextStep = reviewMode ? 12 : step + 1
+      setStep(nextStep)
+      setReviewMode(false)
+      setTextInput(textInputForStep(nextStep, newAnswers))
+    })
   }
 
   function jumpToQuestion(index: number) {
     setReviewMode(true)
-    fade(() => setStep(index))
-  }
-
-  async function handleSave() {
-    setSaving(true)
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name, bio, skills, industries, industry_openness, looking_for, graduation_year, degree_program, avatar_url, role_orientation')
-      .eq('user_id', userId)
-      .single()
-
-    const { score } = calculateCompleteness({
-      ...(profile ?? {}),
-      personality_quiz: answers,
-    } as Record<string, unknown>)
-
-    await supabase
-      .from('profiles')
-      .update({ personality_quiz: answers, completeness_score: score })
-      .eq('user_id', userId)
-
-    setSaving(false)
-    onComplete()
-    setStep(13)
+    fade(() => {
+      setStep(index)
+      setTextInput(textInputForStep(index, answers))
+    })
   }
 
   // ── Shared chrome ──────────────────────────────────────────────────────────
@@ -153,7 +193,7 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
         <span className="text-sm font-semibold text-gray-600">{title}</span>
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
           aria-label="Close"
         >
@@ -163,40 +203,9 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
     )
   }
 
-  // ── Done screen ────────────────────────────────────────────────────────────
-
-  if (step === 13) {
-    return (
-      <Overlay>
-        <Card>
-          <Header title="Personality Quiz" />
-          <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
-            <div className="w-14 h-14 rounded-full bg-[#4E2A84] flex items-center justify-center mb-5">
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">All saved!</h2>
-            <p className="text-sm text-gray-500 mb-8 leading-relaxed max-w-xs">
-              Your answers help us find better matches for you.
-            </p>
-            <button
-              onClick={onClose}
-              className="rounded-lg bg-[#4E2A84] hover:bg-[#3d2169] text-white text-sm font-medium px-6 py-2.5 transition"
-            >
-              Close
-            </button>
-          </div>
-        </Card>
-      </Overlay>
-    )
-  }
-
   // ── Review screen ──────────────────────────────────────────────────────────
 
   if (step === 12) {
-    const skippedCount = QUESTIONS.filter(q => answers[q.id] === null || answers[q.id] === undefined).length
-
     return (
       <Overlay>
         <Card>
@@ -247,17 +256,11 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
           </div>
 
           <div className="border-t border-gray-100 px-5 py-4 flex-shrink-0">
-            {skippedCount > 0 && (
-              <p className="text-xs text-gray-400 mb-3">
-                {skippedCount} question{skippedCount !== 1 ? 's' : ''} skipped — the +15 completeness bonus unlocks when all are answered.
-              </p>
-            )}
             <button
-              onClick={handleSave}
-              disabled={saving}
-              className="w-full rounded-lg bg-[#4E2A84] hover:bg-[#3d2169] disabled:bg-[#4E2A84]/50 text-white text-sm font-medium py-2.5 transition"
+              onClick={handleClose}
+              className="w-full rounded-lg bg-[#4E2A84] hover:bg-[#3d2169] text-white text-sm font-medium py-2.5 transition"
             >
-              {saving ? 'Saving…' : 'Save answers'}
+              Done
             </button>
           </div>
         </Card>
@@ -305,6 +308,7 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
                 {(['A', 'B'] as const).map((opt) => {
                   const label = opt === 'A' ? (question as ChoiceQuestion).a : (question as ChoiceQuestion).b
                   const isSelected = selected === opt
+                  const isPrevAnswer = !selected && answers[question.id] === opt
                   return (
                     <button
                       key={opt}
@@ -312,7 +316,7 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
                       onClick={() => handleChoice(opt)}
                       disabled={!!selected}
                       className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-150 ${
-                        isSelected
+                        isSelected || isPrevAnswer
                           ? 'bg-[#4E2A84] border-[#4E2A84] text-white shadow-sm'
                           : 'bg-white border-gray-200 text-gray-700 hover:border-[#4E2A84] hover:bg-[#faf8ff]'
                       }`}
@@ -323,10 +327,7 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
                 })}
               </div>
               <div className="mt-5 text-center">
-                <button
-                  onClick={handleSkip}
-                  className="text-xs text-gray-400 hover:text-gray-600 transition"
-                >
+                <button onClick={handleSkip} className="text-xs text-gray-400 hover:text-gray-600 transition">
                   Skip for now
                 </button>
               </div>
@@ -349,10 +350,7 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
                 >
                   {reviewMode ? 'Update' : isLastQuestion ? 'Review answers' : 'Next'}
                 </button>
-                <button
-                  onClick={handleSkip}
-                  className="text-xs text-gray-400 hover:text-gray-600 transition"
-                >
+                <button onClick={handleSkip} className="text-xs text-gray-400 hover:text-gray-600 transition">
                   Skip for now
                 </button>
               </div>

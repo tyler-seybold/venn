@@ -20,9 +20,7 @@ const MISSING_LABELS: Partial<Record<keyof CompletenessBreakdown, string>> = {
   industries_breadth: 'Add 3+ industry interests',
 }
 
-const MISSING_HREFS: Partial<Record<keyof CompletenessBreakdown, string>> = {
-  personality_quiz: '/profile/quiz',
-}
+const MISSING_HREFS: Partial<Record<keyof CompletenessBreakdown, string>> = {}
 
 type MissingItem = { label: string; href?: string; onClick?: () => void }
 
@@ -56,8 +54,18 @@ export default function ProfileCompletenessCard({
         const missingItems: MissingItem[] = (Object.keys(result.breakdown) as (keyof CompletenessBreakdown)[])
           .filter((key) => result.breakdown[key] === 0 && key in MISSING_LABELS)
           .map((key) => {
-            if (key === 'personality_quiz' && onQuizOpen) {
-              return { label: MISSING_LABELS[key]!, onClick: onQuizOpen }
+            if (key === 'personality_quiz') {
+              const pq = data.personality_quiz
+              let progressLabel: string
+              if (pq == null || typeof pq !== 'object' || Array.isArray(pq)) {
+                progressLabel = 'Not started'
+              } else {
+                const answered = Object.values(pq as Record<string, unknown>)
+                  .filter((v) => v !== null && v !== undefined && v !== '').length
+                progressLabel = `${answered}/12 answered`
+              }
+              const label = `Complete the personality quiz — ${progressLabel}`
+              return onQuizOpen ? { label, onClick: onQuizOpen } : { label }
             }
             return { label: MISSING_LABELS[key]!, href: MISSING_HREFS[key] }
           })
