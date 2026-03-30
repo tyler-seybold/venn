@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Mail, ChevronDown, ChevronRight, ExternalLink, Sparkles, Rocket, Users, ThumbsUp, ThumbsDown } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { getMatchLabel, getMatchLabelColor } from '@/config/matching'
+import ProfileCompletenessCard from '@/components/ProfileCompletenessCard'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -453,6 +454,7 @@ export default function DashboardPage() {
           {/* ── Your Matches Tab ────────────────────────────────── */}
           {tab === 'matches' && (
             <div>
+              <ProfileCompletenessCard userId={userId} />
               {loadingMatches ? (
                 <LoadingSpinner />
               ) : matches.length === 0 ? (
