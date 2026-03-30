@@ -79,8 +79,15 @@ export function calculateCompleteness(profile: Record<string, unknown>): Complet
     breakdown.role_orientation = 8
   }
 
-  if (profile.personality_quiz != null) {
-    breakdown.personality_quiz = 15
+  if (
+    profile.personality_quiz != null &&
+    typeof profile.personality_quiz === 'object' &&
+    !Array.isArray(profile.personality_quiz)
+  ) {
+    const vals = Object.values(profile.personality_quiz as Record<string, unknown>)
+    if (vals.length > 0 && vals.every((v) => v !== null && v !== undefined && v !== '')) {
+      breakdown.personality_quiz = 15
+    }
   }
 
   if (typeof profile.looking_for === 'string' && profile.looking_for.length >= 200) {

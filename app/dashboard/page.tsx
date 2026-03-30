@@ -6,6 +6,7 @@ import { Mail, ChevronDown, ChevronRight, ExternalLink, Sparkles, Rocket, Users,
 import { supabase } from '@/lib/supabase'
 import { getMatchLabel, getMatchLabelColor } from '@/config/matching'
 import ProfileCompletenessCard from '@/components/ProfileCompletenessCard'
+import PersonalityQuizModal from '@/components/PersonalityQuizModal'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -176,6 +177,8 @@ export default function DashboardPage() {
   const [matches, setMatches] = useState<MatchWithProfile[]>([])
   const [loadingMatches, setLoadingMatches] = useState(true)
   const [showPastMatches, setShowPastMatches] = useState(false)
+  const [quizOpen, setQuizOpen] = useState(false)
+  const [completenessRefresh, setCompletenessRefresh] = useState(0)
 
   const [startups, setStartups] = useState<Startup[]>([])
   const [people, setPeople] = useState<Profile[]>([])
@@ -454,7 +457,23 @@ export default function DashboardPage() {
           {/* ── Your Matches Tab ────────────────────────────────── */}
           {tab === 'matches' && (
             <div>
-              <ProfileCompletenessCard userId={userId} />
+              {/* Personality quiz banner */}
+              <button
+                onClick={() => setQuizOpen(true)}
+                className="w-full flex items-center justify-between bg-[#faf8ff] border border-[#ede9f6] rounded-2xl px-5 py-4 mb-4 hover:bg-[#f5f1fd] transition text-left"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-[#4E2A84]">Personality quiz</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Helps us find better matches for you</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-[#4E2A84] flex-shrink-0" />
+              </button>
+
+              <ProfileCompletenessCard
+                userId={userId}
+                onQuizOpen={() => setQuizOpen(true)}
+                refreshTrigger={completenessRefresh}
+              />
               {loadingMatches ? (
                 <LoadingSpinner />
               ) : matches.length === 0 ? (
@@ -583,6 +602,16 @@ export default function DashboardPage() {
           )}
         </main>
       </div>
+
+      {/* Personality quiz modal */}
+      {userId && (
+        <PersonalityQuizModal
+          isOpen={quizOpen}
+          onClose={() => setQuizOpen(false)}
+          userId={userId}
+          onComplete={() => setCompletenessRefresh((r) => r + 1)}
+        />
+      )}
 
       {/* Bottom tab bar — mobile only */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10 flex">

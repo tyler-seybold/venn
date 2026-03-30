@@ -24,13 +24,21 @@ const MISSING_HREFS: Partial<Record<keyof CompletenessBreakdown, string>> = {
   personality_quiz: '/profile/quiz',
 }
 
-type MissingItem = { label: string; href?: string }
+type MissingItem = { label: string; href?: string; onClick?: () => void }
 
 // SVG circle progress (r=26, so circumference ≈ 163.4)
 const RADIUS = 26
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
-export default function ProfileCompletenessCard({ userId }: { userId: string | null }) {
+export default function ProfileCompletenessCard({
+  userId,
+  onQuizOpen,
+  refreshTrigger = 0,
+}: {
+  userId: string | null
+  onQuizOpen?: () => void
+  refreshTrigger?: number
+}) {
   const [score, setScore] = useState<number | null>(null)
   const [missing, setMissing] = useState<MissingItem[]>([])
 
@@ -47,7 +55,12 @@ export default function ProfileCompletenessCard({ userId }: { userId: string | n
         setScore(result.score)
         const missingItems: MissingItem[] = (Object.keys(result.breakdown) as (keyof CompletenessBreakdown)[])
           .filter((key) => result.breakdown[key] === 0 && key in MISSING_LABELS)
-          .map((key) => ({ label: MISSING_LABELS[key]!, href: MISSING_HREFS[key] }))
+          .map((key) => {
+            if (key === 'personality_quiz' && onQuizOpen) {
+              return { label: MISSING_LABELS[key]!, onClick: onQuizOpen }
+            }
+            return { label: MISSING_LABELS[key]!, href: MISSING_HREFS[key] }
+          })
 
         // looking_for / looking_for_extended are mutually exclusive: only show one
         const lf = typeof data.looking_for === 'string' ? data.looking_for : ''
@@ -59,7 +72,7 @@ export default function ProfileCompletenessCard({ userId }: { userId: string | n
 
         setMissing(missingItems)
       })
-  }, [userId])
+  }, [userId, refreshTrigger, onQuizOpen])
 
   if (score === null) return null
 
@@ -137,7 +150,11 @@ export default function ProfileCompletenessCard({ userId }: { userId: string | n
           {missing.map(({ label, href }) => (
             <li key={label} className="flex items-start gap-2 text-xs text-gray-500">
               <span className="mt-0.5 w-3.5 h-3.5 flex-shrink-0 rounded-full border border-gray-300 bg-white" />
-              {href ? (
+              {onClick ? (
+                <button onClick={onClick} className="text-left hover:text-[#4E2A84] hover:underline transition-colors">
+                  {label}
+                </button>
+              ) : href ? (
                 <Link href={href} className="hover:text-[#4E2A84] hover:underline transition-colors">
                   {label}
                 </Link>
