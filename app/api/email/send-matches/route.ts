@@ -184,7 +184,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, emailsSent: 0, usersEmailed: 0, note: 'No matches found for this week' })
   }
 
-  // ── 4. Group matches by user ──────────────────────────────────────────────
+  // ── 4. Group matches by user, capped at top 2 by score ───────────────────
   type MatchRow = typeof matchRows[number]
   const userMatches = new Map<string, MatchRow[]>()
 
@@ -197,6 +197,12 @@ export async function POST(req: NextRequest) {
       if (!userMatches.has(row.user_id_2)) userMatches.set(row.user_id_2, [])
       userMatches.get(row.user_id_2)!.push(row)
     }
+  }
+
+  // Sort each user's list by match_score descending and cap at 2
+  for (const [userId, list] of userMatches) {
+    list.sort((a, b) => (b.match_score ?? 0) - (a.match_score ?? 0))
+    userMatches.set(userId, list.slice(0, 2))
   }
 
   // ── 5. Fetch all relevant profiles ───────────────────────────────────────

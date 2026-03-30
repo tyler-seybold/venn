@@ -99,88 +99,71 @@ export async function POST(req: NextRequest) {
     blurb: null
   }[] = []
 
+  // Track matches committed this run per user (cap: 2 total across both match types)
+  const userMatchCount = new Map<string, number>()
+  for (const p of profiles) userMatchCount.set(p.user_id, 0)
+
+  const insertedPairs = new Set<string>()
+  const peopleMatchCount = { value: 0 }
+  const startupMatchCount = { value: 0 }
+
   // ── 5. People ↔ people matching ──────────────────────────────────────────────
-  // Collect candidate scores per user, then keep top 5 per user.
-  type Candidate = { otherId: string; score: number }
-  const peopleCandidates = new Map<string, Candidate[]>()
-  for (const p of profiles) peopleCandidates.set(p.user_id, [])
+  // Score all unique pairs, sort globally by score, then greedily assign up to
+  // the per-user cap so the highest-quality matches are prioritised.
+  type PeoplePair = { id1: string; id2: string; score: number }
+  const allPeoplePairs: PeoplePair[] = []
 
   for (let i = 0; i < profiles.length; i++) {
     for (let j = i + 1; j < profiles.length; j++) {
       const p1 = profiles[i]
       const p2 = profiles[j]
-
       if (pairExists(p1.user_id, p2.user_id)) continue
-
       const { total } = scoreMatch(p1, p2)
       if (total < MATCH_THRESHOLDS.minimum) continue
-
-      peopleCandidates.get(p1.user_id)!.push({ otherId: p2.user_id, score: total })
-      peopleCandidates.get(p2.user_id)!.push({ otherId: p1.user_id, score: total })
+      allPeoplePairs.push({ id1: p1.user_id, id2: p2.user_id, score: total })
     }
   }
 
-  // Greedily insert top-5 per user; use a set to avoid duplicate inserts
-  const insertedPeoplePairs = new Set<string>()
-  const peopleMatchCount = { value: 0 }
+  allPeoplePairs.sort((a, b) => b.score - a.score)
 
-  for (const [userId, candidates] of peopleCandidates) {
-    candidates.sort((a, b) => b.score - a.score)
-    let inserted = 0
-    for (const { otherId, score } of candidates) {
-      if (inserted >= 5) break
-      const [a, b] = [userId, otherId].sort()
-      const key = `${a}:${b}`
-      if (insertedPeoplePairs.has(key)) { inserted++; continue }
-      insertedPeoplePairs.add(key)
-      toInsert.push({
-        user_id_1: a,
-        user_id_2: b,
-        match_type: 'people_people',
-        match_score: score,
-        week_of: weekOf,
-        blurb: null,
-      })
-      peopleMatchCount.value++
-      inserted++
-    }
+  for (const { id1, id2, score } of allPeoplePairs) {
+    if ((userMatchCount.get(id1) ?? 0) >= 2) continue
+    if ((userMatchCount.get(id2) ?? 0) >= 2) continue
+    const [a, b] = [id1, id2].sort()
+    const key = `${a}:${b}`
+    if (insertedPairs.has(key)) continue
+    insertedPairs.add(key)
+    userMatchCount.set(id1, (userMatchCount.get(id1) ?? 0) + 1)
+    userMatchCount.set(id2, (userMatchCount.get(id2) ?? 0) + 1)
+    toInsert.push({ user_id_1: a, user_id_2: b, match_type: 'people_people', match_score: score, week_of: weekOf, blurb: null })
+    peopleMatchCount.value++
   }
 
   // ── 6. People ↔ startup matching ─────────────────────────────────────────────
-  const insertedStartupPairs = new Set<string>()
-  const startupMatchCount = { value: 0 }
-
-  // Collect top-3 per user across all startups
+  // Only fill remaining capacity (up to 2 total) with startup matches.
   for (const profile of profiles) {
+    if ((userMatchCount.get(profile.user_id) ?? 0) >= 2) continue
+
     const candidates: { startupId: string; score: number }[] = []
 
     for (const startup of startups) {
-      // Skip founder's own startup
       if (startup.founder_id === profile.user_id) continue
       if (pairExists(profile.user_id, startup.id)) continue
-
       const { total } = scorePersonStartupMatch(profile, startup)
       if (total < MATCH_THRESHOLDS.minimum) continue
-
       candidates.push({ startupId: startup.id, score: total })
     }
 
     candidates.sort((a, b) => b.score - a.score)
-    const top3 = candidates.slice(0, 3)
 
-    for (const { startupId, score } of top3) {
+    for (const { startupId, score } of candidates) {
+      if ((userMatchCount.get(profile.user_id) ?? 0) >= 2) break
       const [a, b] = [profile.user_id, startupId].sort()
       const key = `${a}:${b}`
-      if (insertedStartupPairs.has(key)) continue
-      insertedStartupPairs.add(key)
-      toInsert.push({
-        user_id_1: profile.user_id,
-        user_id_2: startupId,
-        match_type: 'people_startup',
-        match_score: score,
-        week_of: weekOf,
-        blurb: null,
-      })
+      if (insertedPairs.has(key)) continue
+      insertedPairs.add(key)
+      userMatchCount.set(profile.user_id, (userMatchCount.get(profile.user_id) ?? 0) + 1)
+      toInsert.push({ user_id_1: profile.user_id, user_id_2: startupId, match_type: 'people_startup', match_score: score, week_of: weekOf, blurb: null })
       startupMatchCount.value++
     }
   }
