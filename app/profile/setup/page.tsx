@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { calculateCompleteness } from '@/lib/completeness'
 
 const SKILLS = [
   'Engineering', 'Finance', 'Marketing', 'Operations', 'Design',
@@ -131,20 +132,27 @@ export default function ProfileSetupPage() {
       avatarUrl = urlData.publicUrl
     }
 
+    const profileData = {
+      full_name:         fullName,
+      avatar_url:        avatarUrl,
+      graduation_year:   graduationYear ? parseInt(graduationYear, 10) : null,
+      degree_program:    degreeProgram || null,
+      bio:               bio || null,
+      skills:            skills.length > 0 ? skills : null,
+      industries:        industries.length > 0 ? industries : null,
+      industry_openness: industryOpenness || null,
+      role_orientation:  roleOrientation.length > 0 ? roleOrientation : null,
+      looking_for:       lookingFor || null,
+    }
+    const { score } = calculateCompleteness(profileData)
+
     const { error: insertError } = await supabase.from('profiles').insert({
       user_id:            userId,
       email:              userEmail,
-      full_name:          fullName,
-      avatar_url:         avatarUrl,
-      graduation_year:    graduationYear ? parseInt(graduationYear, 10) : null,
-      degree_program:     degreeProgram || null,
-      bio:                bio || null,
-      skills:             skills.length > 0 ? skills : null,
-      industries:         industries.length > 0 ? industries : null,
-      industry_openness:  industryOpenness || null,
-      role_orientation:   roleOrientation.length > 0 ? roleOrientation : null,
-      looking_for:        lookingFor || null,
+      ...profileData,
       cofounder_interest: cofounderInterest,
+      matching_opt_in:    true,
+      completeness_score: score,
     })
 
     setLoading(false)

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { calculateCompleteness } from '@/lib/completeness'
 
 const SKILLS = [
   'Engineering', 'Finance', 'Marketing', 'Operations', 'Design',
@@ -48,6 +49,7 @@ export default function ProfileEditPage() {
   const [roleOrientation, setRoleOrientation] = useState<string[]>([])
   const [lookingFor, setLookingFor] = useState('')
   const [cofounderInterest, setCofounderInterest] = useState(false)
+  const [matchingOptIn, setMatchingOptIn] = useState(true)
 
   // Avatar state
   const [existingAvatarUrl, setExistingAvatarUrl] = useState<string | null>(null)
@@ -91,6 +93,7 @@ export default function ProfileEditPage() {
         setRoleOrientation(profile.role_orientation ?? [])
         setLookingFor(profile.looking_for ?? '')
         setCofounderInterest(profile.cofounder_interest ?? false)
+        setMatchingOptIn(profile.matching_opt_in ?? true)
         setExistingAvatarUrl(profile.avatar_url ?? null)
         setAvatarPreview(profile.avatar_url ?? null)
       }
@@ -151,20 +154,27 @@ export default function ProfileEditPage() {
       avatarUrl = urlData.publicUrl
     }
 
+    const profileData = {
+      full_name:         fullName,
+      avatar_url:        avatarUrl,
+      graduation_year:   graduationYear ? parseInt(graduationYear, 10) : null,
+      degree_program:    degreeProgram || null,
+      bio:               bio || null,
+      skills:            skills.length > 0 ? skills : null,
+      industries:        industries.length > 0 ? industries : null,
+      industry_openness: industryOpenness || null,
+      role_orientation:  roleOrientation.length > 0 ? roleOrientation : null,
+      looking_for:       lookingFor || null,
+    }
+    const { score } = calculateCompleteness(profileData)
+
     const { error: updateError } = await supabase
       .from('profiles')
       .update({
-        full_name:          fullName,
-        avatar_url:         avatarUrl,
-        graduation_year:    graduationYear ? parseInt(graduationYear, 10) : null,
-        degree_program:     degreeProgram || null,
-        bio:                bio || null,
-        skills:             skills.length > 0 ? skills : null,
-        industries:         industries.length > 0 ? industries : null,
-        industry_openness:  industryOpenness || null,
-        role_orientation:   roleOrientation.length > 0 ? roleOrientation : null,
-        looking_for:        lookingFor || null,
+        ...profileData,
         cofounder_interest: cofounderInterest,
+        matching_opt_in:    matchingOptIn,
+        completeness_score: score,
       })
       .eq('user_id', userId)
 
@@ -456,6 +466,26 @@ export default function ProfileEditPage() {
                   <span
                     className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${
                       cofounderInterest ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* 12. Matching opt-in */}
+            <div>
+              <div className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
+                <p className="text-sm font-medium text-gray-700">Receive weekly match suggestions</p>
+                <button
+                  type="button"
+                  onClick={() => setMatchingOptIn(!matchingOptIn)}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 ${
+                    matchingOptIn ? 'bg-brand' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${
+                      matchingOptIn ? 'translate-x-5' : 'translate-x-0'
                     }`}
                   />
                 </button>
