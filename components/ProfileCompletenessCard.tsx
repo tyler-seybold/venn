@@ -5,20 +5,19 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { calculateCompleteness, CompletenessBreakdown } from '@/lib/completeness'
 
+// looking_for and looking_for_extended are handled separately (mutually exclusive display)
 const MISSING_LABELS: Partial<Record<keyof CompletenessBreakdown, string>> = {
-  full_name:            'Add your full name (+5 pts)',
-  bio:                  'Write a bio (50+ characters) (+10 pts)',
-  skills:               'Add at least one skill (+8 pts)',
-  industries:           'Add at least one industry interest (+8 pts)',
-  industry_openness:    'Set your industry openness (+7 pts)',
-  looking_for:          "Add what you're looking for (100+ chars) (+12 pts)",
-  graduation_year:      'Set your graduation year (+5 pts)',
-  degree_program:       'Set your degree program (+5 pts)',
-  avatar_url:           'Add a photo (+5 pts)',
-  role_orientation:     'Add your role orientation (+8 pts)',
-  personality_quiz:     'Complete the personality quiz (+15 pts)',
-  looking_for_extended: "Expand 'Looking for' to 200+ characters (+7 pts)",
-  industries_breadth:   'Add 3+ industry interests (+5 pts)',
+  full_name:          'Add your full name',
+  bio:                'Write a longer bio',
+  skills:             'Add at least one skill',
+  industries:         'Add at least one industry interest',
+  industry_openness:  'Set your industry openness',
+  graduation_year:    'Set your graduation year',
+  degree_program:     'Set your degree program',
+  avatar_url:         'Add a photo',
+  role_orientation:   'Add your role orientation',
+  personality_quiz:   'Complete the personality quiz',
+  industries_breadth: 'Add 3+ industry interests',
 }
 
 // SVG circle progress (r=26, so circumference ≈ 163.4)
@@ -43,6 +42,15 @@ export default function ProfileCompletenessCard({ userId }: { userId: string | n
         const missingItems = (Object.keys(result.breakdown) as (keyof CompletenessBreakdown)[])
           .filter((key) => result.breakdown[key] === 0 && key in MISSING_LABELS)
           .map((key) => MISSING_LABELS[key]!)
+
+        // looking_for / looking_for_extended are mutually exclusive: only show one
+        const lf = typeof data.looking_for === 'string' ? data.looking_for : ''
+        if (lf.length < 100) {
+          missingItems.push("Tell us what you're looking for in connections")
+        } else if (lf.length < 200) {
+          missingItems.push("Expand your 'Looking for' response with more detail")
+        }
+
         setMissing(missingItems)
       })
   }, [userId])
@@ -99,7 +107,7 @@ export default function ProfileCompletenessCard({ userId }: { userId: string | n
             />
           </svg>
           <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-800">
-            {score}
+            {score}%
           </span>
         </div>
 
