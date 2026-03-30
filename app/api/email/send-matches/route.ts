@@ -26,39 +26,73 @@ function formatWeekOf(dateStr: string): string {
   return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 }
 
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? '?'
+  return ((parts[0][0] ?? '') + (parts[parts.length - 1][0] ?? '')).toUpperCase()
+}
+
 function buildEmail(
   recipientName: string,
   weekLabel: string,
-  matchItems: { name: string; label: string; labelColor: string; blurb: string | null; profileUrl: string }[]
+  matchItems: { name: string; label: string; labelColor: string; blurb: string | null; profileUrl: string; avatarUrl: string | null }[]
 ): string {
-  const matchRows = matchItems.map(({ name, label, labelColor, blurb, profileUrl }) => `
+  const matchCards = matchItems.map(({ name, label, labelColor, blurb, profileUrl, avatarUrl }) => {
+    const avatarHtml = avatarUrl
+      ? `<img src="${avatarUrl}" alt="${name}" width="64" height="64"
+             style="width:64px;height:64px;border-radius:50%;object-fit:cover;display:block;" />`
+      : `<div style="width:64px;height:64px;border-radius:50%;background:#4E2A84;
+                     display:flex;align-items:center;justify-content:center;
+                     font-size:22px;font-weight:700;color:#fff;text-align:center;line-height:64px;">
+           ${getInitials(name)}
+         </div>`
+
+    return `
     <tr>
-      <td style="padding:20px 0;border-bottom:1px solid #f0eff4;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <td style="padding:0 0 16px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="background:#F5F5F5;border-radius:12px;overflow:hidden;">
           <tr>
-            <td>
-              <span style="font-size:16px;font-weight:600;color:#1a1a1a;">${name}</span>
-              &nbsp;
-              <span style="display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;color:#fff;background:${labelColor};">${label}</span>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding-top:8px;font-size:14px;color:#555;line-height:1.6;">
-              ${blurb ?? 'Your personalized match note is on its way.'}
-            </td>
-          </tr>
-          <tr>
-            <td style="padding-top:14px;">
+            <td style="padding:20px 24px;">
+
+              <!-- Avatar -->
+              <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;">
+                <tr><td>${avatarHtml}</td></tr>
+              </table>
+
+              <!-- Name + badge -->
+              <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:10px;">
+                <tr>
+                  <td style="vertical-align:middle;">
+                    <span style="font-size:16px;font-weight:600;color:#1a1a1a;">${name}</span>
+                  </td>
+                  <td style="vertical-align:middle;padding-left:10px;">
+                    <span style="display:inline-block;padding:4px 12px;border-radius:12px;
+                                 font-size:12px;font-weight:700;color:#fff;background:${labelColor};">
+                      ${label}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Blurb -->
+              <p style="margin:0 0 16px;font-size:14px;color:#555;line-height:1.6;">
+                ${blurb ?? 'Your personalized match note is on its way.'}
+              </p>
+
+              <!-- CTA -->
               <a href="${profileUrl}"
-                 style="display:inline-block;padding:8px 18px;background:#4E2A84;color:#fff;font-size:13px;font-weight:600;text-decoration:none;border-radius:8px;">
+                 style="display:inline-block;padding:10px 20px;background:#4E2A84;color:#fff;
+                        font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">
                 View Profile
               </a>
+
             </td>
           </tr>
         </table>
       </td>
-    </tr>
-  `).join('')
+    </tr>`
+  }).join('')
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -67,19 +101,27 @@ function buildEmail(
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f6fb;padding:32px 16px;">
     <tr>
       <td align="center">
-        <table width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #ede9f6;">
+        <table width="560" cellpadding="0" cellspacing="0" border="0"
+               style="max-width:560px;width:100%;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #ede9f6;">
 
-          <!-- Header -->
+          <!-- Thin top bar -->
           <tr>
-            <td style="background:#4E2A84;padding:28px 36px;">
-              <p style="margin:0;font-size:22px;font-weight:700;color:#fff;letter-spacing:-0.3px;">Your matches this week</p>
-              <p style="margin:6px 0 0;font-size:14px;color:#d4c9ee;">Week of ${weekLabel}</p>
+            <td style="background:#4E2A84;padding:10px 36px;">
+              <span style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.5px;">Venn</span>
+            </td>
+          </tr>
+
+          <!-- Main header -->
+          <tr>
+            <td style="background:#f7f6fb;padding:24px 36px 20px;border-bottom:1px solid #ede9f6;">
+              <p style="margin:0;font-size:20px;font-weight:700;color:#1a1a1a;letter-spacing:-0.3px;">Your matches this week</p>
+              <p style="margin:4px 0 0;font-size:13px;color:#888;">Week of ${weekLabel}</p>
             </td>
           </tr>
 
           <!-- Greeting -->
           <tr>
-            <td style="padding:28px 36px 0;">
+            <td style="padding:24px 36px 8px;">
               <p style="margin:0;font-size:15px;color:#333;">Hi ${recipientName},</p>
               <p style="margin:10px 0 0;font-size:14px;color:#555;line-height:1.6;">
                 Here are your Venn matches for this week. Reach out, start a conversation, and see where it goes.
@@ -87,18 +129,18 @@ function buildEmail(
             </td>
           </tr>
 
-          <!-- Match rows -->
+          <!-- Match cards -->
           <tr>
-            <td style="padding:8px 36px 0;">
+            <td style="padding:16px 36px 8px;">
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                ${matchRows}
+                ${matchCards}
               </table>
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="padding:28px 36px;border-top:1px solid #f0eff4;">
+            <td style="padding:20px 36px 28px;border-top:1px solid #f0eff4;">
               <p style="margin:0;font-size:12px;color:#999;line-height:1.6;">
                 You're receiving this because you opted into Venn matching.
                 To stop receiving match emails, update your preferences at
@@ -162,7 +204,7 @@ export async function POST(req: NextRequest) {
 
   const { data: profileRows, error: profilesError } = await supabase
     .from('profiles')
-    .select('user_id, full_name, email')
+    .select('user_id, full_name, email, avatar_url')
     .in('user_id', allUserIds)
 
   if (profilesError) {
@@ -197,6 +239,7 @@ export async function POST(req: NextRequest) {
           labelColor,
           blurb: m.blurb,
           profileUrl: `${BASE_URL}/people/${matchedId}`,
+          avatarUrl: matchedProfile.avatar_url ?? null,
         }
       })
       .filter((item): item is NonNullable<typeof item> => item !== null)
