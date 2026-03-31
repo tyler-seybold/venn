@@ -222,7 +222,7 @@ export default function StartupDetailPage() {
             </div>
 
             {/* Stage + industry tags */}
-            <div className="flex flex-wrap items-center gap-2 mb-6">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
               {startup.stage && (
                 <span
                   className={`text-xs font-medium px-2.5 py-1 rounded-full ${
@@ -243,6 +243,22 @@ export default function StartupDetailPage() {
                 </span>
               ))}
             </div>
+
+            {/* Opportunity badges */}
+            {(startup.open_to_cofounders || startup.open_to_interns) && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {startup.open_to_cofounders && (
+                  <span className="text-xs font-medium bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 rounded-full">
+                    Open to co-founders
+                  </span>
+                )}
+                {startup.open_to_interns && (
+                  <span className="text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full">
+                    Open to interns
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Divider */}
             <hr className="border-gray-100 mb-6" />
@@ -283,22 +299,6 @@ export default function StartupDetailPage() {
                     </span>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Opportunity badges */}
-            {(startup.open_to_cofounders || startup.open_to_interns) && (
-              <div className="flex flex-wrap gap-2 mb-6">
-                {startup.open_to_cofounders && (
-                  <span className="text-xs font-medium bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 rounded-full">
-                    Open to co-founders
-                  </span>
-                )}
-                {startup.open_to_interns && (
-                  <span className="text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full">
-                    Open to interns
-                  </span>
-                )}
               </div>
             )}
 
