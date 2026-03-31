@@ -10,7 +10,11 @@ const supabase = createClient(
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://venn-eight.vercel.app'
+function getBaseUrl(): string {
+  const url = process.env.NEXT_PUBLIC_SITE_URL
+  if (!url || url.includes('localhost')) return 'https://venn-eight.vercel.app'
+  return url
+}
 
 function currentMondayISO(): string {
   const now = new Date()
@@ -56,17 +60,14 @@ type StartupMatchItem = {
 function buildMatchCards(matchItems: MatchItem[]): string {
   return matchItems.map(({ name, label, labelColor, blurb, profileUrl, avatarUrl }) => {
     const avatarHtml = avatarUrl
-      ? `<table cellpadding="0" cellspacing="0" border="0">
-           <tr>
-             <td style="border-radius:50%;overflow:hidden;width:64px;height:64px;line-height:0;">
-               <img src="${avatarUrl}" alt="${name}" width="64" height="64"
-                    style="display:block;border-radius:50%;object-fit:cover;width:64px;height:64px;" />
-             </td>
-           </tr>
-         </table>`
+      ? `<div style="width:64px;height:64px;border-radius:50%;overflow:hidden;display:inline-block;">
+           <img src="${avatarUrl}" alt="${name}" width="64" height="64"
+                style="width:64px;height:64px;object-fit:cover;display:block;" />
+         </div>`
       : `<table cellpadding="0" cellspacing="0" border="0">
            <tr>
-             <td style="width:64px;height:64px;border-radius:50%;background-color:#ede9f6;
+             <td width="64" height="64"
+                 style="width:64px;height:64px;border-radius:50%;background-color:#ede9f6;
                         text-align:center;vertical-align:middle;
                         font-size:22px;font-weight:700;color:#4E2A84;font-family:Arial,sans-serif;">
                ${getInitials(name)}
@@ -94,7 +95,7 @@ function buildMatchCards(matchItems: MatchItem[]): string {
                     <span style="font-size:16px;font-weight:600;color:#1a1a1a;">${name}</span>
                   </td>
                   <td style="vertical-align:middle;padding-left:10px;">
-                    <span style="display:inline-block;padding:4px 12px;border-radius:12px;
+                    <span style="display:inline-block;padding:4px 12px;border-radius:999px;
                                  font-size:12px;font-weight:700;color:#fff;background:${labelColor};">
                       ${label}
                     </span>
@@ -110,7 +111,7 @@ function buildMatchCards(matchItems: MatchItem[]): string {
               <!-- CTA -->
               <table cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="background-color:#4E2A84;border-radius:8px;padding:10px 24px;">
+                  <td style="background-color:#4E2A84;border-radius:999px;padding:10px 24px;">
                     <a href="${profileUrl}"
                        style="color:#ffffff;text-decoration:none;font-weight:bold;
                               font-family:Arial,sans-serif;font-size:14px;">
@@ -128,7 +129,7 @@ function buildMatchCards(matchItems: MatchItem[]): string {
   }).join('')
 }
 
-function buildStartupCards(startupItems: StartupMatchItem[]): string {
+function buildStartupCards(startupItems: StartupMatchItem[], baseUrl: string): string {
   return startupItems.map(({ id, name, founderName, industry, description }) => {
     const tagPills = (industry ?? []).map((tag) =>
       `<span style="display:inline-block;padding:3px 10px;border-radius:10px;background:#ede9f6;
@@ -150,7 +151,7 @@ function buildStartupCards(startupItems: StartupMatchItem[]): string {
               <p style="margin:0 0 10px;font-size:13px;color:#666;">Founded by ${founderName}</p>
               ${tagPills ? `<div style="margin-bottom:10px;">${tagPills}</div>` : ''}
               ${snippet ? `<p style="margin:0 0 16px;font-size:14px;color:#555;line-height:1.6;">${snippet}</p>` : ''}
-              <a href="${BASE_URL}/startup/${id}"
+              <a href="${baseUrl}/startup/${id}"
                  style="display:inline-block;padding:10px 20px;background:#4E2A84;color:#fff;
                         font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">
                 View Startup
@@ -167,6 +168,7 @@ function buildEmail(
   recipientName: string,
   weekLabel: string,
   matchItems: MatchItem[],
+  baseUrl: string,
   startupItems?: StartupMatchItem[]
 ): string {
   const matchCards = buildMatchCards(matchItems)
@@ -178,7 +180,7 @@ function buildEmail(
               <p style="margin:0 0 4px;font-size:17px;font-weight:700;color:#1a1a1a;">Startups in your space</p>
               <p style="margin:0 0 16px;font-size:13px;color:#888;">Other founders building in similar areas</p>
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                ${buildStartupCards(startupItems)}
+                ${buildStartupCards(startupItems, baseUrl)}
               </table>
             </td>
           </tr>` : ''
@@ -235,7 +237,7 @@ function buildEmail(
               <p style="margin:0;font-size:12px;color:#999;line-height:1.6;">
                 You're receiving this because you opted into Venn matching.
                 To stop receiving match emails, update your preferences at
-                <a href="${BASE_URL}/profile/edit" style="color:#4E2A84;text-decoration:underline;">${BASE_URL}/profile/edit</a>.
+                <a href="${baseUrl}/profile/edit" style="color:#4E2A84;text-decoration:underline;">${baseUrl}/profile/edit</a>.
               </p>
             </td>
           </tr>
@@ -256,7 +258,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
 
-  // ── 2. Resolve week_of ────────────────────────────────────────────────────
+  // ── 2. Resolve base URL and week_of ──────────────────────────────────────
+  const baseUrl = getBaseUrl()
+  console.log('[send-matches] BASE_URL =', baseUrl)
+
   const { searchParams } = new URL(req.url)
   const weekOf = searchParams.get('week_of') ?? currentMondayISO()
   const weekLabel = formatWeekOf(weekOf)
@@ -399,7 +404,7 @@ export async function POST(req: NextRequest) {
           label,
           labelColor,
           blurb: m.blurb,
-          profileUrl: `${BASE_URL}/people/${matchedId}`,
+          profileUrl: `${baseUrl}/people/${matchedId}`,
           avatarUrl: matchedProfile.avatar_url ?? null,
         }
       })
@@ -430,7 +435,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const html = buildEmail(recipientName, weekLabel, matchItems, startupItems)
+    const html = buildEmail(recipientName, weekLabel, matchItems, baseUrl, startupItems)
 
     await resend.emails.send({
       from: 'Venn <onboarding@resend.dev>',
