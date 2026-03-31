@@ -660,11 +660,22 @@ function MatchCard({
   )
   const [saving, setSaving] = useState(false)
   const [showPopover, setShowPopover] = useState(false)
+  const [popoverPos, setPopoverPos] = useState<{ bottom: number; right: number } | null>(null)
+  const thumbsRef = useRef<HTMLDivElement>(null)
 
   async function handleThumb(value: 'up' | 'down') {
     const next = thumb === value ? null : value
     setThumb(next)
-    setShowPopover(next !== null)
+    if (next !== null && thumbsRef.current) {
+      const rect = thumbsRef.current.getBoundingClientRect()
+      setPopoverPos({
+        bottom: window.innerHeight - rect.top + 8,
+        right: window.innerWidth - rect.right,
+      })
+      setShowPopover(true)
+    } else {
+      setShowPopover(false)
+    }
     setSaving(true)
     const col = isUser1 ? 'feedback_1' : 'feedback_2'
     await supabase.from('matches').update({ [col]: next }).eq('id', m.id)
@@ -734,61 +745,71 @@ function MatchCard({
 
       {/* Footer: feedback — outside Link so thumbs don't navigate */}
       <div className="border-t border-gray-100">
-        <div className="px-4 py-3 flex items-center gap-2 relative">
+        <div className="px-4 py-3 flex items-center gap-2">
           <span className="text-xs text-gray-500 mr-auto">Was this a good match?</span>
-
-          <button
-            onClick={() => handleThumb('up')}
-            disabled={saving}
-            className={`p-1.5 rounded-lg transition ${
-              thumb === 'up'
-                ? 'bg-green-100 text-green-600'
-                : 'text-gray-400 hover:bg-green-50 hover:text-green-600'
-            }`}
-          >
-            <ThumbsUp className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => handleThumb('down')}
-            disabled={saving}
-            className={`p-1.5 rounded-lg transition ${
-              thumb === 'down'
-                ? 'bg-red-100 text-red-600'
-                : 'text-gray-400 hover:bg-red-50 hover:text-red-600'
-            }`}
-          >
-            <ThumbsDown className="w-4 h-4" />
-          </button>
-
-          {/* Floating reason popover */}
-          {showPopover && thumb !== null && (
-            <div className="absolute bottom-full right-0 mb-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 p-3 z-10">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-gray-600">
-                  {thumb === 'up' ? 'What made this a good match?' : 'What missed the mark?'}
-                </span>
-                <button
-                  onClick={() => setShowPopover(false)}
-                  className="p-0.5 rounded text-gray-400 hover:text-gray-600 transition ml-2 flex-shrink-0"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <input
-                type="text"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                onBlur={handleReasonBlur}
-                placeholder="Optional"
-                autoFocus
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
-              />
-              {/* Downward caret */}
-              <div className="absolute bottom-[-5px] right-6 w-2.5 h-2.5 bg-white border-b border-r border-gray-100 rotate-45" />
-            </div>
-          )}
+          <div ref={thumbsRef} className="flex items-center gap-1">
+            <button
+              onClick={() => handleThumb('up')}
+              disabled={saving}
+              className={`p-1.5 rounded-lg transition ${
+                thumb === 'up'
+                  ? 'bg-green-100 text-green-600'
+                  : 'text-gray-400 hover:bg-green-50 hover:text-green-600'
+              }`}
+            >
+              <ThumbsUp className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => handleThumb('down')}
+              disabled={saving}
+              className={`p-1.5 rounded-lg transition ${
+                thumb === 'down'
+                  ? 'bg-red-100 text-red-600'
+                  : 'text-gray-400 hover:bg-red-50 hover:text-red-600'
+              }`}
+            >
+              <ThumbsDown className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Reason popover — fixed position to escape overflow:hidden */}
+      {showPopover && thumb !== null && popoverPos && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: popoverPos.bottom,
+            right: popoverPos.right,
+            width: '256px',
+            zIndex: 50,
+          }}
+          className="bg-white rounded-xl shadow-lg border border-gray-100 p-3"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-gray-600">
+              {thumb === 'up' ? 'What made this a good match?' : 'What missed the mark?'}
+            </span>
+            <button
+              onClick={() => setShowPopover(false)}
+              className="p-0.5 rounded text-gray-400 hover:text-gray-600 transition ml-2 flex-shrink-0"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <input
+            type="text"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            onBlur={handleReasonBlur}
+            placeholder="Optional"
+            autoFocus
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
+          />
+          {/* Downward caret */}
+          <div className="absolute bottom-[-5px] right-6 w-2.5 h-2.5 bg-white border-b border-r border-gray-100 rotate-45" />
+        </div>
+      )}
     </div>
   )
 }
