@@ -102,6 +102,10 @@ export default function ProfileCompletenessCard({
     statusMessage = 'Great profile! A few more details could help'
     showButton = true
     buttonLabel = 'Improve Profile'
+  } else if (score < 100) {
+    statusMessage = "Your profile is looking great — you're getting strong matches"
+    showButton = false
+    buttonLabel = ''
   } else {
     statusMessage = "Your profile is complete — you're getting the best matches possible"
     showButton = false
