@@ -33,13 +33,20 @@ export async function POST(req: NextRequest) {
   // ── 2. Fetch eligible profiles ───────────────────────────────────────────────
   const { data: profileRows, error: profilesError } = await supabase
     .from('profiles')
-    .select('user_id, skills, industries, industry_openness, intent_tags, personality_quiz, cofounder_interest')
+    .select('user_id, full_name, skills, industries, industry_openness, intent_tags, personality_quiz, cofounder_interest')
     .eq('matching_opt_in', true)
     .gte('completeness_score', 80)
 
   if (profilesError) {
     return NextResponse.json({ success: false, error: profilesError.message }, { status: 500 })
   }
+
+  // ── DEBUG ─────────────────────────────────────────────────────────────────────
+  console.log(`[matching/run] Eligible profiles fetched: ${(profileRows ?? []).length}`)
+  for (const r of profileRows ?? []) {
+    console.log(`  - ${r.full_name ?? '(no name)'} | ${r.user_id}`)
+  }
+  // ─────────────────────────────────────────────────────────────────────────────
 
   const profiles: ScoredProfile[] = (profileRows ?? []).map((r) => ({
     user_id:           r.user_id,
@@ -111,6 +118,9 @@ export async function POST(req: NextRequest) {
   // ── 5. People ↔ people matching ──────────────────────────────────────────────
   // Score all unique pairs, sort globally by score, then greedily assign up to
   // the per-user cap so the highest-quality matches are prioritised.
+  const DEBUG_USER_ID = '8321ee7c-4973-4901-938b-6b148fc45684'
+  const nameById = new Map((profileRows ?? []).map((r) => [r.user_id, r.full_name ?? '(no name)']))
+
   type PeoplePair = { id1: string; id2: string; score: number }
   const allPeoplePairs: PeoplePair[] = []
 
@@ -119,7 +129,17 @@ export async function POST(req: NextRequest) {
       const p1 = profiles[i]
       const p2 = profiles[j]
       if (pairExists(p1.user_id, p2.user_id)) continue
-      const { total } = scoreMatch(p1, p2)
+      const { total, breakdown } = scoreMatch(p1, p2)
+
+      // ── DEBUG ───────────────────────────────────────────────────────────────
+      if (p1.user_id === DEBUG_USER_ID || p2.user_id === DEBUG_USER_ID) {
+        const other = p1.user_id === DEBUG_USER_ID ? p2 : p1
+        console.log(`[matching/run] DEBUG pair: ${nameById.get(DEBUG_USER_ID)} vs ${nameById.get(other.user_id)}`)
+        console.log(`  score=${total} | intent=${breakdown.intentAlignment} skills=${breakdown.skillsFit} industry=${breakdown.industryAlignment} personality=${breakdown.personalityBonus} penalty=${breakdown.industryPenalty}`)
+        console.log(`  above threshold: ${total >= MATCH_THRESHOLDS.minimum} | already exists: ${pairExists(p1.user_id, p2.user_id)}`)
+      }
+      // ────────────────────────────────────────────────────────────────────────
+
       if (total < MATCH_THRESHOLDS.minimum) continue
       allPeoplePairs.push({ id1: p1.user_id, id2: p2.user_id, score: total })
     }

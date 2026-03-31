@@ -672,48 +672,60 @@ function MatchCard({
   const label = m.match_score != null ? getMatchLabel(m.match_score) : null
   const labelColor = label ? getMatchLabelColor(label) : '#757575'
 
+  const matchedOn = m.created_at
+    ? new Date(m.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    : null
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex flex-col gap-4 max-w-2xl">
-      {/* Header: avatar + name + bio snippet + label */}
-      <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-full overflow-hidden bg-brand-light flex items-center justify-center flex-shrink-0">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
+      {/* Avatar banner */}
+      <div className="px-4 pt-4">
+        <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-brand-light flex items-center justify-center">
           {m.matched_avatar ? (
             <img src={m.matched_avatar} alt={m.matched_name ?? ''} className="w-full h-full object-cover" />
           ) : (
-            <span className="text-lg font-bold text-brand/50">
+            <span className="text-5xl font-bold text-brand/30">
               {(m.matched_name ?? '?').charAt(0).toUpperCase()}
             </span>
           )}
         </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 text-sm">{m.matched_name ?? 'Unknown'}</h3>
+      </div>
+
+      {/* Content */}
+      <div className="p-4 flex flex-col gap-3 flex-1">
+        {/* Name + label badge */}
+        <div>
+          <h3 className="font-semibold text-gray-900 text-base leading-tight">{m.matched_name ?? 'Unknown'}</h3>
           {label && (
             <span
-              className="inline-block mt-1 text-xs font-semibold px-3 py-1 rounded-full text-white"
+              className="inline-block mt-1.5 text-xs font-semibold px-3 py-1 rounded-full text-white"
               style={{ backgroundColor: labelColor }}
             >
               {label}
             </span>
           )}
-          {m.matched_bio && (
-            <p className="text-xs text-gray-500 mt-1.5 line-clamp-2">
-              {m.matched_bio.length > 100 ? m.matched_bio.slice(0, 100) + '…' : m.matched_bio}
-            </p>
-          )}
         </div>
+
+        {/* Bio snippet */}
+        {m.matched_bio && (
+          <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{m.matched_bio}</p>
+        )}
+
+        {/* Blurb */}
+        {m.blurb && (
+          <p className="text-sm text-gray-700 leading-relaxed">{m.blurb}</p>
+        )}
+
+        {/* Matched on date */}
+        {matchedOn && (
+          <p className="text-xs text-gray-400">Matched on {matchedOn}</p>
+        )}
       </div>
 
-      {/* Blurb */}
-      {m.blurb && (
-        <p className="text-sm text-gray-700 leading-relaxed">{m.blurb}</p>
-      )}
-
-      {/* Footer: date + thumbs */}
-      <div className="flex items-center gap-3 pt-1 border-t border-gray-100">
-        {m.week_of && (
-          <span className="text-xs text-gray-400">{formatWeekOf(m.week_of)}</span>
-        )}
-        <div className="flex items-center gap-1.5 ml-auto">
+      {/* Footer: feedback */}
+      <div className="border-t border-gray-100">
+        <div className="px-4 py-3 flex items-center gap-2">
+          <span className="text-xs text-gray-500 mr-auto">Was this a good match?</span>
           <button
             onClick={() => handleThumb('up')}
             disabled={saving}
@@ -737,23 +749,25 @@ function MatchCard({
             <ThumbsDown className="w-4 h-4" />
           </button>
         </div>
-      </div>
 
-      {/* Reason input — visible after thumbing */}
-      {thumb !== null && (
-        <input
-          type="text"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          onBlur={handleReasonBlur}
-          placeholder={
-            thumb === 'up'
-              ? 'What made this a good match? (optional)'
-              : 'What missed the mark? (optional)'
-          }
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
-        />
-      )}
+        {/* Reason input — visible after thumbing */}
+        {thumb !== null && (
+          <div className="px-4 pb-3">
+            <input
+              type="text"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              onBlur={handleReasonBlur}
+              placeholder={
+                thumb === 'up'
+                  ? 'What made this a good match? (optional)'
+                  : 'What missed the mark? (optional)'
+              }
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
