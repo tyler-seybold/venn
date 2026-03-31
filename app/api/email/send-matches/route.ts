@@ -10,7 +10,7 @@ const supabase = createClient(
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://venn.kellogg.northwestern.edu'
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://venn-eight.vercel.app'
 
 function currentMondayISO(): string {
   const now = new Date()
@@ -58,9 +58,9 @@ function buildMatchCards(matchItems: MatchItem[]): string {
     const avatarHtml = avatarUrl
       ? `<img src="${avatarUrl}" alt="${name}" width="64" height="64"
              style="width:64px;height:64px;border-radius:50%;object-fit:cover;display:block;" />`
-      : `<div style="width:64px;height:64px;border-radius:50%;background:#4E2A84;
-                     display:flex;align-items:center;justify-content:center;
-                     font-size:22px;font-weight:700;color:#fff;text-align:center;line-height:64px;">
+      : `<div style="width:64px;height:64px;border-radius:50%;background:#ede9f6;
+                     display:inline-block;
+                     font-size:22px;font-weight:700;color:#4E2A84;text-align:center;line-height:64px;">
            ${getInitials(name)}
          </div>`
 
@@ -70,7 +70,7 @@ function buildMatchCards(matchItems: MatchItem[]): string {
         <table width="100%" cellpadding="0" cellspacing="0" border="0"
                style="background:#F5F5F5;border-radius:12px;overflow:hidden;">
           <tr>
-            <td style="padding:20px 24px;">
+            <td style="padding:24px;">
 
               <!-- Avatar -->
               <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;">
@@ -99,8 +99,8 @@ function buildMatchCards(matchItems: MatchItem[]): string {
 
               <!-- CTA -->
               <a href="${profileUrl}"
-                 style="display:inline-block;padding:10px 20px;background:#4E2A84;color:#fff;
-                        font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">
+                 style="display:inline-block;padding:10px 24px;background:#4E2A84;color:#fff;
+                        font-size:14px;font-weight:700;text-decoration:none;border-radius:8px;border:none;">
                 View Profile
               </a>
 
@@ -129,7 +129,7 @@ function buildStartupCards(startupItems: StartupMatchItem[]): string {
         <table width="100%" cellpadding="0" cellspacing="0" border="0"
                style="background:#EEF2FF;border-radius:12px;overflow:hidden;">
           <tr>
-            <td style="padding:20px 24px;">
+            <td style="padding:24px;">
               <p style="margin:0 0 2px;font-size:16px;font-weight:600;color:#1a1a1a;">${name}</p>
               <p style="margin:0 0 10px;font-size:13px;color:#666;">Founded by ${founderName}</p>
               ${tagPills ? `<div style="margin-bottom:10px;">${tagPills}</div>` : ''}
@@ -197,7 +197,7 @@ function buildEmail(
             <td style="padding:24px 36px 8px;">
               <p style="margin:0;font-size:15px;color:#333;">Hi ${recipientName},</p>
               <p style="margin:10px 0 0;font-size:14px;color:#555;line-height:1.6;">
-                Here are your Venn matches for this week. Reach out, start a conversation, and see where it goes.
+                Here are your Venn matches for this week. We think these connections are worth making. Take a look and reach out — even a short intro can go a long way.
               </p>
             </td>
           </tr>
