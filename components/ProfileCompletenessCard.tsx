@@ -70,6 +70,12 @@ export default function ProfileCompletenessCard({
             return { label: MISSING_LABELS[key]!, href: MISSING_HREFS[key] }
           })
 
+        // Partial quiz completion (6–10 answers = 7pts): prompt to answer more
+        if (result.breakdown.personality_quiz === 7) {
+          const partialLabel = 'Answer more Founder Personality Quiz questions to improve your score'
+          missingItems.push(onQuizOpen ? { label: partialLabel, onClick: onQuizOpen } : { label: partialLabel })
+        }
+
         // looking_for / looking_for_extended are mutually exclusive: only show one
         const lf = typeof data.looking_for === 'string' ? data.looking_for : ''
         if (lf.length < 100) {
@@ -113,7 +119,7 @@ export default function ProfileCompletenessCard({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mb-6">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 h-full">
       <div className="flex items-center gap-4">
         {/* Circular progress */}
         <div className="flex-shrink-0 relative w-16 h-16">

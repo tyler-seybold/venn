@@ -459,23 +459,25 @@ export default function DashboardPage() {
           {/* ── Your Matches Tab ────────────────────────────────── */}
           {tab === 'matches' && (
             <div>
-              {/* Personality quiz banner */}
-              <button
-                onClick={() => setQuizOpen(true)}
-                className="w-full flex items-center justify-between bg-[#faf8ff] border border-[#ede9f6] rounded-2xl px-5 py-4 mb-4 hover:bg-[#f5f1fd] transition text-left"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-[#4E2A84]">Founder Personality Quiz</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Helps us find better matches for you</p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-[#4E2A84] flex-shrink-0" />
-              </button>
+              {/* Quiz banner + completeness card side by side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <button
+                  onClick={() => setQuizOpen(true)}
+                  className="flex items-center justify-between bg-[#faf8ff] border border-[#ede9f6] rounded-2xl px-5 py-4 hover:bg-[#f5f1fd] transition text-left h-full"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-[#4E2A84]">Founder Personality Quiz</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Helps us find better matches for you</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-[#4E2A84] flex-shrink-0" />
+                </button>
 
-              <ProfileCompletenessCard
-                userId={userId}
-                onQuizOpen={() => setQuizOpen(true)}
-                refreshTrigger={completenessRefresh}
-              />
+                <ProfileCompletenessCard
+                  userId={userId}
+                  onQuizOpen={() => setQuizOpen(true)}
+                  refreshTrigger={completenessRefresh}
+                />
+              </div>
               {loadingMatches ? (
                 <LoadingSpinner />
               ) : matches.length === 0 ? (
