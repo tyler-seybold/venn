@@ -504,7 +504,7 @@ export default function DashboardPage() {
                       {thisWeek.length === 0 ? (
                         <p className="text-sm text-gray-400">No new matches this week yet.</p>
                       ) : (
-                        <div className="flex flex-col gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           {thisWeek.map((m) => (
                             <MatchCard key={m.id} match={m} currentUserId={userId!} />
                           ))}
@@ -523,9 +523,11 @@ export default function DashboardPage() {
                           Past Matches ({past.length})
                         </button>
                         {showPastMatches && (
-                          <div className="flex flex-col gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {past.map((m) => (
-                              <MatchCard key={m.id} match={m} currentUserId={userId!} />
+                              <div key={m.id} className="opacity-60">
+                                <MatchCard match={m} currentUserId={userId!} />
+                              </div>
                             ))}
                           </div>
                         )}
@@ -680,7 +682,7 @@ function MatchCard({
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
       {/* Avatar banner */}
       <div className="px-4 pt-4">
-        <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-brand-light flex items-center justify-center">
+        <div className="relative w-full h-32 rounded-xl overflow-hidden bg-brand-light flex items-center justify-center">
           {m.matched_avatar ? (
             <img src={m.matched_avatar} alt={m.matched_name ?? ''} className="w-full h-full object-cover" />
           ) : (
