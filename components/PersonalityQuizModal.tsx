@@ -53,6 +53,16 @@ const QUESTIONS: Question[] = [
 const TOTAL = QUESTIONS.length
 // Steps: 0–11 = questions, 12 = review
 
+// Returns the index of the first unanswered question at or after startIndex,
+// or 12 (review) if all remaining questions are answered.
+function firstUnansweredFrom(startIndex: number, ans: Record<string, string | null>): number {
+  for (let i = startIndex; i < TOTAL; i++) {
+    const v = ans[QUESTIONS[i].id]
+    if (v === null || v === undefined || v === '') return i
+  }
+  return 12
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 type Props = {
@@ -89,10 +99,17 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
       .then(({ data }) => {
         if (cancelled) return
         const pq = data?.personality_quiz
-        setAnswers(
+        const loaded: Record<string, string | null> =
           pq && typeof pq === 'object' && !Array.isArray(pq)
             ? (pq as Record<string, string | null>)
             : {}
+        const startStep = firstUnansweredFrom(0, loaded)
+        setAnswers(loaded)
+        setStep(startStep)
+        setTextInput(
+          startStep < TOTAL && QUESTIONS[startStep].type === 'text'
+            ? (typeof loaded[QUESTIONS[startStep].id] === 'string' ? (loaded[QUESTIONS[startStep].id] as string) : '')
+            : ''
         )
         setLoadingAnswers(false)
       })
@@ -152,7 +169,7 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
   }
 
   function advance(newAnswers: Record<string, string | null>) {
-    const nextStep = reviewMode ? 12 : step + 1
+    const nextStep = reviewMode ? 12 : firstUnansweredFrom(step + 1, newAnswers)
     persistAnswers(newAnswers).catch(() => {})
     fade(() => {
       setAnswers(newAnswers)
@@ -179,7 +196,7 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
     persistAnswers(newAnswers).catch(() => {})
     fade(() => {
       setAnswers(newAnswers)
-      const nextStep = reviewMode ? 12 : step + 1
+      const nextStep = reviewMode ? 12 : firstUnansweredFrom(step + 1, newAnswers)
       setStep(nextStep)
       setReviewMode(false)
       setTextInput(textInputForStep(nextStep, newAnswers))
@@ -250,12 +267,15 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
                     {isAnswered ? (
                       <p className="text-xs text-gray-500 mt-0.5">{answerText}</p>
                     ) : (
-                      <button
-                        onClick={() => jumpToQuestion(i)}
-                        className="text-xs text-[#4E2A84] hover:underline mt-0.5 flex items-center gap-0.5"
-                      >
-                        Answer this <ChevronRight className="w-3 h-3" />
-                      </button>
+                      <div className="mt-0.5">
+                        <p className="text-xs text-gray-400">Not answered yet</p>
+                        <button
+                          onClick={() => jumpToQuestion(i)}
+                          className="text-xs text-[#4E2A84] hover:underline flex items-center gap-0.5 mt-0.5"
+                        >
+                          Answer this <ChevronRight className="w-3 h-3" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
