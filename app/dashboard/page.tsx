@@ -726,15 +726,17 @@ function MatchCard({
             )}
           </div>
 
-          {/* Bio snippet */}
-          {m.matched_bio && (
-            <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{m.matched_bio}</p>
-          )}
-
-          {/* Blurb */}
-          {m.blurb && (
-            <p className="text-sm text-gray-700 leading-relaxed">{m.blurb}</p>
-          )}
+          {/* Blurb (preferred) or bio fallback */}
+          {m.blurb ? (
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Why Venn matched you:</p>
+              <p className="text-sm text-gray-700 leading-relaxed">{m.blurb}</p>
+            </div>
+          ) : m.matched_bio ? (
+            <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
+              {m.matched_bio.length > 150 ? m.matched_bio.slice(0, 150) + '…' : m.matched_bio}
+            </p>
+          ) : null}
 
           {/* Matched on date */}
           {matchedOn && (

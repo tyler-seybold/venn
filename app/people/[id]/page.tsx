@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { Mail } from 'lucide-react'
+import { Mail, Sparkles } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 const INDUSTRY_COLORS: Record<string, string> = {
@@ -84,6 +84,7 @@ export default function PersonDetailPage() {
   const [myStartupIds, setMyStartupIds] = useState<Set<string>>(new Set())
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [matchedOn, setMatchedOn] = useState<string | null>(null)
+  const [matchBlurb, setMatchBlurb] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -106,7 +107,7 @@ export default function PersonDetailPage() {
         supabase.from('startup_members').select('startup_id').eq('user_id', currentUserId),
         supabase
           .from('matches')
-          .select('created_at')
+          .select('created_at, blurb')
           .neq('match_type', 'startup_startup')
           .or(`and(user_id_1.eq.${currentUserId},user_id_2.eq.${id}),and(user_id_1.eq.${id},user_id_2.eq.${currentUserId})`)
           .order('created_at', { ascending: false })
@@ -123,6 +124,7 @@ export default function PersonDetailPage() {
       if (matchRows && matchRows.length > 0) {
         const d = new Date(matchRows[0].created_at)
         setMatchedOn(d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }))
+        setMatchBlurb(matchRows[0].blurb ?? null)
       }
 
       setProfile(profileData)
@@ -245,6 +247,16 @@ export default function PersonDetailPage() {
                   </span>
                 )}
               </div>
+
+              {/* Venn blurb callout */}
+              {matchBlurb && (
+                <div className="flex items-start gap-2 mt-3 bg-[#ede9f6] rounded-xl px-4 py-3">
+                  <Sparkles className="w-3.5 h-3.5 text-[#4E2A84] flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-[#4E2A84] leading-relaxed italic">
+                    <span className="font-semibold not-italic">Venn says: </span>{matchBlurb}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
