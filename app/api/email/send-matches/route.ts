@@ -32,12 +32,29 @@ function getInitials(name: string): string {
   return ((parts[0][0] ?? '') + (parts[parts.length - 1][0] ?? '')).toUpperCase()
 }
 
-function buildEmail(
-  recipientName: string,
-  weekLabel: string,
-  matchItems: { name: string; label: string; labelColor: string; blurb: string | null; profileUrl: string; avatarUrl: string | null }[]
-): string {
-  const matchCards = matchItems.map(({ name, label, labelColor, blurb, profileUrl, avatarUrl }) => {
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+type MatchItem = {
+  name: string
+  label: string
+  labelColor: string
+  blurb: string | null
+  profileUrl: string
+  avatarUrl: string | null
+}
+
+type StartupMatchItem = {
+  id: string
+  name: string
+  founderName: string
+  industry: string[] | null
+  description: string | null
+}
+
+// ── HTML builders ─────────────────────────────────────────────────────────────
+
+function buildMatchCards(matchItems: MatchItem[]): string {
+  return matchItems.map(({ name, label, labelColor, blurb, profileUrl, avatarUrl }) => {
     const avatarHtml = avatarUrl
       ? `<img src="${avatarUrl}" alt="${name}" width="64" height="64"
              style="width:64px;height:64px;border-radius:50%;object-fit:cover;display:block;" />`
@@ -93,6 +110,62 @@ function buildEmail(
       </td>
     </tr>`
   }).join('')
+}
+
+function buildStartupCards(startupItems: StartupMatchItem[]): string {
+  return startupItems.map(({ id, name, founderName, industry, description }) => {
+    const tagPills = (industry ?? []).map((tag) =>
+      `<span style="display:inline-block;padding:3px 10px;border-radius:10px;background:#ede9f6;
+                    color:#4E2A84;font-size:11px;font-weight:600;margin:0 4px 4px 0;">${tag}</span>`
+    ).join('')
+
+    const snippet = description
+      ? (description.length > 100 ? description.slice(0, 100) + '…' : description)
+      : ''
+
+    return `
+    <tr>
+      <td style="padding:0 0 16px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="background:#EEF2FF;border-radius:12px;overflow:hidden;">
+          <tr>
+            <td style="padding:20px 24px;">
+              <p style="margin:0 0 2px;font-size:16px;font-weight:600;color:#1a1a1a;">${name}</p>
+              <p style="margin:0 0 10px;font-size:13px;color:#666;">Founded by ${founderName}</p>
+              ${tagPills ? `<div style="margin-bottom:10px;">${tagPills}</div>` : ''}
+              ${snippet ? `<p style="margin:0 0 16px;font-size:14px;color:#555;line-height:1.6;">${snippet}</p>` : ''}
+              <a href="${BASE_URL}/startup/${id}"
+                 style="display:inline-block;padding:10px 20px;background:#4E2A84;color:#fff;
+                        font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">
+                View Startup
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`
+  }).join('')
+}
+
+function buildEmail(
+  recipientName: string,
+  weekLabel: string,
+  matchItems: MatchItem[],
+  startupItems?: StartupMatchItem[]
+): string {
+  const matchCards = buildMatchCards(matchItems)
+
+  const startupSection = startupItems && startupItems.length > 0 ? `
+          <!-- Section 2: Startups in your space -->
+          <tr>
+            <td style="padding:24px 36px 8px;border-top:1px solid #ede9f6;">
+              <p style="margin:0 0 4px;font-size:17px;font-weight:700;color:#1a1a1a;">Startups in your space</p>
+              <p style="margin:0 0 16px;font-size:13px;color:#888;">Other founders building in similar areas</p>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                ${buildStartupCards(startupItems)}
+              </table>
+            </td>
+          </tr>` : ''
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -138,6 +211,8 @@ function buildEmail(
             </td>
           </tr>
 
+          ${startupSection}
+
           <!-- Footer -->
           <tr>
             <td style="padding:20px 36px 28px;border-top:1px solid #f0eff4;">
@@ -170,7 +245,7 @@ export async function POST(req: NextRequest) {
   const weekOf = searchParams.get('week_of') ?? currentMondayISO()
   const weekLabel = formatWeekOf(weekOf)
 
-  // ── 3. Fetch match rows for this week ─────────────────────────────────────
+  // ── 3. Fetch people match rows for this week ───────────────────────────────
   const { data: matchRows, error: matchesError } = await supabase
     .from('matches')
     .select('id, user_id_1, user_id_2, match_type, match_score, blurb')
@@ -184,7 +259,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, emailsSent: 0, usersEmailed: 0, note: 'No matches found for this week' })
   }
 
-  // ── 4. Group matches by user, capped at top 2 by score ───────────────────
+  // ── 4. Group people matches by user, capped at top 2 by score ─────────────
   type MatchRow = typeof matchRows[number]
   const userMatches = new Map<string, MatchRow[]>()
 
@@ -205,7 +280,7 @@ export async function POST(req: NextRequest) {
     userMatches.set(userId, list.slice(0, 2))
   }
 
-  // ── 5. Fetch all relevant profiles ───────────────────────────────────────
+  // ── 5. Fetch all relevant profiles ────────────────────────────────────────
   const allUserIds = [...new Set(matchRows.flatMap((m) => [m.user_id_1, m.user_id_2]))]
 
   const { data: profileRows, error: profilesError } = await supabase
@@ -221,7 +296,71 @@ export async function POST(req: NextRequest) {
     (profileRows ?? []).map((p) => [p.user_id, p])
   )
 
-  // ── 6. Send one email per user ────────────────────────────────────────────
+  // ── 6. Fetch startup↔startup matches for founders being emailed ───────────
+  const emailedUserIds = [...userMatches.keys()]
+
+  const { data: founderStartupRows } = await supabase
+    .from('startups')
+    .select('id, founder_id, name, description, industry')
+    .in('founder_id', emailedUserIds)
+
+  // Map: user_id → their startup
+  const startupByFounderId = new Map(
+    (founderStartupRows ?? []).map((s) => [s.founder_id, s])
+  )
+
+  // Fetch startup_startup matches for this week involving any founder startup
+  const founderStartupIds = (founderStartupRows ?? []).map((s) => s.id)
+  let startupMatchesByStartupId = new Map<string, { otherStartupId: string; score: number }[]>()
+
+  if (founderStartupIds.length > 0) {
+    const { data: ssMatchRows } = await supabase
+      .from('matches')
+      .select('user_id_1, user_id_2, match_score')
+      .eq('week_of', weekOf)
+      .eq('match_type', 'startup_startup')
+      .or(`user_id_1.in.(${founderStartupIds.join(',')}),user_id_2.in.(${founderStartupIds.join(',')})`)
+
+    const founderStartupIdSet = new Set(founderStartupIds)
+    for (const row of ssMatchRows ?? []) {
+      const ourId    = founderStartupIdSet.has(row.user_id_1) ? row.user_id_1 : row.user_id_2
+      const otherId  = ourId === row.user_id_1 ? row.user_id_2 : row.user_id_1
+      if (!startupMatchesByStartupId.has(ourId)) startupMatchesByStartupId.set(ourId, [])
+      startupMatchesByStartupId.get(ourId)!.push({ otherStartupId: otherId, score: row.match_score ?? 0 })
+    }
+  }
+
+  // Fetch details for all "other" matched startups
+  const otherStartupIds = new Set<string>()
+  for (const matches of startupMatchesByStartupId.values()) {
+    for (const { otherStartupId } of matches) otherStartupIds.add(otherStartupId)
+  }
+
+  const otherStartupByIdMap = new Map<string, { id: string; name: string; founder_id: string; description: string | null; industry: string[] | null }>()
+  if (otherStartupIds.size > 0) {
+    const { data: otherStartupRows } = await supabase
+      .from('startups')
+      .select('id, name, founder_id, description, industry')
+      .in('id', [...otherStartupIds])
+
+    for (const s of otherStartupRows ?? []) otherStartupByIdMap.set(s.id, s)
+  }
+
+  // Fetch founder profiles for the other startups
+  const otherFounderIds = [...new Set([...otherStartupByIdMap.values()].map((s) => s.founder_id))]
+  const otherFounderByIdMap = new Map<string, string>() // user_id → full_name
+  if (otherFounderIds.length > 0) {
+    const { data: otherFounderRows } = await supabase
+      .from('profiles')
+      .select('user_id, full_name')
+      .in('user_id', otherFounderIds)
+
+    for (const p of otherFounderRows ?? []) {
+      otherFounderByIdMap.set(p.user_id, p.full_name ?? 'Unknown founder')
+    }
+  }
+
+  // ── 7. Send one email per user ────────────────────────────────────────────
   let emailsSent = 0
 
   for (const [userId, userMatchList] of userMatches) {
@@ -252,7 +391,30 @@ export async function POST(req: NextRequest) {
 
     if (matchItems.length === 0) continue
 
-    const html = buildEmail(recipientName, weekLabel, matchItems)
+    // Build startup section if this user is a founder with similar-startup matches
+    let startupItems: StartupMatchItem[] | undefined
+    const founderStartup = startupByFounderId.get(userId)
+    if (founderStartup) {
+      const similarMatches = startupMatchesByStartupId.get(founderStartup.id) ?? []
+      if (similarMatches.length > 0) {
+        startupItems = similarMatches
+          .sort((a, b) => b.score - a.score)
+          .map(({ otherStartupId }) => {
+            const s = otherStartupByIdMap.get(otherStartupId)
+            if (!s) return null
+            return {
+              id: s.id,
+              name: s.name ?? 'Unnamed startup',
+              founderName: otherFounderByIdMap.get(s.founder_id) ?? 'Unknown founder',
+              industry: s.industry ?? null,
+              description: s.description ?? null,
+            }
+          })
+          .filter((item): item is NonNullable<typeof item> => item !== null)
+      }
+    }
+
+    const html = buildEmail(recipientName, weekLabel, matchItems, startupItems)
 
     await resend.emails.send({
       from: 'Venn <onboarding@resend.dev>',
@@ -264,7 +426,7 @@ export async function POST(req: NextRequest) {
     emailsSent++
   }
 
-  // ── 7. Summary ────────────────────────────────────────────────────────────
+  // ── 8. Summary ────────────────────────────────────────────────────────────
   return NextResponse.json({
     success: true,
     emailsSent,

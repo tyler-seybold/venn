@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { scoreMatch, scorePersonStartupMatch, ScoredProfile, ScoredStartup } from '@/lib/matching'
+import { scoreMatch, scorePersonStartupMatch, scoreStartupSimilarity, STARTUP_SIMILARITY_THRESHOLD, ScoredProfile, ScoredStartup } from '@/lib/matching'
 import { MATCH_THRESHOLDS } from '@/config/matching'
 
 const supabase = createClient(
@@ -53,19 +53,20 @@ export async function POST(req: NextRequest) {
   // ── 3. Fetch all startups ────────────────────────────────────────────────────
   const { data: startupRows, error: startupsError } = await supabase
     .from('startups')
-    .select('id, industry, skills_needed, open_to_cofounders, open_to_interns, founder_id')
+    .select('id, industry, skills_needed, open_to_cofounders, open_to_interns, founder_id, description')
 
   if (startupsError) {
     return NextResponse.json({ success: false, error: startupsError.message }, { status: 500 })
   }
 
   const startups: (ScoredStartup & { founder_id: string })[] = (startupRows ?? []).map((s) => ({
-    id:                s.id,
-    industry:          s.industry         ?? null,
-    skills_needed:     s.skills_needed    ?? null,
+    id:                 s.id,
+    industry:           s.industry          ?? null,
+    skills_needed:      s.skills_needed     ?? null,
     open_to_cofounders: s.open_to_cofounders,
-    open_to_interns:   s.open_to_interns,
-    founder_id:        s.founder_id,
+    open_to_interns:    s.open_to_interns,
+    founder_id:         s.founder_id,
+    description:        s.description       ?? null,
   }))
 
   // ── 4. Fetch existing matches ────────────────────────────────────────────────
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
   const toInsert: {
     user_id_1: string
     user_id_2: string
-    match_type: 'people_people' | 'people_startup'
+    match_type: 'people_people' | 'people_startup' | 'startup_startup'
     match_score: number
     week_of: string
     blurb: null
@@ -168,7 +169,43 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── 7. Insert all new matches ────────────────────────────────────────────────
+  // ── 7. Startup ↔ startup similarity matching ─────────────────────────────────
+  // Score every unique startup pair, skip below threshold and existing pairs,
+  // cap at 3 similar startups per startup per run.
+  const startupSimilarityCount = new Map<string, number>()
+  for (const s of startups) startupSimilarityCount.set(s.id, 0)
+
+  type StartupPair = { id1: string; id2: string; score: number }
+  const allStartupPairs: StartupPair[] = []
+
+  for (let i = 0; i < startups.length; i++) {
+    for (let j = i + 1; j < startups.length; j++) {
+      const s1 = startups[i]
+      const s2 = startups[j]
+      if (pairExists(s1.id, s2.id)) continue
+      const score = scoreStartupSimilarity(s1, s2)
+      if (score < STARTUP_SIMILARITY_THRESHOLD) continue
+      allStartupPairs.push({ id1: s1.id, id2: s2.id, score })
+    }
+  }
+
+  allStartupPairs.sort((a, b) => b.score - a.score)
+
+  let startupSimilarityMatchCount = 0
+  for (const { id1, id2, score } of allStartupPairs) {
+    if ((startupSimilarityCount.get(id1) ?? 0) >= 3) continue
+    if ((startupSimilarityCount.get(id2) ?? 0) >= 3) continue
+    const [a, b] = [id1, id2].sort()
+    const key = `${a}:${b}`
+    if (insertedPairs.has(key)) continue
+    insertedPairs.add(key)
+    startupSimilarityCount.set(id1, (startupSimilarityCount.get(id1) ?? 0) + 1)
+    startupSimilarityCount.set(id2, (startupSimilarityCount.get(id2) ?? 0) + 1)
+    toInsert.push({ user_id_1: a, user_id_2: b, match_type: 'startup_startup', match_score: score, week_of: weekOf, blurb: null })
+    startupSimilarityMatchCount++
+  }
+
+  // ── 8. Insert all new matches ────────────────────────────────────────────────
   if (toInsert.length > 0) {
     const { error: insertError } = await supabase.from('matches').insert(toInsert)
     if (insertError) {
@@ -176,18 +213,19 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── 8. Trigger email job (non-blocking) ──────────────────────────────────────
+  // ── 9. Trigger email job (non-blocking) ──────────────────────────────────────
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
   fetch(`${baseUrl}/api/email/send-matches?week_of=${weekOf}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${process.env.MATCHING_SECRET}` },
   }).catch(() => {})
 
-  // ── 9. Summary ───────────────────────────────────────────────────────────────
+  // ── 10. Summary ──────────────────────────────────────────────────────────────
   return NextResponse.json({
     success: true,
-    peopleMatches:  peopleMatchCount.value,
-    startupMatches: startupMatchCount.value,
-    totalInserted:  toInsert.length,
+    peopleMatches:           peopleMatchCount.value,
+    startupMatches:          startupMatchCount.value,
+    startupSimilarityMatches: startupSimilarityMatchCount,
+    totalInserted:           toInsert.length,
   })
 }

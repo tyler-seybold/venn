@@ -15,6 +15,7 @@ export type ScoredStartup = {
   skills_needed: string[] | null
   open_to_cofounders: boolean
   open_to_interns: boolean
+  description: string | null
 }
 
 export type MatchBreakdown = {
@@ -102,6 +103,34 @@ function skillsCompatibility(a: string, b: string): number {
 }
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
+
+const STOP_WORDS = new Set([
+  'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+  'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
+  'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
+  'could', 'should', 'may', 'might', 'can', 'that', 'this', 'it', 'its',
+  'we', 'our', 'us', 'they', 'their', 'you', 'your', 'i', 'my', 'me',
+])
+
+function wordSet(text: string | null): Set<string> {
+  if (!text) return new Set()
+  return new Set(
+    text.toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length > 2 && !STOP_WORDS.has(w))
+  )
+}
+
+function wordOverlap(a: string | null, b: string | null): number {
+  const setA = wordSet(a)
+  const setB = wordSet(b)
+  if (setA.size === 0 && setB.size === 0) return 0
+  let intersection = 0
+  for (const w of setA) if (setB.has(w)) intersection++
+  const union = new Set([...setA, ...setB]).size
+  return union === 0 ? 0 : intersection / union
+}
 
 function jaccard(a: string[] | null, b: string[] | null): number {
   const setA = new Set(a ?? [])
@@ -213,9 +242,14 @@ export function scorePersonStartupMatch(
   }
 }
 
-// ── scoreStartupMatch: startup ↔ startup ─────────────────────────────────────
-// Simple industry overlap, scaled to 100 pts.
+// ── scoreStartupSimilarity: startup ↔ startup ────────────────────────────────
+// Industry tag Jaccard (60%) + description word overlap (40%), scaled to 100 pts.
+// Minimum threshold to be considered similar: 25.
 
-export function scoreStartupMatch(startup1: ScoredStartup, startup2: ScoredStartup): number {
-  return Math.round(jaccard(startup1.industry, startup2.industry) * 100)
+export const STARTUP_SIMILARITY_THRESHOLD = 25
+
+export function scoreStartupSimilarity(startup1: ScoredStartup, startup2: ScoredStartup): number {
+  const industryScore    = jaccard(startup1.industry, startup2.industry) * 60
+  const descriptionScore = wordOverlap(startup1.description, startup2.description) * 40
+  return Math.round(industryScore + descriptionScore)
 }
