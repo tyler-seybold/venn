@@ -43,19 +43,13 @@ type Startup = {
   industry: string[] | null
   stage: string | null
   description: string | null
+  problem_statement: string | null
   website_url: string | null
-  current_ask: string | null
-  current_ask_updated_at: string | null
+  skills_needed: string[] | null
+  open_to_cofounders: boolean
+  open_to_interns: boolean
 }
 
-function formatDate(iso: string | null): string | null {
-  if (!iso) return null
-  const d = new Date(iso)
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  const yyyy = d.getFullYear()
-  return `${mm}/${dd}/${yyyy}`
-}
 
 type Member = {
   id: string
@@ -263,15 +257,50 @@ export default function StartupDetailPage() {
               </div>
             )}
 
-            {/* Current ask — hidden from UI (field preserved in DB/types) */}
-            {/* {startup.current_ask && (
+            {/* Problem statement */}
+            {startup.problem_statement && (
               <div className="mb-6">
                 <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Current Ask{startup.current_ask_updated_at ? ` (last updated ${formatDate(startup.current_ask_updated_at)})` : ''}
+                  The Problem We're Solving
                 </h2>
-                <p className="text-sm text-gray-700">{startup.current_ask}</p>
+                <p className="text-sm text-gray-700 leading-relaxed">{startup.problem_statement}</p>
               </div>
-            )} */}
+            )}
+
+            {/* Skills needed */}
+            {startup.skills_needed && startup.skills_needed.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                  Looking for
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {startup.skills_needed.map((skill) => (
+                    <span
+                      key={skill}
+                      className="text-xs font-medium bg-brand-light text-brand px-2.5 py-1 rounded-full border border-brand/20"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Opportunity badges */}
+            {(startup.open_to_cofounders || startup.open_to_interns) && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {startup.open_to_cofounders && (
+                  <span className="text-xs font-medium bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 rounded-full">
+                    Open to co-founders
+                  </span>
+                )}
+                {startup.open_to_interns && (
+                  <span className="text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full">
+                    Open to interns
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Email button */}
             {primaryMember?.email && (
