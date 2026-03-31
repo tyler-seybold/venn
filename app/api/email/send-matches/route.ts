@@ -60,14 +60,12 @@ type StartupMatchItem = {
 function buildMatchCards(matchItems: MatchItem[]): string {
   return matchItems.map(({ name, label, labelColor, blurb, profileUrl, avatarUrl }) => {
     const avatarHtml = avatarUrl
-      ? `<div style="width:64px;height:64px;border-radius:50%;overflow:hidden;display:inline-block;">
-           <img src="${avatarUrl}" alt="${name}" width="64" height="64"
-                style="width:64px;height:64px;object-fit:cover;display:block;" />
-         </div>`
+      ? `<img src="${avatarUrl}" alt="${name}" width="64" height="64"
+             style="width:64px;height:64px;object-fit:cover;border-radius:8px;display:block;" />`
       : `<table cellpadding="0" cellspacing="0" border="0">
            <tr>
              <td width="64" height="64"
-                 style="width:64px;height:64px;border-radius:50%;background-color:#ede9f6;
+                 style="width:64px;height:64px;border-radius:8px;background-color:#ede9f6;
                         text-align:center;vertical-align:middle;
                         font-size:22px;font-weight:700;color:#4E2A84;font-family:Arial,sans-serif;">
                ${getInitials(name)}
