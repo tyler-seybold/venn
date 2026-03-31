@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
-import { getMatchLabel, getMatchLabelColor } from '@/config/matching'
+import { getMatchLabel } from '@/config/matching'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -41,10 +41,8 @@ function getInitials(name: string): string {
 type MatchItem = {
   name: string
   label: string
-  labelColor: string
   blurb: string | null
   profileUrl: string
-  avatarUrl: string | null
 }
 
 type StartupMatchItem = {
@@ -55,14 +53,18 @@ type StartupMatchItem = {
   description: string | null
 }
 
+const BADGE_URLS: Record<string, string> = {
+  'Perfect Fit': 'https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/perfect-fit.png',
+  'Strong Match': 'https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/strong-match.png',
+  'Good Match': 'https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/good-match.png',
+  'Worth a Coffee': 'https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/worth-a-coffee.png',
+}
+
 // ── HTML builders ─────────────────────────────────────────────────────────────
 
 function buildMatchCards(matchItems: MatchItem[]): string {
-  return matchItems.map(({ name, label, labelColor, blurb, profileUrl, avatarUrl }) => {
-    const avatarHtml = avatarUrl
-      ? `<img src="${avatarUrl}" alt="${name}" width="64" height="64"
-             style="width:64px;height:64px;object-fit:cover;border-radius:8px;display:block;" />`
-      : `<table cellpadding="0" cellspacing="0" border="0">
+  return matchItems.map(({ name, label, blurb, profileUrl }) => {
+    const avatarHtml = `<table cellpadding="0" cellspacing="0" border="0">
            <tr>
              <td width="64" height="64"
                  style="width:64px;height:64px;border-radius:8px;background-color:#ede9f6;
@@ -72,6 +74,8 @@ function buildMatchCards(matchItems: MatchItem[]): string {
              </td>
            </tr>
          </table>`
+
+    const badgeUrl = BADGE_URLS[label] ?? BADGE_URLS['Worth a Coffee']
 
     return `
     <tr>
@@ -93,10 +97,7 @@ function buildMatchCards(matchItems: MatchItem[]): string {
                     <span style="font-size:16px;font-weight:600;color:#1a1a1a;">${name}</span>
                   </td>
                   <td style="vertical-align:middle;padding-left:10px;">
-                    <span style="display:inline-block;padding:4px 12px;border-radius:999px;
-                                 font-size:12px;font-weight:700;color:#fff;background:${labelColor};">
-                      ${label}
-                    </span>
+                    <img src="${badgeUrl}" alt="${label}" width="auto" height="28" style="display:inline-block;vertical-align:middle;border:0;">
                   </td>
                 </tr>
               </table>
@@ -396,14 +397,11 @@ export async function POST(req: NextRequest) {
         if (!matchedProfile) return null
 
         const label = getMatchLabel(m.match_score ?? 0)
-        const labelColor = getMatchLabelColor(label)
         return {
           name: matchedProfile.full_name ?? 'A Venn member',
           label,
-          labelColor,
           blurb: m.blurb,
           profileUrl: `${baseUrl}/people/${matchedId}`,
-          avatarUrl: matchedProfile.avatar_url ?? null,
         }
       })
       .filter((item): item is NonNullable<typeof item> => item !== null)
