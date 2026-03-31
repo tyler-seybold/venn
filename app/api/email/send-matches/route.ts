@@ -56,13 +56,23 @@ type StartupMatchItem = {
 function buildMatchCards(matchItems: MatchItem[]): string {
   return matchItems.map(({ name, label, labelColor, blurb, profileUrl, avatarUrl }) => {
     const avatarHtml = avatarUrl
-      ? `<img src="${avatarUrl}" alt="${name}" width="64" height="64"
-             style="width:64px;height:64px;border-radius:50%;object-fit:cover;display:block;" />`
-      : `<div style="width:64px;height:64px;border-radius:50%;background:#ede9f6;
-                     display:inline-block;
-                     font-size:22px;font-weight:700;color:#4E2A84;text-align:center;line-height:64px;">
-           ${getInitials(name)}
-         </div>`
+      ? `<table cellpadding="0" cellspacing="0" border="0">
+           <tr>
+             <td style="border-radius:50%;overflow:hidden;width:64px;height:64px;line-height:0;">
+               <img src="${avatarUrl}" alt="${name}" width="64" height="64"
+                    style="display:block;border-radius:50%;object-fit:cover;width:64px;height:64px;" />
+             </td>
+           </tr>
+         </table>`
+      : `<table cellpadding="0" cellspacing="0" border="0">
+           <tr>
+             <td style="width:64px;height:64px;border-radius:50%;background-color:#ede9f6;
+                        text-align:center;vertical-align:middle;
+                        font-size:22px;font-weight:700;color:#4E2A84;font-family:Arial,sans-serif;">
+               ${getInitials(name)}
+             </td>
+           </tr>
+         </table>`
 
     return `
     <tr>
@@ -98,11 +108,17 @@ function buildMatchCards(matchItems: MatchItem[]): string {
               </p>
 
               <!-- CTA -->
-              <a href="${profileUrl}"
-                 style="display:inline-block;padding:10px 24px;background:#4E2A84;color:#fff;
-                        font-size:14px;font-weight:700;text-decoration:none;border-radius:8px;border:none;">
-                View Profile
-              </a>
+              <table cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="background-color:#4E2A84;border-radius:8px;padding:10px 24px;">
+                    <a href="${profileUrl}"
+                       style="color:#ffffff;text-decoration:none;font-weight:bold;
+                              font-family:Arial,sans-serif;font-size:14px;">
+                      View Profile
+                    </a>
+                  </td>
+                </tr>
+              </table>
 
             </td>
           </tr>
