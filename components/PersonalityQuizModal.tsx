@@ -302,7 +302,7 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
     return (
       <Overlay>
         <Card>
-          <Header title="Personality Quiz" />
+          <Header title="Founder Personality Quiz" />
           <div className="flex-1 flex items-center justify-center">
             <div className="w-6 h-6 rounded-full border-2 border-[#4E2A84] border-t-transparent animate-spin" />
           </div>
@@ -318,7 +318,7 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
   return (
     <Overlay>
       <Card>
-        <Header title={`Personality Quiz${reviewMode ? ' — Edit Answer' : ''}`} />
+        <Header title={`Founder Personality Quiz${reviewMode ? ' — Edit Answer' : ''}`} />
 
         {/* Progress bar */}
         <div className="px-5 pt-4 pb-1 flex-shrink-0">

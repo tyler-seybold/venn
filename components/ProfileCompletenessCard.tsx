@@ -16,7 +16,7 @@ const MISSING_LABELS: Partial<Record<keyof CompletenessBreakdown, string>> = {
   degree_program:     'Set your degree program',
   avatar_url:         'Add a photo',
   role_orientation:   'Add your role orientation',
-  personality_quiz:   'Complete the personality quiz',
+  personality_quiz:   'Complete the Founder Personality Quiz',
   industries_breadth: 'Add 3+ industry interests',
 }
 
@@ -64,7 +64,7 @@ export default function ProfileCompletenessCard({
                   .filter((v) => v !== null && v !== undefined && v !== '').length
                 progressLabel = `${answered}/12 answered`
               }
-              const label = `Complete the personality quiz — ${progressLabel}`
+              const label = `Complete the Founder Personality Quiz — ${progressLabel}`
               return onQuizOpen ? { label, onClick: onQuizOpen } : { label }
             }
             return { label: MISSING_LABELS[key]!, href: MISSING_HREFS[key] }

@@ -463,7 +463,7 @@ export default function DashboardPage() {
                 className="w-full flex items-center justify-between bg-[#faf8ff] border border-[#ede9f6] rounded-2xl px-5 py-4 mb-4 hover:bg-[#f5f1fd] transition text-left"
               >
                 <div>
-                  <p className="text-sm font-semibold text-[#4E2A84]">Personality quiz</p>
+                  <p className="text-sm font-semibold text-[#4E2A84]">Founder Personality Quiz</p>
                   <p className="text-xs text-gray-500 mt-0.5">Helps us find better matches for you</p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-[#4E2A84] flex-shrink-0" />
