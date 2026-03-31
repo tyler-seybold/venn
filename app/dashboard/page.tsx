@@ -177,7 +177,7 @@ export default function DashboardPage() {
 
   const [matches, setMatches] = useState<MatchWithProfile[]>([])
   const [loadingMatches, setLoadingMatches] = useState(true)
-  const [showPastMatches, setShowPastMatches] = useState(false)
+
   const [quizOpen, setQuizOpen] = useState(false)
   const [completenessRefresh, setCompletenessRefresh] = useState(0)
 
@@ -516,22 +516,16 @@ export default function DashboardPage() {
                     {/* Past Matches */}
                     {past.length > 0 && (
                       <div>
-                        <button
-                          onClick={() => setShowPastMatches((v) => !v)}
-                          className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-600 transition mb-4"
-                        >
-                          <ChevronRight className={`w-3.5 h-3.5 transition-transform ${showPastMatches ? 'rotate-90' : ''}`} />
-                          Past Matches ({past.length})
-                        </button>
-                        {showPastMatches && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {past.map((m) => (
-                              <div key={m.id} className="opacity-60">
-                                <MatchCard match={m} currentUserId={userId!} />
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                          Past Matches
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {past.map((m) => (
+                            <div key={m.id} className="opacity-60">
+                              <MatchCard match={m} currentUserId={userId!} />
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
