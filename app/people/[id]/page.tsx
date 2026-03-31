@@ -83,6 +83,7 @@ export default function PersonDetailPage() {
   const [startups, setStartups] = useState<Startup[]>([])
   const [myStartupIds, setMyStartupIds] = useState<Set<string>>(new Set())
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [matchedOn, setMatchedOn] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -95,7 +96,7 @@ export default function PersonDetailPage() {
       const currentUserId = data.user.id
       setCurrentUserId(currentUserId)
 
-      const [{ data: profileData, error }, { data: memberData }, { data: myMemberships }] = await Promise.all([
+      const [{ data: profileData, error }, { data: memberData }, { data: myMemberships }, { data: matchRows }] = await Promise.all([
         supabase.from('profiles').select('*').eq('user_id', id).single(),
         supabase
           .from('startup_members')
@@ -103,6 +104,13 @@ export default function PersonDetailPage() {
           .eq('user_id', id)
           .order('created_at', { ascending: false }),
         supabase.from('startup_members').select('startup_id').eq('user_id', currentUserId),
+        supabase
+          .from('matches')
+          .select('created_at')
+          .neq('match_type', 'startup_startup')
+          .or(`and(user_id_1.eq.${currentUserId},user_id_2.eq.${id}),and(user_id_1.eq.${id},user_id_2.eq.${currentUserId})`)
+          .order('created_at', { ascending: false })
+          .limit(1),
       ])
 
       if (error || !profileData) {
@@ -111,6 +119,12 @@ export default function PersonDetailPage() {
       }
 
       setMyStartupIds(new Set((myMemberships ?? []).map((m) => m.startup_id)))
+
+      if (matchRows && matchRows.length > 0) {
+        const d = new Date(matchRows[0].created_at)
+        setMatchedOn(d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }))
+      }
+
       setProfile(profileData)
       setStartups(
         (memberData ?? [])
@@ -218,12 +232,19 @@ export default function PersonDetailPage() {
                 </p>
               )}
 
-              {/* Founder badge */}
-              {startups.length > 0 && (
-                <span className="inline-block mt-2 text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
-                  Founder
-                </span>
-              )}
+              {/* Founder badge + matched badge */}
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                {startups.length > 0 && (
+                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
+                    Founder
+                  </span>
+                )}
+                {matchedOn && (
+                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-[#ede9f6] text-[#4E2A84]">
+                    Matched on {matchedOn}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

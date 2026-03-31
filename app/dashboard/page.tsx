@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, ChevronDown, ChevronRight, ExternalLink, Sparkles, Rocket, Users, ThumbsUp, ThumbsDown } from 'lucide-react'
+import Link from 'next/link'
+import { Mail, ChevronDown, ChevronRight, ExternalLink, Sparkles, Rocket, Users, ThumbsUp, ThumbsDown, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { getMatchLabel, getMatchLabelColor } from '@/config/matching'
 import ProfileCompletenessCard from '@/components/ProfileCompletenessCard'
@@ -649,6 +650,8 @@ function MatchCard({
   currentUserId: string
 }) {
   const isUser1 = m.user_id_1 === currentUserId
+  const matchedId = isUser1 ? m.user_id_2 : m.user_id_1
+
   const [thumb, setThumb] = useState<'up' | 'down' | null>(
     (isUser1 ? m.feedback_1 : m.feedback_2) ?? null
   )
@@ -656,10 +659,12 @@ function MatchCard({
     (isUser1 ? m.feedback_1_reason : m.feedback_2_reason) ?? ''
   )
   const [saving, setSaving] = useState(false)
+  const [showPopover, setShowPopover] = useState(false)
 
   async function handleThumb(value: 'up' | 'down') {
     const next = thumb === value ? null : value
     setThumb(next)
+    setShowPopover(next !== null)
     setSaving(true)
     const col = isUser1 ? 'feedback_1' : 'feedback_2'
     await supabase.from('matches').update({ [col]: next }).eq('id', m.id)
@@ -680,54 +685,58 @@ function MatchCard({
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
-      {/* Avatar banner */}
-      <div className="px-4 pt-4">
-        <div className="relative w-full h-32 rounded-xl overflow-hidden bg-brand-light flex items-center justify-center">
-          {m.matched_avatar ? (
-            <img src={m.matched_avatar} alt={m.matched_name ?? ''} className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-5xl font-bold text-brand/30">
-              {(m.matched_name ?? '?').charAt(0).toUpperCase()}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-4 flex flex-col gap-3 flex-1">
-        {/* Name + label badge */}
-        <div>
-          <h3 className="font-semibold text-gray-900 text-base leading-tight">{m.matched_name ?? 'Unknown'}</h3>
-          {label && (
-            <span
-              className="inline-block mt-1.5 text-xs font-semibold px-3 py-1 rounded-full text-white"
-              style={{ backgroundColor: labelColor }}
-            >
-              {label}
-            </span>
-          )}
+      {/* Clickable content area */}
+      <Link href={`/people/${matchedId}`} className="flex flex-col">
+        {/* Avatar banner */}
+        <div className="px-4 pt-4">
+          <div className="relative w-full h-32 rounded-xl overflow-hidden bg-brand-light flex items-center justify-center">
+            {m.matched_avatar ? (
+              <img src={m.matched_avatar} alt={m.matched_name ?? ''} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-5xl font-bold text-brand/30">
+                {(m.matched_name ?? '?').charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Bio snippet */}
-        {m.matched_bio && (
-          <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{m.matched_bio}</p>
-        )}
+        {/* Content */}
+        <div className="p-4 flex flex-col gap-3">
+          {/* Name + label badge */}
+          <div>
+            <h3 className="font-semibold text-gray-900 text-base leading-tight">{m.matched_name ?? 'Unknown'}</h3>
+            {label && (
+              <span
+                className="inline-block mt-1.5 text-xs font-semibold px-3 py-1 rounded-full text-white"
+                style={{ backgroundColor: labelColor }}
+              >
+                {label}
+              </span>
+            )}
+          </div>
 
-        {/* Blurb */}
-        {m.blurb && (
-          <p className="text-sm text-gray-700 leading-relaxed">{m.blurb}</p>
-        )}
+          {/* Bio snippet */}
+          {m.matched_bio && (
+            <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{m.matched_bio}</p>
+          )}
 
-        {/* Matched on date */}
-        {matchedOn && (
-          <p className="text-xs text-gray-400">Matched on {matchedOn}</p>
-        )}
-      </div>
+          {/* Blurb */}
+          {m.blurb && (
+            <p className="text-sm text-gray-700 leading-relaxed">{m.blurb}</p>
+          )}
 
-      {/* Footer: feedback */}
+          {/* Matched on date */}
+          {matchedOn && (
+            <p className="text-xs text-gray-400">Matched on {matchedOn}</p>
+          )}
+        </div>
+      </Link>
+
+      {/* Footer: feedback — outside Link so thumbs don't navigate */}
       <div className="border-t border-gray-100">
-        <div className="px-4 py-3 flex items-center gap-2">
+        <div className="px-4 py-3 flex items-center gap-2 relative">
           <span className="text-xs text-gray-500 mr-auto">Was this a good match?</span>
+
           <button
             onClick={() => handleThumb('up')}
             disabled={saving}
@@ -750,25 +759,35 @@ function MatchCard({
           >
             <ThumbsDown className="w-4 h-4" />
           </button>
-        </div>
 
-        {/* Reason input — visible after thumbing */}
-        {thumb !== null && (
-          <div className="px-4 pb-3">
-            <input
-              type="text"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              onBlur={handleReasonBlur}
-              placeholder={
-                thumb === 'up'
-                  ? 'What made this a good match? (optional)'
-                  : 'What missed the mark? (optional)'
-              }
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
-            />
-          </div>
-        )}
+          {/* Floating reason popover */}
+          {showPopover && thumb !== null && (
+            <div className="absolute bottom-full right-0 mb-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 p-3 z-10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-gray-600">
+                  {thumb === 'up' ? 'What made this a good match?' : 'What missed the mark?'}
+                </span>
+                <button
+                  onClick={() => setShowPopover(false)}
+                  className="p-0.5 rounded text-gray-400 hover:text-gray-600 transition ml-2 flex-shrink-0"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <input
+                type="text"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                onBlur={handleReasonBlur}
+                placeholder="Optional"
+                autoFocus
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
+              />
+              {/* Downward caret */}
+              <div className="absolute bottom-[-5px] right-6 w-2.5 h-2.5 bg-white border-b border-r border-gray-100 rotate-45" />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
