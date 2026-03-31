@@ -291,6 +291,7 @@ export default function DashboardPage() {
         .from('matches')
         .select('*')
         .or(`user_id_1.eq.${userId},user_id_2.eq.${userId}`)
+        .neq('match_type', 'startup_startup')
         .order('created_at', { ascending: false })
 
       if (!matchRows || matchRows.length === 0) {
@@ -685,19 +686,17 @@ function MatchCard({
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-gray-900 text-sm">{m.matched_name ?? 'Unknown'}</h3>
-            {label && (
-              <span
-                className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                style={{ backgroundColor: labelColor + '20', color: labelColor }}
-              >
-                {label}
-              </span>
-            )}
-          </div>
+          <h3 className="font-semibold text-gray-900 text-sm">{m.matched_name ?? 'Unknown'}</h3>
+          {label && (
+            <span
+              className="inline-block mt-1 text-xs font-semibold px-3 py-1 rounded-full text-white"
+              style={{ backgroundColor: labelColor }}
+            >
+              {label}
+            </span>
+          )}
           {m.matched_bio && (
-            <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+            <p className="text-xs text-gray-500 mt-1.5 line-clamp-2">
               {m.matched_bio.length > 100 ? m.matched_bio.slice(0, 100) + '…' : m.matched_bio}
             </p>
           )}
