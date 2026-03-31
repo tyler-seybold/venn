@@ -84,9 +84,12 @@ export function calculateCompleteness(profile: Record<string, unknown>): Complet
     typeof profile.personality_quiz === 'object' &&
     !Array.isArray(profile.personality_quiz)
   ) {
-    const vals = Object.values(profile.personality_quiz as Record<string, unknown>)
-    if (vals.length > 0 && vals.every((v) => v !== null && v !== undefined && v !== '')) {
+    const answered = Object.values(profile.personality_quiz as Record<string, unknown>)
+      .filter((v) => v !== null && v !== undefined && v !== '').length
+    if (answered >= 11) {
       breakdown.personality_quiz = 15
+    } else if (answered >= 6) {
+      breakdown.personality_quiz = 7
     }
   }
 
