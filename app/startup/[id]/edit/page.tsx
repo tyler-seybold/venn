@@ -38,6 +38,11 @@ const INDUSTRIES = [
 const STAGES = ['Ideation', 'MVP', 'Beta Client/Pilot', 'Revenue-generating'] as const
 type Stage = (typeof STAGES)[number]
 
+const SKILLS_NEEDED = [
+  'Engineering', 'Finance', 'Marketing', 'Operations', 'Design',
+  'Legal', 'Sales', 'Product', 'Data/Analytics', 'Social Media',
+]
+
 const DESC_MAX = 200
 const ASK_MAX = 150
 
@@ -69,6 +74,9 @@ export default function EditStartupPage() {
   const [websiteUrl, setWebsiteUrl] = useState('')
   const [currentAsk, setCurrentAsk] = useState('')
   const [originalCurrentAsk, setOriginalCurrentAsk] = useState('')
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([])
+  const [openToCofounders, setOpenToCofounders] = useState(false)
+  const [openToInterns, setOpenToInterns] = useState(false)
 
   // Co-founders state
   const [coFounders, setCoFounders] = useState<Array<{ id: string; user_id: string; full_name: string | null; email: string | null }>>([])
@@ -130,6 +138,9 @@ export default function EditStartupPage() {
       setWebsiteUrl(startup.website_url ?? '')
       setCurrentAsk(startup.current_ask ?? '')
       setOriginalCurrentAsk(startup.current_ask ?? '')
+      setSelectedSkills(startup.skills_needed ?? [])
+      setOpenToCofounders(startup.open_to_cofounders ?? false)
+      setOpenToInterns(startup.open_to_interns ?? false)
 
       // Load co-founders (exclude primary)
       const { data: membersData } = await supabase
@@ -213,6 +224,13 @@ export default function EditStartupPage() {
     )
   }
 
+  // Skills toggle
+  function toggleSkill(skill: string) {
+    setSelectedSkills((prev) =>
+      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+    )
+  }
+
   // Submit
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -270,6 +288,9 @@ export default function EditStartupPage() {
         stage: stage ?? null,
         description: description || null,
         website_url: normalizedUrl,
+        skills_needed: selectedSkills.length > 0 ? selectedSkills : null,
+        open_to_cofounders: openToCofounders,
+        open_to_interns: openToInterns,
         // current_ask and current_ask_updated_at omitted — hidden from UI
       })
       .eq('id', id)
@@ -536,6 +557,78 @@ export default function EditStartupPage() {
                 className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
               />
             </div> */}
+
+            {/* Skills needed */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Skills we're looking for <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {SKILLS_NEEDED.map((skill) => {
+                  const selected = selectedSkills.includes(skill)
+                  return (
+                    <button
+                      key={skill}
+                      type="button"
+                      onClick={() => toggleSkill(skill)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium border transition ${
+                        selected
+                          ? 'bg-brand border-brand text-white'
+                          : 'bg-white border-gray-300 text-gray-600 hover:border-brand hover:text-brand'
+                      }`}
+                    >
+                      {skill}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Open to co-founders */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Open to finding a co-founder
+              </label>
+              <div className="flex gap-2">
+                {([true, false] as const).map((val) => (
+                  <button
+                    key={String(val)}
+                    type="button"
+                    onClick={() => setOpenToCofounders(val)}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium border transition ${
+                      openToCofounders === val
+                        ? 'bg-brand border-brand text-white'
+                        : 'bg-white border-gray-300 text-gray-600 hover:border-brand hover:text-brand'
+                    }`}
+                  >
+                    {val ? 'Yes' : 'No'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Open to interns */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Open to hosting an intern
+              </label>
+              <div className="flex gap-2">
+                {([true, false] as const).map((val) => (
+                  <button
+                    key={String(val)}
+                    type="button"
+                    onClick={() => setOpenToInterns(val)}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium border transition ${
+                      openToInterns === val
+                        ? 'bg-brand border-brand text-white'
+                        : 'bg-white border-gray-300 text-gray-600 hover:border-brand hover:text-brand'
+                    }`}
+                  >
+                    {val ? 'Yes' : 'No'}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Co-Founders */}
             <div>
