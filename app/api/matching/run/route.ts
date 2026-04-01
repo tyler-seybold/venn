@@ -30,6 +30,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
 
+  // ── 1b. Check global matching settings ──────────────────────────────────────
+  const force = req.nextUrl.searchParams.get('force') === 'true'
+
+  const { data: settings } = await supabase
+    .from('matching_settings')
+    .select('matching_enabled, match_frequency, next_match_date')
+    .eq('id', 1)
+    .single()
+
+  if (settings && !settings.matching_enabled && !force) {
+    return NextResponse.json({ success: false, reason: 'matching_disabled' })
+  }
+
+  if (settings && settings.next_match_date && !force) {
+    const today = new Date().toISOString().slice(0, 10)
+    if (today < settings.next_match_date) {
+      return NextResponse.json({ success: false, reason: 'not_scheduled', next_match_date: settings.next_match_date })
+    }
+  }
+
   // ── 2. Fetch eligible profiles ───────────────────────────────────────────────
   const { data: profileRows, error: profilesError } = await supabase
     .from('profiles')
@@ -213,14 +233,26 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── 9. Trigger email job (non-blocking) ──────────────────────────────────────
+  // ── 9. Advance next_match_date in settings ───────────────────────────────────
+  if (settings) {
+    const base = new Date()
+    const daysToAdd = settings.match_frequency === 'biweekly' ? 14 : settings.match_frequency === 'monthly' ? 30 : 7
+    base.setUTCDate(base.getUTCDate() + daysToAdd)
+    const nextDate = base.toISOString().slice(0, 10)
+    await supabase
+      .from('matching_settings')
+      .update({ next_match_date: nextDate, updated_at: new Date().toISOString() })
+      .eq('id', 1)
+  }
+
+  // ── 11. Trigger email job (non-blocking) ────────────────────────────────────
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
   fetch(`${baseUrl}/api/email/send-matches?week_of=${weekOf}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${process.env.MATCHING_SECRET}` },
   }).catch(() => {})
 
-  // ── 10. Summary ──────────────────────────────────────────────────────────────
+  // ── 12. Summary ──────────────────────────────────────────────────────────────
   return NextResponse.json({
     success: true,
     peopleMatches:           peopleMatchCount.value,

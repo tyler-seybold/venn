@@ -69,6 +69,13 @@ export default function AdminPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [demoMode, setDemoMode] = useState(false)
 
+  // Matching settings state
+  const [matchingEnabled, setMatchingEnabled] = useState(true)
+  const [matchFrequency, setMatchFrequency] = useState<'weekly' | 'biweekly' | 'monthly'>('weekly')
+  const [nextMatchDate, setNextMatchDate] = useState('')
+  const [settingsSaving, setSettingsSaving] = useState(false)
+  const [settingsSaved, setSettingsSaved] = useState(false)
+
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) {
@@ -95,7 +102,7 @@ export default function AdminPage() {
       const { data: session } = await supabase.auth.getSession()
       setAccessToken(session.session?.access_token ?? null)
 
-      const [{ data: studentsData }, { data: startupsData }, { data: matchesData }] = await Promise.all([
+      const [{ data: studentsData }, { data: startupsData }, { data: matchesData }, { data: settingsData }] = await Promise.all([
         supabase
           .from('profiles')
           .select('user_id, full_name, email, degree_program, graduation_year, is_admin')
@@ -109,9 +116,21 @@ export default function AdminPage() {
           .select('id, user_id_1, user_id_2, match_score, week_of, feedback_1, feedback_1_reason, feedback_2, feedback_2_reason')
           .or('feedback_1.not.is.null,feedback_2.not.is.null')
           .order('week_of', { ascending: false }),
+        supabase
+          .from('matching_settings')
+          .select('matching_enabled, match_frequency, next_match_date')
+          .eq('id', 1)
+          .single(),
       ])
 
       setStudents(studentsData ?? [])
+
+      if (settingsData) {
+        setMatchingEnabled(settingsData.matching_enabled)
+        setMatchFrequency(settingsData.match_frequency as 'weekly' | 'biweekly' | 'monthly')
+        setNextMatchDate(settingsData.next_match_date ?? '')
+      }
+
       setStartups(
         (startupsData ?? []).map(({ profiles, ...s }) => ({
           ...s,
@@ -185,6 +204,19 @@ export default function AdminPage() {
     await supabase.from('profiles').update({ demo_mode: next }).eq('user_id', currentUserId)
   }
 
+  async function handleSaveSettings() {
+    setSettingsSaving(true)
+    await supabase.from('matching_settings').update({
+      matching_enabled: matchingEnabled,
+      match_frequency: matchFrequency,
+      next_match_date: nextMatchDate || null,
+      updated_at: new Date().toISOString(),
+    }).eq('id', 1)
+    setSettingsSaving(false)
+    setSettingsSaved(true)
+    setTimeout(() => setSettingsSaved(false), 2500)
+  }
+
   // Feedback summary stats
   const totalResponses = feedbackMatches.reduce((n, m) => {
     return n + (m.feedback_1 != null ? 1 : 0) + (m.feedback_2 != null ? 1 : 0)
@@ -251,6 +283,73 @@ export default function AdminPage() {
               <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${demoMode ? 'translate-x-5' : 'translate-x-0'}`} />
             </button>
           </div>
+        </div>
+
+        {/* Matching Controls */}
+        <div className="mb-6 bg-white rounded-2xl border border-gray-200 shadow-sm px-6 py-5">
+          <h2 className="text-sm font-semibold text-gray-900 mb-4">Matching Controls</h2>
+          <div className="flex flex-wrap gap-6 items-end">
+            {/* Enabled toggle */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Matching enabled</label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMatchingEnabled((v) => !v)}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 ${
+                    matchingEnabled ? 'bg-brand' : 'bg-gray-200'
+                  }`}
+                >
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${matchingEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
+                <span className={`text-sm font-medium ${matchingEnabled ? 'text-gray-800' : 'text-red-600'}`}>
+                  {matchingEnabled ? 'On' : 'Off — matching is paused'}
+                </span>
+              </div>
+            </div>
+
+            {/* Frequency */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider" htmlFor="match-freq">Frequency</label>
+              <select
+                id="match-freq"
+                value={matchFrequency}
+                onChange={(e) => setMatchFrequency(e.target.value as 'weekly' | 'biweekly' | 'monthly')}
+                className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand"
+              >
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Biweekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+
+            {/* Next match date */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider" htmlFor="next-date">Next match date</label>
+              <input
+                id="next-date"
+                type="date"
+                value={nextMatchDate}
+                onChange={(e) => setNextMatchDate(e.target.value)}
+                className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand"
+              />
+            </div>
+
+            {/* Save button */}
+            <button
+              onClick={handleSaveSettings}
+              disabled={settingsSaving}
+              className="text-sm font-medium bg-brand text-white rounded-lg px-4 py-1.5 hover:bg-brand-hover transition disabled:opacity-60"
+            >
+              {settingsSaving ? 'Saving…' : settingsSaved ? 'Saved!' : 'Save settings'}
+            </button>
+          </div>
+
+          {!matchingEnabled && (
+            <p className="mt-3 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              Matching is currently disabled. The cron job and manual run requests will return <code className="font-mono">matching_disabled</code> unless <code className="font-mono">?force=true</code> is used.
+            </p>
+          )}
         </div>
 
         {/* Tabs */}
