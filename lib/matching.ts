@@ -171,6 +171,42 @@ function industryMismatchPenalty(
   return -10
 }
 
+// ── Personality quiz compatibility ────────────────────────────────────────────
+
+const SIMILARITY_QUESTIONS    = new Set(['q3', 'q6', 'q7', 'q9', 'q10']) // same = 1 pt
+const COMPLEMENTARITY_QUESTIONS = new Set(['q4', 'q8'])                    // different = 1 pt
+const NEUTRAL_QUESTIONS        = new Set(['q1', 'q2', 'q5'])               // same = 0.5 pt
+const MAX_QUIZ_SCORE = 8.5
+
+export function scorePersonalityCompatibility(
+  quiz1: unknown | null,
+  quiz2: unknown | null,
+): number {
+  if (quiz1 == null || quiz2 == null) return 0
+  if (typeof quiz1 !== 'object' || typeof quiz2 !== 'object') return 0
+
+  const q1 = quiz1 as Record<string, unknown>
+  const q2 = quiz2 as Record<string, unknown>
+
+  let raw = 0
+  for (const qid of [...SIMILARITY_QUESTIONS, ...COMPLEMENTARITY_QUESTIONS, ...NEUTRAL_QUESTIONS]) {
+    const a = q1[qid]
+    const b = q2[qid]
+    if (a == null || b == null) continue
+
+    if (SIMILARITY_QUESTIONS.has(qid)) {
+      if (a === b) raw += 1
+    } else if (COMPLEMENTARITY_QUESTIONS.has(qid)) {
+      if (a !== b) raw += 1
+    } else {
+      // neutral
+      if (a === b) raw += 0.5
+    }
+  }
+
+  return Math.round((raw / MAX_QUIZ_SCORE) * 12 * 10) / 10
+}
+
 // ── scoreMatch: person ↔ person ───────────────────────────────────────────────
 // Max raw score: 40 + 35 + 25 + 12 = 112 (before penalty)
 
@@ -181,7 +217,7 @@ export function scoreMatch(
   const intentAlignment   = Math.round(jaccard(profile1.intent_tags, profile2.intent_tags) * 40)
   const skillsFit         = Math.round(avgSkillsCompatibility(profile1.skills, profile2.skills) * 35)
   const industryAlignment = Math.round(jaccard(profile1.industries, profile2.industries) * 25)
-  const personalityBonus  = profile1.personality_quiz != null && profile2.personality_quiz != null ? 12 : 0
+  const personalityBonus  = scorePersonalityCompatibility(profile1.personality_quiz, profile2.personality_quiz)
   const industryPenalty   = industryMismatchPenalty(
     profile1.industry_openness, profile1.industries,
     profile2.industry_openness, profile2.industries,
@@ -232,7 +268,7 @@ export function scorePersonStartupMatch(
     null, startup.industry,
   )
 
-  const personalityBonus = 0 // not applicable for person–startup matches
+  const personalityBonus = scorePersonalityCompatibility(profile.personality_quiz, null)
 
   const total = Math.max(0, intentAlignment + skillsFit + industryAlignment + industryPenalty)
 
