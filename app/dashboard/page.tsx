@@ -178,6 +178,9 @@ export default function DashboardPage() {
   const [matches, setMatches] = useState<MatchWithProfile[]>([])
   const [loadingMatches, setLoadingMatches] = useState(true)
 
+  const [demoMode, setDemoMode] = useState(false)
+  const [demoBannerDismissed, setDemoBannerDismissed] = useState(false)
+
   const [quizOpen, setQuizOpen] = useState(false)
   const [completenessRefresh, setCompletenessRefresh] = useState(0)
 
@@ -201,10 +204,11 @@ export default function DashboardPage() {
         setUserId(data.user.id)
         setUserEmail(data.user.email ?? null)
         const [{ data: profile }, { data: membership }] = await Promise.all([
-          supabase.from('profiles').select('is_admin, full_name, avatar_url').eq('user_id', data.user.id).single(),
+          supabase.from('profiles').select('is_admin, full_name, avatar_url, demo_mode').eq('user_id', data.user.id).single(),
           supabase.from('startup_members').select('startup_id').eq('user_id', data.user.id).eq('role', 'primary'),
         ])
         setIsAdmin(profile?.is_admin ?? false)
+        setDemoMode(profile?.demo_mode ?? false)
         setMyFullName(profile?.full_name ?? null)
         setMyAvatarUrl(profile?.avatar_url ?? null)
         setHasStartup((membership ?? []).length > 0)
@@ -423,6 +427,22 @@ export default function DashboardPage() {
         </div>
       </nav>
 
+      {/* Demo Mode banner */}
+      {demoMode && !demoBannerDismissed && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 sm:px-6 lg:px-8 py-2.5 flex items-center gap-3">
+          <span className="text-sm text-amber-800 flex-1">
+            <span className="font-semibold">Demo Mode</span> — matches shown are for demonstration purposes only.
+          </span>
+          <button
+            onClick={() => setDemoBannerDismissed(true)}
+            className="text-amber-600 hover:text-amber-800 transition flex-shrink-0"
+            aria-label="Dismiss"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* ── Body: sidebar + content ──────────────────────────── */}
       <div className="flex">
 
@@ -478,7 +498,36 @@ export default function DashboardPage() {
                   refreshTrigger={completenessRefresh}
                 />
               </div>
-              {loadingMatches ? (
+              {demoMode ? (() => {
+                const dm = buildDemoMatches(userId!)
+                const currentWeekOf = getWeekOf(new Date())
+                const thisWeek = dm.filter((m) => m.week_of === currentWeekOf)
+                const past = dm.filter((m) => m.week_of !== currentWeekOf)
+                return (
+                  <div className="flex flex-col gap-8">
+                    <div>
+                      <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">This Week</h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {thisWeek.map((m) => (
+                          <MatchCard key={m.id} match={m} currentUserId={userId!} readOnly />
+                        ))}
+                      </div>
+                    </div>
+                    {past.length > 0 && (
+                      <div>
+                        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Past Matches</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {past.map((m) => (
+                            <div key={m.id} className="opacity-60">
+                              <MatchCard match={m} currentUserId={userId!} readOnly />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })() : loadingMatches ? (
                 <LoadingSpinner />
               ) : matches.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
@@ -638,12 +687,76 @@ export default function DashboardPage() {
 
 // ── Sub-components ───────────────────────────────────────────────────────────
 
+function buildDemoMatches(currentUserId: string): MatchWithProfile[] {
+  const now = new Date()
+  const twoWeeksAgo = new Date(now)
+  twoWeeksAgo.setDate(now.getDate() - 14)
+  const thisWeekOf = getWeekOf(now)
+  const pastWeekOf = getWeekOf(twoWeeksAgo)
+
+  return [
+    {
+      id: 'demo-match-1',
+      user_id_1: currentUserId,
+      user_id_2: '00000000-0000-0000-0000-demo00000001',
+      match_type: 'people_people',
+      match_score: 67.9,
+      blurb: "Tyler and Priya share an interest in Social Impact and Education, and their backgrounds are highly complementary — Tyler's ecosystem and operations experience pairs naturally with Priya's finance and strategy background. Priya has flagged she's looking for an advisor who understands the Kellogg entrepreneurship landscape.",
+      week_of: thisWeekOf,
+      feedback_1: null,
+      feedback_1_reason: null,
+      feedback_2: null,
+      feedback_2_reason: null,
+      created_at: now.toISOString(),
+      matched_name: 'Priya Nair',
+      matched_avatar: null,
+      matched_bio: null,
+    },
+    {
+      id: 'demo-match-2',
+      user_id_1: currentUserId,
+      user_id_2: '00000000-0000-0000-0000-demo00000002',
+      match_type: 'people_people',
+      match_score: 55.4,
+      blurb: "Tyler brings strong operational and program design experience that complements Raj's technical background well. Both are interested in building within the B2B space and have expressed interest in finding collaborators who can help think through go-to-market strategy.",
+      week_of: thisWeekOf,
+      feedback_1: null,
+      feedback_1_reason: null,
+      feedback_2: null,
+      feedback_2_reason: null,
+      created_at: now.toISOString(),
+      matched_name: 'Raj Patel',
+      matched_avatar: null,
+      matched_bio: null,
+    },
+    {
+      id: 'demo-match-3',
+      user_id_1: currentUserId,
+      user_id_2: '00000000-0000-0000-0000-demo00000003',
+      match_type: 'people_people',
+      match_score: 41.6,
+      blurb: "Both Tyler and James are drawn to building in the intersection of community and technology. James is actively looking for operational support as he scales his idea, and Tyler's program design experience is exactly the kind of non-technical co-founder energy he described looking for.",
+      week_of: pastWeekOf,
+      feedback_1: null,
+      feedback_1_reason: null,
+      feedback_2: null,
+      feedback_2_reason: null,
+      created_at: twoWeeksAgo.toISOString(),
+      matched_name: 'James Okafor',
+      matched_avatar: null,
+      matched_bio: null,
+    },
+  ]
+}
+
 function MatchCard({
   match: m,
   currentUserId,
+  readOnly = false,
 }: {
   match: MatchWithProfile
   currentUserId: string
+  readOnly?: boolean
 }) {
   const isUser1 = m.user_id_1 === currentUserId
   const matchedId = isUser1 ? m.user_id_2 : m.user_id_1
@@ -672,6 +785,7 @@ function MatchCard({
     } else {
       setShowPopover(false)
     }
+    if (readOnly) return
     setSaving(true)
     const col = isUser1 ? 'feedback_1' : 'feedback_2'
     await supabase.from('matches').update({ [col]: next }).eq('id', m.id)
@@ -679,6 +793,7 @@ function MatchCard({
   }
 
   async function handleReasonBlur() {
+    if (readOnly) return
     const col = isUser1 ? 'feedback_1_reason' : 'feedback_2_reason'
     await supabase.from('matches').update({ [col]: reason || null }).eq('id', m.id)
   }

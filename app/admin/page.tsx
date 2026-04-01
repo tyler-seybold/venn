@@ -66,6 +66,8 @@ export default function AdminPage() {
   const [feedbackMatches, setFeedbackMatches] = useState<FeedbackMatch[]>([])
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [demoMode, setDemoMode] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -78,7 +80,7 @@ export default function AdminPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('is_admin')
+        .select('is_admin, demo_mode')
         .eq('user_id', uid)
         .single()
 
@@ -86,6 +88,9 @@ export default function AdminPage() {
         router.replace('/dashboard')
         return
       }
+
+      setCurrentUserId(uid)
+      setDemoMode(profile?.demo_mode ?? false)
 
       const { data: session } = await supabase.auth.getSession()
       setAccessToken(session.session?.access_token ?? null)
@@ -173,6 +178,13 @@ export default function AdminPage() {
     setDeletingId(null)
   }
 
+  async function handleDemoModeToggle() {
+    if (!currentUserId) return
+    const next = !demoMode
+    setDemoMode(next)
+    await supabase.from('profiles').update({ demo_mode: next }).eq('user_id', currentUserId)
+  }
+
   // Feedback summary stats
   const totalResponses = feedbackMatches.reduce((n, m) => {
     return n + (m.feedback_1 != null ? 1 : 0) + (m.feedback_2 != null ? 1 : 0)
@@ -217,9 +229,28 @@ export default function AdminPage() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <h1 className="text-xl font-semibold text-gray-900">Admin Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manage students and startups</p>
+        <div className="mb-6 flex items-start justify-between gap-6">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900">Admin Dashboard</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Manage students and startups</p>
+          </div>
+
+          {/* Demo Mode toggle — current admin only */}
+          <div className="flex items-center gap-3 flex-shrink-0 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5">
+            <div className="text-right">
+              <p className="text-sm font-medium text-gray-800 leading-tight">Demo Mode</p>
+              <p className="text-xs text-gray-500 mt-0.5 leading-tight">Shows curated demo matches on your dashboard</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleDemoModeToggle}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
+                demoMode ? 'bg-amber-500' : 'bg-gray-200'
+              }`}
+            >
+              <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${demoMode ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
