@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     .from('profiles')
     .select('user_id, skills, industries, industry_openness, intent_tags, personality_quiz, cofounder_interest')
     .eq('matching_opt_in', true)
-    .gte('completeness_score', 80)
+    .gte('completeness_score', 60)
 
   if (profilesError) {
     return NextResponse.json({ success: false, error: profilesError.message }, { status: 500 })
