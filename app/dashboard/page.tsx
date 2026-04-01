@@ -363,7 +363,6 @@ export default function DashboardPage() {
   const [loadingMatches, setLoadingMatches] = useState(true)
 
   const [demoMode, setDemoMode] = useState(false)
-  const [demoBannerDismissed, setDemoBannerDismissed] = useState(false)
 
   const [quizOpen, setQuizOpen] = useState(false)
   const [completenessRefresh, setCompletenessRefresh] = useState(0)
@@ -612,17 +611,21 @@ export default function DashboardPage() {
       </nav>
 
       {/* Demo Mode banner */}
-      {demoMode && !demoBannerDismissed && (
+      {demoMode && (
         <div className="bg-amber-50 border-b border-amber-200 px-4 sm:px-6 lg:px-8 py-2.5 flex items-center gap-3">
           <span className="text-sm text-amber-800 flex-1">
             <span className="font-semibold">Demo Mode</span> — matches shown are for demonstration purposes only.
           </span>
           <button
-            onClick={() => setDemoBannerDismissed(true)}
-            className="text-amber-600 hover:text-amber-800 transition flex-shrink-0"
-            aria-label="Dismiss"
+            onClick={async () => {
+              if (userId) {
+                await supabase.from('profiles').update({ demo_mode: false }).eq('user_id', userId)
+              }
+              setDemoMode(false)
+            }}
+            className="text-sm font-medium text-amber-700 hover:text-amber-900 underline underline-offset-2 transition flex-shrink-0"
           >
-            <X className="w-4 h-4" />
+            Exit Demo Mode
           </button>
         </div>
       )}
