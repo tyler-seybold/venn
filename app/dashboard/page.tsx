@@ -155,6 +155,190 @@ const STAGE_COLORS: Record<string, string> = {
   'Revenue-generating': 'bg-green-100 text-green-700',
 }
 
+// ── Demo data ─────────────────────────────────────────────────────────────────
+
+const DEMO_PEOPLE: Profile[] = [
+  {
+    user_id: '00000000-0000-0000-0000-demo00000011',
+    full_name: 'Priya Nair',
+    email: null,
+    bio: 'Former investment banker turned healthcare entrepreneur. Passionate about making preventive care accessible and affordable.',
+    slack_handle: null,
+    skills: ['Finance', 'Operations'],
+    industries: ['Healthcare', 'Fintech', 'Social Impact'],
+    is_looking_for_startup: false,
+    graduation_year: 2026,
+    degree_program: '2Y',
+    avatar_url: null,
+    is_founder: false,
+    startup_name: null,
+  },
+  {
+    user_id: '00000000-0000-0000-0000-demo00000012',
+    full_name: 'Raj Patel',
+    email: null,
+    bio: 'Serial entrepreneur with two exits in B2B SaaS. Currently exploring AI-powered tools for professional services.',
+    slack_handle: null,
+    skills: ['Sales', 'Product', 'Marketing'],
+    industries: ['B2B', 'AI', 'Fintech'],
+    is_looking_for_startup: false,
+    graduation_year: 2026,
+    degree_program: '2Y',
+    avatar_url: null,
+    is_founder: true,
+    startup_name: 'Tractable',
+  },
+  {
+    user_id: '00000000-0000-0000-0000-demo00000013',
+    full_name: 'Anika Sharma',
+    email: null,
+    bio: 'ML engineer turned MBA. Spent 4 years at Google building recommendation systems before deciding to start something of my own.',
+    slack_handle: null,
+    skills: ['Engineering', 'Product', 'Data/Analytics'],
+    industries: ['Healthcare', 'AI', 'Fitness & Wellness'],
+    is_looking_for_startup: false,
+    graduation_year: 2027,
+    degree_program: 'MBAi',
+    avatar_url: null,
+    is_founder: true,
+    startup_name: 'Vitalpath',
+  },
+  {
+    user_id: '00000000-0000-0000-0000-demo00000014',
+    full_name: 'James Okafor',
+    email: null,
+    bio: 'Former city government policy analyst obsessed with civic tech and community infrastructure. Want to build tools that make democracy work better.',
+    slack_handle: null,
+    skills: ['Operations', 'Marketing'],
+    industries: ['B2B', 'Social Impact', 'Tech'],
+    is_looking_for_startup: false,
+    graduation_year: 2027,
+    degree_program: '2Y',
+    avatar_url: null,
+    is_founder: true,
+    startup_name: 'Commonground',
+  },
+  {
+    user_id: '00000000-0000-0000-0000-demo00000015',
+    full_name: 'Marcus Webb',
+    email: null,
+    bio: 'Brand strategist with a decade at top agencies. Now focused on building consumer brands that actually stand for something.',
+    slack_handle: null,
+    skills: ['Marketing', 'Sales', 'Design'],
+    industries: ['CPG', 'Media', 'Social Impact'],
+    is_looking_for_startup: false,
+    graduation_year: 2026,
+    degree_program: 'MMM',
+    avatar_url: null,
+    is_founder: false,
+    startup_name: null,
+  },
+  {
+    user_id: '00000000-0000-0000-0000-demo00000016',
+    full_name: 'Sofia Reyes',
+    email: null,
+    bio: 'Education nonprofit director for 6 years before Kellogg. Deeply committed to closing the opportunity gap for first-gen students.',
+    slack_handle: null,
+    skills: ['Operations', 'Sales'],
+    industries: ['Education', 'Social Impact', 'Tech'],
+    is_looking_for_startup: false,
+    graduation_year: 2027,
+    degree_program: '2Y',
+    avatar_url: null,
+    is_founder: true,
+    startup_name: 'Skopos',
+  },
+  {
+    user_id: '00000000-0000-0000-0000-demo00000017',
+    full_name: 'Nina Johansson',
+    email: null,
+    bio: 'Sustainability consultant turned founder. Spent years helping Fortune 500s decarbonize before deciding to build a company doing it faster.',
+    slack_handle: null,
+    skills: ['Operations', 'Finance'],
+    industries: ['Climate', 'Sustainability', 'Energy'],
+    is_looking_for_startup: false,
+    graduation_year: 2026,
+    degree_program: '2Y',
+    avatar_url: null,
+    is_founder: false,
+    startup_name: null,
+  },
+  {
+    user_id: '00000000-0000-0000-0000-demo00000018',
+    full_name: 'Daniel Park',
+    email: null,
+    bio: 'Product manager at two healthtech startups before Kellogg. Obsessed with the intersection of AI and clinical decision-making.',
+    slack_handle: null,
+    skills: ['Product', 'Engineering', 'Data/Analytics'],
+    industries: ['Healthcare', 'AI', 'B2B'],
+    is_looking_for_startup: true,
+    graduation_year: 2027,
+    degree_program: 'MBAi',
+    avatar_url: null,
+    is_founder: false,
+    startup_name: null,
+  },
+]
+
+const DEMO_STARTUPS: Startup[] = [
+  {
+    id: '00000000-0000-0000-0000-demo00000021',
+    founder_id: '00000000-0000-0000-0000-demo00000012',
+    startup_name: 'Tractable',
+    logo_url: null,
+    member_names: ['Raj Patel'],
+    industry: ['B2B', 'AI', 'Fintech'],
+    stage: 'MVP',
+    description: 'Tractable helps small law firms and in-house legal teams review contracts 10x faster using AI. We reduce review time from hours to minutes.',
+    website_url: null,
+    current_ask: null,
+    current_ask_updated_at: null,
+    founder_email: null,
+  },
+  {
+    id: '00000000-0000-0000-0000-demo00000022',
+    founder_id: '00000000-0000-0000-0000-demo00000014',
+    startup_name: 'Commonground',
+    logo_url: null,
+    member_names: ['James Okafor'],
+    industry: ['B2B', 'Social Impact', 'Tech'],
+    stage: 'Ideation',
+    description: 'Commonground helps city governments run better community engagement processes — replacing town halls with async digital participation tools.',
+    website_url: null,
+    current_ask: null,
+    current_ask_updated_at: null,
+    founder_email: null,
+  },
+  {
+    id: '00000000-0000-0000-0000-demo00000023',
+    founder_id: '00000000-0000-0000-0000-demo00000013',
+    startup_name: 'Vitalpath',
+    logo_url: null,
+    member_names: ['Anika Sharma'],
+    industry: ['Healthcare', 'AI', 'Fitness & Wellness'],
+    stage: 'MVP',
+    description: 'Vitalpath turns wearable data into actionable preventive care recommendations, helping users get ahead of chronic conditions before they develop.',
+    website_url: null,
+    current_ask: null,
+    current_ask_updated_at: null,
+    founder_email: null,
+  },
+  {
+    id: '00000000-0000-0000-0000-demo00000024',
+    founder_id: '00000000-0000-0000-0000-demo00000016',
+    startup_name: 'Skopos',
+    logo_url: null,
+    member_names: ['Sofia Reyes'],
+    industry: ['Education', 'Social Impact', 'Tech'],
+    stage: 'Beta Client/Pilot',
+    description: 'Skopos pairs first-gen college students with peer mentors and AI-powered career guidance to close the opportunity gap in early career outcomes.',
+    website_url: null,
+    current_ask: null,
+    current_ask_updated_at: null,
+    founder_email: null,
+  },
+]
+
 function industryColor(industry: string) {
   return INDUSTRY_COLORS[industry] ?? 'bg-gray-100 text-gray-600'
 }
@@ -588,29 +772,37 @@ export default function DashboardPage() {
           {/* ── Startups Tab ────────────────────────────────────── */}
           {tab === 'startups' && (
             <div>
-              <div className="flex items-center gap-2 mb-6">
-                <FilterDropdown
-                  label="Filter by Industry"
-                  options={ALL_INDUSTRIES}
-                  selected={startupIndustries}
-                  onChange={setStartupIndustries}
-                />
-                <FilterDropdown
-                  label="Filter by Stage"
-                  options={ALL_STAGES}
-                  selected={startupStages}
-                  onChange={setStartupStages}
-                />
-                <div className="flex-1" />
-                <button
-                  onClick={() => router.push('/startup/new')}
-                  className="flex-shrink-0 rounded-lg bg-brand hover:bg-brand-hover text-white text-sm font-medium px-4 py-2 transition"
-                >
-                  + Add Your Startup
-                </button>
-              </div>
+              {!demoMode && (
+                <div className="flex items-center gap-2 mb-6">
+                  <FilterDropdown
+                    label="Filter by Industry"
+                    options={ALL_INDUSTRIES}
+                    selected={startupIndustries}
+                    onChange={setStartupIndustries}
+                  />
+                  <FilterDropdown
+                    label="Filter by Stage"
+                    options={ALL_STAGES}
+                    selected={startupStages}
+                    onChange={setStartupStages}
+                  />
+                  <div className="flex-1" />
+                  <button
+                    onClick={() => router.push('/startup/new')}
+                    className="flex-shrink-0 rounded-lg bg-brand hover:bg-brand-hover text-white text-sm font-medium px-4 py-2 transition"
+                  >
+                    + Add Your Startup
+                  </button>
+                </div>
+              )}
 
-              {loadingStartups ? (
+              {demoMode ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {DEMO_STARTUPS.map((s) => (
+                    <StartupCard key={s.id} startup={s} readOnly />
+                  ))}
+                </div>
+              ) : loadingStartups ? (
                 <LoadingSpinner />
               ) : filteredStartups.length === 0 ? (
                 <EmptyState message="No startups match the selected filters." />
@@ -627,16 +819,24 @@ export default function DashboardPage() {
           {/* ── People Tab ──────────────────────────────────────── */}
           {tab === 'people' && (
             <div>
-              <div className="flex items-center gap-2 mb-6">
-                <FilterDropdown
-                  label="Filter by Industry"
-                  options={ALL_INDUSTRIES}
-                  selected={peopleIndustries}
-                  onChange={setPeopleIndustries}
-                />
-              </div>
+              {!demoMode && (
+                <div className="flex items-center gap-2 mb-6">
+                  <FilterDropdown
+                    label="Filter by Industry"
+                    options={ALL_INDUSTRIES}
+                    selected={peopleIndustries}
+                    onChange={setPeopleIndustries}
+                  />
+                </div>
+              )}
 
-              {loadingPeople ? (
+              {demoMode ? (
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                  {DEMO_PEOPLE.map((p) => (
+                    <PersonCard key={p.user_id} person={p} readOnly />
+                  ))}
+                </div>
+              ) : loadingPeople ? (
                 <LoadingSpinner />
               ) : filteredPeople.length === 0 ? (
                 <EmptyState message="No people match the selected filters." />
@@ -1009,15 +1209,17 @@ function FilterDropdown({
 
 function StartupCard({
   startup: s,
+  readOnly = false,
 }: {
   startup: Startup
+  readOnly?: boolean
 }) {
   const router = useRouter()
 
   return (
     <div
-      className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col cursor-pointer hover:border-brand-light hover:shadow-md transition overflow-hidden"
-      onClick={() => router.push(`/startup/${s.id}`)}
+      className={`bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden transition ${readOnly ? '' : 'cursor-pointer hover:border-brand-light hover:shadow-md'}`}
+      onClick={() => { if (!readOnly) router.push(`/startup/${s.id}`) }}
     >
       {/* Logo banner */}
       <div className="px-4 pt-4">
@@ -1115,20 +1317,22 @@ function StartupCard({
       </div>
 
       {/* View Startup button */}
-      <div className="w-full border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
-        <button
-          onClick={() => router.push(`/startup/${s.id}`)}
-          className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-brand bg-brand-light hover:bg-brand-light/70 transition"
-        >
-          View Startup
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="w-full border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => router.push(`/startup/${s.id}`)}
+            className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-brand bg-brand-light hover:bg-brand-light/70 transition"
+          >
+            View Startup
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }
 
-function PersonCard({ person: p }: { person: Profile }) {
+function PersonCard({ person: p, readOnly = false }: { person: Profile; readOnly?: boolean }) {
   const router = useRouter()
 
   const badge = p.is_founder
@@ -1139,8 +1343,8 @@ function PersonCard({ person: p }: { person: Profile }) {
 
   return (
     <div
-      className="bg-white rounded-[5rem] border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden cursor-pointer hover:border-brand-light hover:shadow-md hover:-translate-y-0.5 transition-all"
-      onClick={() => router.push(`/people/${p.user_id}`)}
+      className={`bg-white rounded-[5rem] border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden transition-all ${readOnly ? '' : 'cursor-pointer hover:border-brand-light hover:shadow-md hover:-translate-y-0.5'}`}
+      onClick={() => { if (!readOnly) router.push(`/people/${p.user_id}`) }}
     >
       {/* Photo / placeholder — full-width, bleeds to edges */}
       <div className="relative w-full aspect-square rounded-t-[5rem] overflow-hidden bg-brand-light flex-shrink-0">
@@ -1207,15 +1411,17 @@ function PersonCard({ person: p }: { person: Profile }) {
       </div>
 
       {/* View Profile button */}
-      <div className="w-full mt-3 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
-        <button
-          onClick={() => router.push(`/people/${p.user_id}`)}
-          className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-brand bg-brand-light hover:bg-brand-light transition"
-        >
-          View Profile
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="w-full mt-3 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => router.push(`/people/${p.user_id}`)}
+            className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-brand bg-brand-light hover:bg-brand-light transition"
+          >
+            View Profile
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }
