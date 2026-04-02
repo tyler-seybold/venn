@@ -366,7 +366,8 @@ export default function DashboardPage() {
   const menuRef = useRef<HTMLDivElement>(null)
   const [tab, setTab] = useState<'matches' | 'startups' | 'people'>('matches')
 
-  const [matches, setMatches] = useState<MatchWithProfile[]>([])
+  const [peopleMatches, setPeopleMatches] = useState<MatchWithProfile[]>([])
+  const [startupMatches, setStartupMatches] = useState<MatchWithProfile[]>([])
   const [loadingMatches, setLoadingMatches] = useState(true)
 
   const [demoMode, setDemoMode] = useState(false)
@@ -545,10 +546,8 @@ export default function DashboardPage() {
         }
       })
 
-      const combined = [...enrichedPeople, ...enrichedStartups]
-        .sort((a, b) => (b.match_score ?? 0) - (a.match_score ?? 0))
-
-      setMatches(combined)
+      setPeopleMatches(enrichedPeople.sort((a, b) => (b.match_score ?? 0) - (a.match_score ?? 0)))
+      setStartupMatches(enrichedStartups.sort((a, b) => (b.match_score ?? 0) - (a.match_score ?? 0)))
       setLoadingMatches(false)
     })()
   }, [authChecked, userId])
@@ -851,7 +850,7 @@ export default function DashboardPage() {
                 )
               })() : loadingMatches ? (
                 <LoadingSpinner />
-              ) : matches.length === 0 ? (
+              ) : peopleMatches.length === 0 && startupMatches.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
                   <Sparkles className="w-10 h-10 text-brand/30" />
                   <p className="text-sm text-gray-400 max-w-sm">
@@ -866,37 +865,55 @@ export default function DashboardPage() {
                 </div>
               ) : (() => {
                 const currentWeekOf = getWeekOf(new Date())
-                const thisWeek = matches.filter((m) => m.week_of === currentWeekOf)
-                const past = matches.filter((m) => m.week_of !== currentWeekOf)
+                const thisWeek = peopleMatches.filter((m) => m.week_of === currentWeekOf)
+                const past = peopleMatches.filter((m) => m.week_of !== currentWeekOf)
                 return (
-                  <div className="flex flex-col gap-8">
-                    {/* This Week */}
-                    <div>
-                      <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                        This Week
-                      </h2>
-                      {thisWeek.length === 0 ? (
-                        <p className="text-sm text-gray-400">No new matches this week yet.</p>
-                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {thisWeek.map((m) => (
-                            <MatchCard key={m.id} match={m} currentUserId={userId!} />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Past Matches */}
-                    {past.length > 0 && (
-                      <div>
-                        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                          Past Matches
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {past.map((m) => (
-                            <div key={m.id} className="opacity-60">
-                              <MatchCard match={m} currentUserId={userId!} />
+                  <div className="flex flex-col gap-12">
+                    {/* People matches */}
+                    {peopleMatches.length > 0 && (
+                      <div className="flex flex-col gap-8">
+                        {/* This Week */}
+                        <div>
+                          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                            This Week
+                          </h2>
+                          {thisWeek.length === 0 ? (
+                            <p className="text-sm text-gray-400">No new matches this week yet.</p>
+                          ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                              {thisWeek.map((m) => (
+                                <MatchCard key={m.id} match={m} currentUserId={userId!} />
+                              ))}
                             </div>
+                          )}
+                        </div>
+
+                        {/* Past Matches */}
+                        {past.length > 0 && (
+                          <div>
+                            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                              Past Matches
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                              {past.map((m) => (
+                                <div key={m.id} className="opacity-60">
+                                  <MatchCard match={m} currentUserId={userId!} />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Startup matches */}
+                    {startupMatches.length > 0 && (
+                      <div>
+                        <h2 className="text-base font-semibold text-gray-900 mb-1">Startups Looking for Someone Like You</h2>
+                        <p className="text-sm text-gray-500 mb-4">Founders whose teams would benefit from your background.</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {startupMatches.map((m) => (
+                            <MatchCard key={m.id} match={m} currentUserId={userId!} />
                           ))}
                         </div>
                       </div>
