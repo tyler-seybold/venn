@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
     .select('user_id, skills, industries, industry_openness, intent_tags, personality_quiz, cofounder_interest')
     .eq('matching_opt_in', true)
     .eq('is_admin', false)
+    .eq('is_deactivated', false)
     .gte('completeness_score', 60)
     .or(`matching_paused_until.is.null,matching_paused_until.lte.${now}`)
 

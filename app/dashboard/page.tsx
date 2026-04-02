@@ -449,6 +449,7 @@ export default function DashboardPage() {
     supabase
       .from('profiles')
       .select('*, startup_members(id, startups(startup_name))')
+      .eq('is_deactivated', false)
       .order('full_name', { ascending: true })
       .then(({ data }) => {
         setPeople(

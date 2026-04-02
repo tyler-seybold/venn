@@ -60,6 +60,9 @@ export default function ProfileEditPage() {
   const [pauseLoading, setPauseLoading] = useState(false)
   const [pauseMessage, setPauseMessage] = useState('')
 
+  const [deactivateStep, setDeactivateStep] = useState<'idle' | 'confirm'>('idle')
+  const [deactivateLoading, setDeactivateLoading] = useState(false)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -152,6 +155,18 @@ export default function ProfileEditPage() {
       setMatchingPausedUntil(null)
       setPauseMessage('')
     }
+  }
+
+  async function handleDeactivate() {
+    if (!userId) return
+    setDeactivateLoading(true)
+    await supabase
+      .from('profiles')
+      .update({ is_deactivated: true, matching_opt_in: false })
+      .eq('user_id', userId)
+    await supabase.auth.signOut()
+    setDeactivateLoading(false)
+    router.push('/login')
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -567,6 +582,47 @@ export default function ProfileEditPage() {
             >
               {loading ? 'Saving…' : 'Save Changes'}
             </button>
+
+            {/* Deactivate account */}
+            <div className="border-t border-gray-200 pt-6">
+              <p className="text-sm font-medium text-gray-700 mb-1">Deactivate account</p>
+              <p className="text-sm text-gray-500 mb-4">
+                Deactivating your account will remove you from Venn matching and hide your profile from other students. Your data will be preserved and you can reactivate at any time.
+              </p>
+
+              {deactivateStep === 'idle' ? (
+                <button
+                  type="button"
+                  onClick={() => setDeactivateStep('confirm')}
+                  className="px-3.5 py-1.5 rounded-lg border border-red-300 text-sm text-red-600 hover:border-red-400 hover:bg-red-50 transition"
+                >
+                  Deactivate account
+                </button>
+              ) : (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 space-y-3">
+                  <p className="text-sm text-red-700 font-medium">
+                    Are you sure? This will pause all your matches and hide your profile.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleDeactivate}
+                      disabled={deactivateLoading}
+                      className="px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium transition"
+                    >
+                      {deactivateLoading ? 'Deactivating…' : 'Yes, deactivate'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeactivateStep('idle')}
+                      className="text-sm text-gray-600 hover:text-gray-800 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </form>
         </div>
       </div>

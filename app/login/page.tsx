@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
-type Step = 'email' | 'code'
+type Step = 'email' | 'code' | 'reactivate'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [reactivateUserId, setReactivateUserId] = useState<string | null>(null)
 
   // ── Step 1: send OTP ────────────────────────────────────────
   async function handleSendCode(e: React.FormEvent) {
@@ -60,12 +61,31 @@ export default function LoginPage() {
     const userId = data.session.user.id
     const { data: profile } = await supabase
       .from('profiles')
-      .select('user_id')
+      .select('user_id, is_deactivated')
       .eq('user_id', userId)
       .maybeSingle()
 
     setLoading(false)
-    router.push(profile ? '/dashboard' : '/profile/setup')
+
+    if (!profile) {
+      router.push('/profile/setup')
+    } else if (profile.is_deactivated) {
+      setReactivateUserId(userId)
+      setStep('reactivate')
+    } else {
+      router.push('/dashboard')
+    }
+  }
+
+  async function handleReactivate() {
+    if (!reactivateUserId) return
+    setLoading(true)
+    await supabase
+      .from('profiles')
+      .update({ is_deactivated: false, matching_opt_in: true })
+      .eq('user_id', reactivateUserId)
+    setLoading(false)
+    router.push('/dashboard')
   }
 
   return (
@@ -82,7 +102,31 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {step === 'email' ? (
+          {step === 'reactivate' ? (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-700">
+                Your account is deactivated. Would you like to reactivate?
+              </p>
+              <p className="text-xs text-gray-500">
+                Reactivating will restore your profile and re-enable weekly match suggestions.
+              </p>
+              <button
+                type="button"
+                onClick={handleReactivate}
+                disabled={loading}
+                className="w-full rounded-lg bg-brand hover:bg-brand-hover disabled:bg-brand/60 text-white text-sm font-medium py-2.5 transition focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
+              >
+                {loading ? 'Reactivating…' : 'Reactivate account'}
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push('/dashboard')}
+                className="w-full text-sm text-gray-500 hover:text-gray-700 transition"
+              >
+                Continue without reactivating
+              </button>
+            </div>
+          ) : step === 'email' ? (
             <form onSubmit={handleSendCode} className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
