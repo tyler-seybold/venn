@@ -67,6 +67,7 @@ type MatchWithProfile = {
   matched_name: string | null
   matched_avatar: string | null
   matched_bio: string | null
+  matched_subtitle: string | null
 }
 
 function getWeekOf(date: Date): string {
@@ -495,20 +496,32 @@ export default function DashboardPage() {
         return
       }
 
-      const otherIds = [...new Set(
-        matchRows.map((m) => m.user_id_1 === userId ? m.user_id_2 : m.user_id_1)
+      const peopleRows = matchRows.filter((m) => m.match_type === 'people_people')
+      const startupRows = matchRows.filter((m) => m.match_type === 'people_startup')
+
+      // people_people: fetch the other user's profile
+      const peopleOtherIds = [...new Set(
+        peopleRows.map((m) => m.user_id_1 === userId ? m.user_id_2 : m.user_id_1)
       )]
+      const { data: profileRows } = peopleOtherIds.length > 0
+        ? await supabase.from('profiles').select('user_id, full_name, avatar_url, bio').in('user_id', peopleOtherIds)
+        : { data: [] }
+      const profileMap = Object.fromEntries((profileRows ?? []).map((p) => [p.user_id, p]))
 
-      const { data: profileRows } = await supabase
-        .from('profiles')
-        .select('user_id, full_name, avatar_url, bio')
-        .in('user_id', otherIds)
+      // people_startup: user_id_1 is the person, user_id_2 is the startup ID
+      const startupIds = [...new Set(startupRows.map((m) => m.user_id_2))]
+      const { data: startupFetchRows } = startupIds.length > 0
+        ? await supabase.from('startups').select('id, startup_name, description, founder_id').in('id', startupIds)
+        : { data: [] }
+      const startupDataMap = Object.fromEntries((startupFetchRows ?? []).map((s) => [s.id, s]))
 
-      const profileMap = Object.fromEntries(
-        (profileRows ?? []).map((p) => [p.user_id, p])
-      )
+      const founderIds = [...new Set((startupFetchRows ?? []).map((s) => s.founder_id).filter(Boolean) as string[])]
+      const { data: founderProfileRows } = founderIds.length > 0
+        ? await supabase.from('profiles').select('user_id, full_name').in('user_id', founderIds)
+        : { data: [] }
+      const founderNameMap = Object.fromEntries((founderProfileRows ?? []).map((p) => [p.user_id, p.full_name]))
 
-      setMatches(matchRows.map((m) => {
+      const enrichedPeople = peopleRows.map((m) => {
         const otherId = m.user_id_1 === userId ? m.user_id_2 : m.user_id_1
         const prof = profileMap[otherId] ?? null
         return {
@@ -516,8 +529,26 @@ export default function DashboardPage() {
           matched_name: prof?.full_name ?? null,
           matched_avatar: prof?.avatar_url ?? null,
           matched_bio: prof?.bio ?? null,
+          matched_subtitle: null as string | null,
         }
-      }))
+      })
+
+      const enrichedStartups = startupRows.map((m) => {
+        const startup = startupDataMap[m.user_id_2] ?? null
+        const founderName = startup?.founder_id ? (founderNameMap[startup.founder_id] ?? null) : null
+        return {
+          ...m,
+          matched_name: startup?.startup_name ?? null,
+          matched_avatar: null as string | null,
+          matched_bio: startup?.description ?? null,
+          matched_subtitle: founderName ? `Founded by ${founderName}` : null,
+        }
+      })
+
+      const combined = [...enrichedPeople, ...enrichedStartups]
+        .sort((a, b) => (b.match_score ?? 0) - (a.match_score ?? 0))
+
+      setMatches(combined)
       setLoadingMatches(false)
     })()
   }, [authChecked, userId])
@@ -1018,6 +1049,7 @@ function buildDemoMatches(currentUserId: string): MatchWithProfile[] {
       matched_name: 'Priya Nair',
       matched_avatar: null,
       matched_bio: null,
+      matched_subtitle: null,
     },
     {
       id: 'demo-match-2',
@@ -1067,6 +1099,8 @@ function MatchCard({
 }) {
   const isUser1 = m.user_id_1 === currentUserId
   const matchedId = isUser1 ? m.user_id_2 : m.user_id_1
+  const isStartupMatch = m.match_type === 'people_startup'
+  const cardHref = isStartupMatch ? `/startup/${m.user_id_2}` : `/people/${matchedId}`
 
   const [thumb, setThumb] = useState<'up' | 'down' | null>(
     (isUser1 ? m.feedback_1 : m.feedback_2) ?? null
@@ -1115,7 +1149,7 @@ function MatchCard({
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
       {/* Clickable content area */}
-      <Link href={`/people/${matchedId}`} className="flex flex-col">
+      <Link href={cardHref} className="flex flex-col">
         {/* Avatar banner */}
         <div className="px-4 pt-4">
           <div className="relative w-full h-32 rounded-xl overflow-hidden bg-brand-light flex items-center justify-center">
@@ -1134,6 +1168,9 @@ function MatchCard({
           {/* Name + label badge */}
           <div>
             <h3 className="font-semibold text-gray-900 text-base leading-tight">{m.matched_name ?? 'Unknown'}</h3>
+            {m.matched_subtitle && (
+              <p className="text-xs text-gray-500 mt-0.5">{m.matched_subtitle}</p>
+            )}
             {label && (
               <span
                 className="inline-block mt-1.5 text-xs font-semibold px-3 py-1 rounded-full text-white"
