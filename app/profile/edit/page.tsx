@@ -58,7 +58,6 @@ export default function ProfileEditPage() {
 
   const [matchingPausedUntil, setMatchingPausedUntil] = useState<string | null>(null)
   const [pauseLoading, setPauseLoading] = useState(false)
-  const [pauseMessage, setPauseMessage] = useState('')
 
   const [deactivateStep, setDeactivateStep] = useState<'idle' | 'confirm'>('idle')
   const [deactivateLoading, setDeactivateLoading] = useState(false)
@@ -126,35 +125,21 @@ export default function ProfileEditPage() {
     }
   }
 
-  async function handlePause() {
+  async function handlePauseToggle() {
     if (!userId) return
     setPauseLoading(true)
-    const until = new Date()
-    until.setDate(until.getDate() + 30)
-    const isoUntil = until.toISOString()
-    const { error: pauseError } = await supabase
-      .from('profiles')
-      .update({ matching_paused_until: isoUntil })
-      .eq('user_id', userId)
-    setPauseLoading(false)
-    if (!pauseError) {
-      setMatchingPausedUntil(isoUntil)
-      setPauseMessage(`Matches paused until ${until.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`)
+    const isPaused = matchingPausedUntil && new Date(matchingPausedUntil) > new Date()
+    if (isPaused) {
+      const { error } = await supabase.from('profiles').update({ matching_paused_until: null }).eq('user_id', userId)
+      if (!error) setMatchingPausedUntil(null)
+    } else {
+      const until = new Date()
+      until.setDate(until.getDate() + 30)
+      const isoUntil = until.toISOString()
+      const { error } = await supabase.from('profiles').update({ matching_paused_until: isoUntil }).eq('user_id', userId)
+      if (!error) setMatchingPausedUntil(isoUntil)
     }
-  }
-
-  async function handleResume() {
-    if (!userId) return
-    setPauseLoading(true)
-    const { error: resumeError } = await supabase
-      .from('profiles')
-      .update({ matching_paused_until: null })
-      .eq('user_id', userId)
     setPauseLoading(false)
-    if (!resumeError) {
-      setMatchingPausedUntil(null)
-      setPauseMessage('')
-    }
   }
 
   async function handleDeactivate() {
@@ -542,35 +527,35 @@ export default function ProfileEditPage() {
                 </button>
               </div>
 
-              {matchingOptIn && (
-                <div className="mt-2 px-1">
-                  {matchingPausedUntil && new Date(matchingPausedUntil) > new Date() ? (
-                    <p className="text-sm text-gray-500">
-                      Matches paused until {new Date(matchingPausedUntil).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.{' '}
+              {matchingOptIn && (() => {
+                const isPaused = !!matchingPausedUntil && new Date(matchingPausedUntil) > new Date()
+                return (
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
+                      <p className="text-sm font-medium text-gray-700">Pause matching</p>
                       <button
                         type="button"
-                        onClick={handleResume}
+                        onClick={handlePauseToggle}
                         disabled={pauseLoading}
-                        className="text-brand hover:underline disabled:opacity-50"
+                        className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 disabled:opacity-50 ${
+                          isPaused ? 'bg-brand' : 'bg-gray-200'
+                        }`}
                       >
-                        Resume matches early
+                        <span
+                          className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${
+                            isPaused ? 'translate-x-5' : 'translate-x-0'
+                          }`}
+                        />
                       </button>
+                    </div>
+                    <p className="mt-1.5 px-1 text-xs text-gray-500">
+                      {isPaused
+                        ? `Your matches are paused until ${new Date(matchingPausedUntil!).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}. Toggle off to resume early.`
+                        : 'Turn on to pause your matches for 30 days.'}
                     </p>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handlePause}
-                        disabled={pauseLoading}
-                        className="px-3.5 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-600 hover:border-gray-400 hover:text-gray-800 disabled:opacity-50 transition"
-                      >
-                        {pauseLoading ? 'Pausing…' : 'Pause matches for 30 days'}
-                      </button>
-                      {pauseMessage && <p className="mt-1.5 text-sm text-gray-500">{pauseMessage}</p>}
-                    </>
-                  )}
-                </div>
-              )}
+                  </div>
+                )
+              })()}
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
