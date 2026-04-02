@@ -51,12 +51,14 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 2. Fetch eligible profiles ───────────────────────────────────────────────
+  const now = new Date().toISOString()
   const { data: profileRows, error: profilesError } = await supabase
     .from('profiles')
     .select('user_id, skills, industries, industry_openness, intent_tags, personality_quiz, cofounder_interest')
     .eq('matching_opt_in', true)
     .eq('is_admin', false)
     .gte('completeness_score', 60)
+    .or(`matching_paused_until.is.null,matching_paused_until.lte.${now}`)
 
   if (profilesError) {
     return NextResponse.json({ success: false, error: profilesError.message }, { status: 500 })

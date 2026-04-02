@@ -56,6 +56,10 @@ export default function ProfileEditPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 
+  const [matchingPausedUntil, setMatchingPausedUntil] = useState<string | null>(null)
+  const [pauseLoading, setPauseLoading] = useState(false)
+  const [pauseMessage, setPauseMessage] = useState('')
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -94,6 +98,7 @@ export default function ProfileEditPage() {
         setLookingFor(profile.looking_for ?? '')
         setCofounderInterest(profile.cofounder_interest ?? false)
         setMatchingOptIn(profile.matching_opt_in ?? true)
+        setMatchingPausedUntil(profile.matching_paused_until ?? null)
         setExistingAvatarUrl(profile.avatar_url ?? null)
         setAvatarPreview(profile.avatar_url ?? null)
       }
@@ -115,6 +120,37 @@ export default function ProfileEditPage() {
     } else {
       setIndustries([...industries, industry])
       setIndustryCapMessage(false)
+    }
+  }
+
+  async function handlePause() {
+    if (!userId) return
+    setPauseLoading(true)
+    const until = new Date()
+    until.setDate(until.getDate() + 30)
+    const isoUntil = until.toISOString()
+    const { error: pauseError } = await supabase
+      .from('profiles')
+      .update({ matching_paused_until: isoUntil })
+      .eq('user_id', userId)
+    setPauseLoading(false)
+    if (!pauseError) {
+      setMatchingPausedUntil(isoUntil)
+      setPauseMessage(`Matches paused until ${until.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`)
+    }
+  }
+
+  async function handleResume() {
+    if (!userId) return
+    setPauseLoading(true)
+    const { error: resumeError } = await supabase
+      .from('profiles')
+      .update({ matching_paused_until: null })
+      .eq('user_id', userId)
+    setPauseLoading(false)
+    if (!resumeError) {
+      setMatchingPausedUntil(null)
+      setPauseMessage('')
     }
   }
 
@@ -490,6 +526,36 @@ export default function ProfileEditPage() {
                   />
                 </button>
               </div>
+
+              {matchingOptIn && (
+                <div className="mt-2 px-1">
+                  {matchingPausedUntil && new Date(matchingPausedUntil) > new Date() ? (
+                    <p className="text-sm text-gray-500">
+                      Matches paused until {new Date(matchingPausedUntil).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.{' '}
+                      <button
+                        type="button"
+                        onClick={handleResume}
+                        disabled={pauseLoading}
+                        className="text-brand hover:underline disabled:opacity-50"
+                      >
+                        Resume matches early
+                      </button>
+                    </p>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handlePause}
+                        disabled={pauseLoading}
+                        className="px-3.5 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-600 hover:border-gray-400 hover:text-gray-800 disabled:opacity-50 transition"
+                      >
+                        {pauseLoading ? 'Pausing…' : 'Pause matches for 30 days'}
+                      </button>
+                      {pauseMessage && <p className="mt-1.5 text-sm text-gray-500">{pauseMessage}</p>}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
