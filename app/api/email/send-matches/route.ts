@@ -66,10 +66,10 @@ function buildMatchCards(matchItems: MatchItem[]): string {
   return matchItems.map(({ name, label, blurb, profileUrl }) => {
     const avatarHtml = `<table cellpadding="0" cellspacing="0" border="0">
            <tr>
-             <td width="64" height="64"
-                 style="width:64px;height:64px;border-radius:8px;background-color:#ede9f6;
+             <td width="48" height="48"
+                 style="width:48px;height:48px;border-radius:8px;background-color:#ede9f6;
                         text-align:center;vertical-align:middle;
-                        font-size:22px;font-weight:700;color:#4E2A84;font-family:Arial,sans-serif;">
+                        font-size:16px;font-weight:700;color:#4E2A84;font-family:Arial,sans-serif;">
                ${getInitials(name)}
              </td>
            </tr>
