@@ -492,7 +492,8 @@ export default function DashboardPage() {
         .order('created_at', { ascending: false })
 
       if (!matchRows || matchRows.length === 0) {
-        setMatches([])
+        setPeopleMatches([])
+        setStartupMatches([])
         setLoadingMatches(false)
         return
       }
