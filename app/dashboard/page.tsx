@@ -839,9 +839,7 @@ export default function DashboardPage() {
                         <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Past Matches</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           {past.map((m) => (
-                            <div key={m.id} className="opacity-60">
-                              <MatchCard match={m} currentUserId={userId!} readOnly />
-                            </div>
+                            <MatchCard key={m.id} match={m} currentUserId={userId!} readOnly />
                           ))}
                         </div>
                       </div>
@@ -896,9 +894,7 @@ export default function DashboardPage() {
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                               {past.map((m) => (
-                                <div key={m.id} className="opacity-60">
-                                  <MatchCard match={m} currentUserId={userId!} />
-                                </div>
+                                <MatchCard key={m.id} match={m} currentUserId={userId!} />
                               ))}
                             </div>
                           </div>
