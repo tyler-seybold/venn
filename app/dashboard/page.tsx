@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Mail, ChevronDown, ChevronRight, ExternalLink, Sparkles, Rocket, Users, ThumbsUp, ThumbsDown, X } from 'lucide-react'
+import { Mail, ChevronDown, ChevronRight, ExternalLink, Sparkles, Rocket, Users, ThumbsUp, ThumbsDown, X, MessageSquare } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { getMatchLabel, getMatchLabelColor } from '@/config/matching'
 import ProfileCompletenessCard from '@/components/ProfileCompletenessCard'
@@ -356,6 +356,12 @@ export default function DashboardPage() {
   const [myFullName, setMyFullName] = useState<string | null>(null)
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [feedbackCategory, setFeedbackCategory] = useState('Feature idea')
+  const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false)
+  const [feedbackDone, setFeedbackDone] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const [tab, setTab] = useState<'matches' | 'startups' | 'people'>('matches')
 
@@ -521,6 +527,25 @@ export default function DashboardPage() {
     router.replace('/login')
   }
 
+  async function handleFeedbackSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!feedbackMessage.trim()) return
+    setFeedbackSubmitting(true)
+    await supabase.from('user_feedback').insert({
+      user_id: userId,
+      category: feedbackCategory,
+      message: feedbackMessage.trim(),
+    })
+    setFeedbackSubmitting(false)
+    setFeedbackDone(true)
+    setTimeout(() => {
+      setFeedbackOpen(false)
+      setFeedbackDone(false)
+      setFeedbackMessage('')
+      setFeedbackCategory('Feature idea')
+    }, 2000)
+  }
+
   // Filtered data
   const filteredStartups = startups.filter((s) => {
     if (startupIndustries.length > 0 && !startupIndustries.some((ind) => s.industry?.includes(ind))) return false
@@ -549,6 +574,17 @@ export default function DashboardPage() {
           <span className="text-base font-semibold text-gray-900 tracking-tight">
             Venn
           </span>
+          {/* Right side */}
+          <div className="flex items-center gap-2">
+          {/* Feedback button */}
+          <button
+            onClick={() => setFeedbackOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-300 text-sm text-gray-600 hover:border-gray-400 hover:text-gray-800 transition"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Feedback</span>
+          </button>
+
           {/* User menu */}
           <div className="relative" ref={menuRef}>
             <button
@@ -608,8 +644,75 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
+          </div>{/* end right side */}
         </div>
       </nav>
+
+      {/* Feedback modal */}
+      {feedbackOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => { if (!feedbackSubmitting) { setFeedbackOpen(false); setFeedbackDone(false); setFeedbackMessage(''); setFeedbackCategory('Feature idea') } }} />
+          <div className="relative bg-white rounded-2xl shadow-xl border border-gray-200 w-full max-w-md p-6">
+            <div className="flex items-start justify-between mb-5">
+              <h2 className="text-base font-semibold text-gray-900">Share feedback or report a bug</h2>
+              <button
+                onClick={() => { if (!feedbackSubmitting) { setFeedbackOpen(false); setFeedbackDone(false); setFeedbackMessage(''); setFeedbackCategory('Feature idea') } }}
+                className="text-gray-400 hover:text-gray-600 transition -mt-0.5"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {feedbackDone ? (
+              <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                Thanks for the feedback — we read every submission.
+              </p>
+            ) : (
+              <form onSubmit={handleFeedbackSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
+                  <select
+                    value={feedbackCategory}
+                    onChange={(e) => setFeedbackCategory(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent bg-white transition"
+                  >
+                    <option>Feature idea</option>
+                    <option>Bug report</option>
+                    <option>General feedback</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Message</label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={feedbackMessage}
+                    onChange={(e) => setFeedbackMessage(e.target.value)}
+                    placeholder="Tell us what's on your mind..."
+                    className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent resize-none transition"
+                  />
+                </div>
+                <div className="flex items-center gap-3 pt-1">
+                  <button
+                    type="submit"
+                    disabled={feedbackSubmitting || !feedbackMessage.trim()}
+                    className="flex-1 rounded-lg bg-brand hover:bg-brand-hover disabled:bg-brand/60 text-white text-sm font-medium py-2.5 transition focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
+                  >
+                    {feedbackSubmitting ? 'Submitting…' : 'Submit'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setFeedbackOpen(false); setFeedbackMessage(''); setFeedbackCategory('Feature idea') }}
+                    className="px-4 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-600 hover:border-gray-400 hover:text-gray-800 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Demo Mode banner */}
       {demoMode && (

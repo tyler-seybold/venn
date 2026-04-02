@@ -23,6 +23,15 @@ type AdminStartup = {
   stage: string | null
 }
 
+type UserFeedbackEntry = {
+  id: string
+  user_id: string | null
+  category: string
+  message: string
+  created_at: string
+  user_name: string | null
+}
+
 type FeedbackMatch = {
   id: string
   user_id_1: string
@@ -60,10 +69,11 @@ export default function AdminPage() {
   const router = useRouter()
 
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'students' | 'startups' | 'feedback'>('students')
+  const [tab, setTab] = useState<'students' | 'startups' | 'feedback' | 'submissions'>('students')
   const [students, setStudents] = useState<Student[]>([])
   const [startups, setStartups] = useState<AdminStartup[]>([])
   const [feedbackMatches, setFeedbackMatches] = useState<FeedbackMatch[]>([])
+  const [userFeedback, setUserFeedback] = useState<UserFeedbackEntry[]>([])
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -102,7 +112,7 @@ export default function AdminPage() {
       const { data: session } = await supabase.auth.getSession()
       setAccessToken(session.session?.access_token ?? null)
 
-      const [{ data: studentsData }, { data: startupsData }, { data: matchesData }, { data: settingsData }] = await Promise.all([
+      const [{ data: studentsData }, { data: startupsData }, { data: matchesData }, { data: settingsData }, { data: userFeedbackData }] = await Promise.all([
         supabase
           .from('profiles')
           .select('user_id, full_name, email, degree_program, graduation_year, is_admin')
@@ -121,6 +131,10 @@ export default function AdminPage() {
           .select('matching_enabled, match_frequency, next_match_date')
           .eq('id', 1)
           .single(),
+        supabase
+          .from('user_feedback')
+          .select('id, user_id, category, message, created_at')
+          .order('created_at', { ascending: false }),
       ])
 
       setStudents(studentsData ?? [])
@@ -155,6 +169,23 @@ export default function AdminPage() {
             ...m,
             name_1: nameMap.get(m.user_id_1) ?? null,
             name_2: nameMap.get(m.user_id_2) ?? null,
+          }))
+        )
+      }
+
+      if (userFeedbackData && userFeedbackData.length > 0) {
+        const fbUserIds = [...new Set(userFeedbackData.map((f) => f.user_id).filter(Boolean) as string[])]
+        const { data: fbProfiles } = await supabase
+          .from('profiles')
+          .select('user_id, full_name')
+          .in('user_id', fbUserIds)
+        const fbNameMap = new Map<string, string | null>(
+          (fbProfiles ?? []).map((p) => [p.user_id, p.full_name])
+        )
+        setUserFeedback(
+          userFeedbackData.map((f) => ({
+            ...f,
+            user_name: f.user_id ? (fbNameMap.get(f.user_id) ?? null) : null,
           }))
         )
       }
@@ -354,7 +385,7 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div className="flex gap-1 mb-6 border-b border-gray-200">
-          {(['students', 'startups', 'feedback'] as const).map((t) => (
+          {(['students', 'startups', 'feedback', 'submissions'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -368,7 +399,9 @@ export default function AdminPage() {
                 ? `Students (${students.length})`
                 : t === 'startups'
                 ? `Startups (${startups.length})`
-                : `Feedback (${feedbackMatches.length})`}
+                : t === 'feedback'
+                ? `Match Feedback (${feedbackMatches.length})`
+                : `Submissions (${userFeedback.length})`}
             </button>
           ))}
         </div>
@@ -556,6 +589,44 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+        {/* Submissions tab */}
+        {tab === 'submissions' && (
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Message</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {userFeedback.map((f) => (
+                  <tr key={f.id} className="hover:bg-gray-50 transition">
+                    <td className="px-5 py-3.5 text-gray-500 whitespace-nowrap">
+                      {new Date(f.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </td>
+                    <td className="px-5 py-3.5 font-medium text-gray-900 whitespace-nowrap">
+                      {f.user_name ?? <span className="text-gray-400 font-normal">Unknown</span>}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{f.category}</span>
+                    </td>
+                    <td className="px-5 py-3.5 text-gray-700 max-w-md">
+                      <span className="line-clamp-3">{f.message}</span>
+                    </td>
+                  </tr>
+                ))}
+                {userFeedback.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-5 py-10 text-center text-sm text-gray-400">No submissions yet.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         )}
       </main>
