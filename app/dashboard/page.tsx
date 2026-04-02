@@ -665,7 +665,7 @@ export default function DashboardPage() {
 
             {feedbackDone ? (
               <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
-                Thanks for the feedback — we read every submission.
+                Thanks for your feedback!
               </p>
             ) : (
               <form onSubmit={handleFeedbackSubmit} className="space-y-4">

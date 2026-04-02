@@ -401,7 +401,7 @@ export default function AdminPage() {
                 ? `Startups (${startups.length})`
                 : t === 'feedback'
                 ? `Match Feedback (${feedbackMatches.length})`
-                : `Submissions (${userFeedback.length})`}
+                : `App Feedback (${userFeedback.length})`}
             </button>
           ))}
         </div>
