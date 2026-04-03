@@ -728,14 +728,14 @@ export async function POST(req: NextRequest) {
   const matchedStartupIds = [...new Set(psMatchRows.map((m) => m.user_id_2))]
 
   const matchedStartupByIdMap = new Map<string, {
-    id: string; name: string; founder_id: string
+    id: string; startup_name: string; founder_id: string
     description: string | null; industry: string[] | null
   }>()
 
   if (matchedStartupIds.length > 0) {
     const { data: matchedStartupData } = await supabase
       .from('startups')
-      .select('id, name, description, industry, founder_id')
+      .select('id, startup_name, description, industry, founder_id')
       .in('id', matchedStartupIds)
     for (const s of matchedStartupData ?? []) matchedStartupByIdMap.set(s.id, s)
   }
@@ -754,17 +754,18 @@ export async function POST(req: NextRequest) {
 
   // ── 6. Fetch startup↔startup matches for founders being emailed ───────────
   const emailedUserIds = [...userMatches.keys()]
+  console.log('[send-matches] emailedUserIds:', emailedUserIds)
 
-  const { data: founderStartupRows } = await supabase
+  const { data: founderStartupRows, error: founderStartupError } = await supabase
     .from('startups')
-    .select('id, founder_id, name, description, industry')
+    .select('id, founder_id, startup_name, description, industry')
     .in('founder_id', emailedUserIds)
+  console.log('[send-matches] founderStartupRows:', (founderStartupRows ?? []).length, '| error:', founderStartupError)
 
   // Map: user_id → their startup
   const startupByFounderId = new Map(
     (founderStartupRows ?? []).map((s) => [s.founder_id, s])
   )
-  console.log('[send-matches] founderStartupRows:', (founderStartupRows ?? []).length)
 
   // Build a Set of startup IDs (s.id) — NOT founder user IDs — for the startup_startup query
   const founderStartupIdSet = new Set((founderStartupRows ?? []).map((s) => s.id))
@@ -798,11 +799,11 @@ export async function POST(req: NextRequest) {
     for (const { otherStartupId } of matches) otherStartupIds.add(otherStartupId)
   }
 
-  const otherStartupByIdMap = new Map<string, { id: string; name: string; founder_id: string; description: string | null; industry: string[] | null }>()
+  const otherStartupByIdMap = new Map<string, { id: string; startup_name: string; founder_id: string; description: string | null; industry: string[] | null }>()
   if (otherStartupIds.size > 0) {
     const { data: otherStartupRows } = await supabase
       .from('startups')
-      .select('id, name, founder_id, description, industry')
+      .select('id, startup_name, founder_id, description, industry')
       .in('id', [...otherStartupIds])
 
     for (const s of otherStartupRows ?? []) otherStartupByIdMap.set(s.id, s)
@@ -868,7 +869,7 @@ export async function POST(req: NextRequest) {
         return {
           id: m.id,
           startupId: m.user_id_2,
-          name: startup.name ?? 'Unnamed startup',
+          name: startup.startup_name ?? 'Unnamed startup',
           founderName: psFounderByIdMap.get(startup.founder_id) ?? 'Unknown founder',
           industry: startup.industry ?? null,
           description: startup.description ?? null,
@@ -894,7 +895,7 @@ export async function POST(req: NextRequest) {
             if (!s) return null
             return {
               id: s.id,
-              name: s.name ?? 'Unnamed startup',
+              name: s.startup_name ?? 'Unnamed startup',
               founderName: otherFounderByIdMap.get(s.founder_id) ?? 'Unknown founder',
               industry: s.industry ?? null,
               description: s.description ?? null,
