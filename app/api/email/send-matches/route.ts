@@ -659,7 +659,6 @@ export async function POST(req: NextRequest) {
 
   // ── 2. Resolve base URL and week_of ──────────────────────────────────────
   const baseUrl = getBaseUrl()
-  console.log('[send-matches] BASE_URL =', baseUrl)
 
   const { searchParams } = new URL(req.url)
   const weekOf = searchParams.get('week_of') ?? currentMondayISO()
@@ -718,7 +717,6 @@ export async function POST(req: NextRequest) {
 
   // ── 5.5. Fetch startup details for people↔startup matches ────────────────
   const psMatchRows = matchRows.filter((m) => m.match_type === 'people_startup')
-  console.log('[send-matches] people_startup match rows:', psMatchRows.length)
   const matchedStartupIds = [...new Set(psMatchRows.map((m) => m.user_id_2))]
 
   const matchedStartupByIdMap = new Map<string, {
@@ -748,14 +746,11 @@ export async function POST(req: NextRequest) {
 
   // ── 6. Fetch startup↔startup matches for founders being emailed ───────────
   const emailedUserIds = [...userMatches.keys()]
-  console.log('[send-matches] emailedUserIds:', emailedUserIds)
 
   const { data: founderStartupRows, error: founderStartupError } = await supabase
     .from('startups')
     .select('id, founder_id, startup_name, description, industry')
     .in('founder_id', emailedUserIds)
-  console.log('[send-matches] founderStartupRows:', (founderStartupRows ?? []).length, '| error:', founderStartupError)
-
   // Map: user_id → their startup
   const startupByFounderId = new Map(
     (founderStartupRows ?? []).map((s) => [s.founder_id, s])
@@ -764,7 +759,6 @@ export async function POST(req: NextRequest) {
   // Build a Set of startup IDs (s.id) — NOT founder user IDs — for the startup_startup query
   const founderStartupIdSet = new Set((founderStartupRows ?? []).map((s) => s.id))
   const founderStartupIdList = [...founderStartupIdSet]
-  console.log('[send-matches] founderStartupIdSet:', [...founderStartupIdSet])
 
   const startupMatchesByStartupId = new Map<string, { otherStartupId: string; score: number }[]>()
 
@@ -775,8 +769,6 @@ export async function POST(req: NextRequest) {
       .eq('week_of', weekOf)
       .eq('match_type', 'startup_startup')
       .or(`user_id_1.in.(${founderStartupIdList.join(',')}),user_id_2.in.(${founderStartupIdList.join(',')})`)
-
-    console.log('[send-matches] startup_startup match rows:', (ssMatchRows ?? []).length)
 
     for (const row of ssMatchRows ?? []) {
       // user_id_1 and user_id_2 in startup_startup rows are startup IDs, not user IDs
