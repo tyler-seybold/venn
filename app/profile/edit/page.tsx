@@ -361,10 +361,14 @@ export default function ProfileEditPage() {
                 rows={3}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
+                maxLength={500}
                 placeholder="Give us a quick snapshot of your background, experience, or any personal interests — we'll cover what you're looking for in connections later!"
                 className={`w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition resize-none ${fieldErrors.bio ? 'border-red-400' : 'border-gray-300'}`}
               />
-              {fieldErrors.bio && <p className="mt-1 text-xs text-red-600">{fieldErrors.bio}</p>}
+              <div className="flex justify-between mt-1">
+                {fieldErrors.bio ? <p className="text-xs text-red-600">{fieldErrors.bio}</p> : <span />}
+                <p className={`text-xs ${bio.length >= 500 ? 'text-red-500' : 'text-gray-400'}`}>{bio.length}/500</p>
+              </div>
             </div>
 
             {/* 6. Skills */}
@@ -482,10 +486,14 @@ export default function ProfileEditPage() {
                 rows={3}
                 value={lookingFor}
                 onChange={(e) => setLookingFor(e.target.value)}
+                maxLength={500}
                 placeholder="Describe specifically what you're hoping to get out of Venn — a co-founder, a collaborator, industry intros, feedback on your idea, etc."
                 className={`w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition resize-none ${fieldErrors.lookingFor ? 'border-red-400' : 'border-gray-300'}`}
               />
-              {fieldErrors.lookingFor && <p className="mt-1 text-xs text-red-600">{fieldErrors.lookingFor}</p>}
+              <div className="flex justify-between mt-1">
+                {fieldErrors.lookingFor ? <p className="text-xs text-red-600">{fieldErrors.lookingFor}</p> : <span />}
+                <p className={`text-xs ${lookingFor.length >= 500 ? 'text-red-500' : 'text-gray-400'}`}>{lookingFor.length}/500</p>
+              </div>
             </div>
 
             {/* 11. Co-founder interest */}
