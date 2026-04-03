@@ -118,7 +118,7 @@ function buildMatchCards(matchItems: MatchItem[], baseUrl: string): string {
                 <tr>
                   <td width="48" height="48" bgcolor="#e8e4f4" border="0"
                       align="center" valign="middle"
-                      style="width:48px;height:48px;background-color:#e8e4f4;border:0;outline:0;border-radius:8px;
+                      style="width:48px;height:48px;background-color:#e8e4f4;border:0;outline:0;border-collapse:collapse;border-radius:8px;
                              text-align:center;vertical-align:middle;
                              font-size:16px;font-weight:700;color:#1E3A5F;
                              font-family:Helvetica,Arial,sans-serif;">
@@ -269,7 +269,7 @@ function buildStartupCards(startupItems: StartupMatchItem[], baseUrl: string): s
                 <tr>
                   <td width="48" height="48" bgcolor="#e8f0f7" border="0"
                       align="center" valign="middle"
-                      style="width:48px;height:48px;background-color:#e8f0f7;border:0;outline:0;border-radius:8px;
+                      style="width:48px;height:48px;background-color:#e8f0f7;border:0;outline:0;border-collapse:collapse;border-radius:8px;
                              text-align:center;vertical-align:middle;
                              font-size:16px;font-weight:700;color:#1E3A5F;
                              font-family:Helvetica,Arial,sans-serif;">
@@ -356,7 +356,7 @@ function buildPersonStartupCards(items: PersonStartupMatchItem[], baseUrl: strin
                 <tr>
                   <td width="48" height="48" bgcolor="#e8f0f7" border="0"
                       align="center" valign="middle"
-                      style="width:48px;height:48px;background-color:#e8f0f7;border:0;outline:0;border-radius:8px;
+                      style="width:48px;height:48px;background-color:#e8f0f7;border:0;outline:0;border-collapse:collapse;border-radius:8px;
                              text-align:center;vertical-align:middle;
                              font-size:16px;font-weight:700;color:#1E3A5F;
                              font-family:Helvetica,Arial,sans-serif;">
@@ -575,8 +575,8 @@ function buildEmail(
                      padding-bottom:20px;padding-left:32px;
                      border-bottom:1px solid #e8e5e0;border-top:0;border-left:0;border-right:0;">
             <img src="https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/venn_logo_primary.png"
-                 alt="Venn" width="100" height="25"
-                 style="display:block;border:0;height:25px;width:100px;">
+                 alt="Venn" height="30"
+                 style="display:block;border:0;height:30px;">
           </td>
         </tr>
 
@@ -724,6 +724,7 @@ export async function POST(req: NextRequest) {
 
   // ── 5.5. Fetch startup details for people↔startup matches ────────────────
   const psMatchRows = matchRows.filter((m) => m.match_type === 'people_startup')
+  console.log('[send-matches] people_startup match rows:', psMatchRows.length)
   const matchedStartupIds = [...new Set(psMatchRows.map((m) => m.user_id_2))]
 
   const matchedStartupByIdMap = new Map<string, {
@@ -763,10 +764,12 @@ export async function POST(req: NextRequest) {
   const startupByFounderId = new Map(
     (founderStartupRows ?? []).map((s) => [s.founder_id, s])
   )
+  console.log('[send-matches] founderStartupRows:', (founderStartupRows ?? []).length)
 
   // Build a Set of startup IDs (s.id) — NOT founder user IDs — for the startup_startup query
   const founderStartupIdSet = new Set((founderStartupRows ?? []).map((s) => s.id))
   const founderStartupIdList = [...founderStartupIdSet]
+  console.log('[send-matches] founderStartupIdSet:', [...founderStartupIdSet])
 
   const startupMatchesByStartupId = new Map<string, { otherStartupId: string; score: number }[]>()
 
@@ -777,6 +780,8 @@ export async function POST(req: NextRequest) {
       .eq('week_of', weekOf)
       .eq('match_type', 'startup_startup')
       .or(`user_id_1.in.(${founderStartupIdList.join(',')}),user_id_2.in.(${founderStartupIdList.join(',')})`)
+
+    console.log('[send-matches] startup_startup match rows:', (ssMatchRows ?? []).length)
 
     for (const row of ssMatchRows ?? []) {
       // user_id_1 and user_id_2 in startup_startup rows are startup IDs, not user IDs
