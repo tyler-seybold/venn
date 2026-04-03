@@ -90,12 +90,6 @@ const LABEL_COLORS: Record<string, string> = {
   'Worth a Coffee':'#E65100',
 }
 
-const BADGE_DIMS: Record<string, { width: number; height: number }> = {
-  'Perfect Fit':   { width: 130, height: 28 },
-  'Strong Match':  { width: 138, height: 28 },
-  'Good Match':    { width: 123, height: 28 },
-  'Worth a Coffee':{ width: 190, height: 32 },
-}
 
 // Each card returns <tr> rows injected directly into the outer 560px card table.
 // The outer <td> has padding-left:32px + padding-right:32px → inner content width = 496px.
@@ -152,9 +146,7 @@ function buildMatchCards(matchItems: MatchItem[], baseUrl: string): string {
                   </td>
                   <td width="8" style="border:none;padding-left:8px;">&#8203;</td>
                   <td valign="middle" style="border:none;">
-                    <img src="${badgeUrl}" alt="${label}"
-                         width="${(BADGE_DIMS[label] ?? BADGE_DIMS['Worth a Coffee']).width}"
-                         height="${(BADGE_DIMS[label] ?? BADGE_DIMS['Worth a Coffee']).height}"
+                    <img src="${badgeUrl}" alt="${label}" height="28"
                          style="display:inline;vertical-align:middle;border:0;">
                   </td>
                 </tr>
@@ -378,9 +370,7 @@ function buildPersonStartupCards(items: PersonStartupMatchItem[], baseUrl: strin
                   </td>
                   <td width="8" style="border:none;padding-left:8px;">&#8203;</td>
                   <td valign="middle" style="border:none;">
-                    <img src="${badgeUrl}" alt="${label}"
-                         width="${(BADGE_DIMS[label] ?? BADGE_DIMS['Worth a Coffee']).width}"
-                         height="${(BADGE_DIMS[label] ?? BADGE_DIMS['Worth a Coffee']).height}"
+                    <img src="${badgeUrl}" alt="${label}" height="28"
                          style="display:inline;vertical-align:middle;border:0;">
                   </td>
                 </tr>
