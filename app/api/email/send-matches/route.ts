@@ -39,10 +39,12 @@ function getInitials(name: string): string {
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type MatchItem = {
+  id: string
   name: string
   label: string
   blurb: string | null
   profileUrl: string
+  subtitle: string | null
 }
 
 type StartupMatchItem = {
@@ -62,104 +64,126 @@ const BADGE_URLS: Record<string, string> = {
 
 // ── HTML builders ─────────────────────────────────────────────────────────────
 
-function buildMatchCards(matchItems: MatchItem[]): string {
-  return matchItems.map(({ name, label, blurb, profileUrl }) => {
-    const avatarHtml = `<table cellpadding="0" cellspacing="0" border="0">
-           <tr>
-             <td width="48" height="48"
-                 style="width:48px;height:48px;border-radius:8px;background-color:#ede9f6;
-                        text-align:center;vertical-align:middle;
-                        font-size:16px;font-weight:700;color:#4E2A84;font-family:Arial,sans-serif;">
-               ${getInitials(name)}
-             </td>
-           </tr>
-         </table>`
-
-    const badgeUrl = BADGE_URLS[label] ?? BADGE_URLS['Worth a Coffee']
-
-    return `
-    <tr>
-      <td style="padding:0 0 16px 0;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0"
-               style="background:#F5F5F5;border-radius:12px;overflow:hidden;">
-          <tr>
-            <td style="padding:24px;">
-
-              <!-- Avatar -->
-              <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;">
-                <tr><td>${avatarHtml}</td></tr>
-              </table>
-
-              <!-- Name + badge -->
-              <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:10px;">
-                <tr>
-                  <td style="vertical-align:middle;">
-                    <span style="font-size:16px;font-weight:600;color:#1a1a1a;">${name}</span>
-                  </td>
-                  <td style="vertical-align:middle;padding-left:10px;">
-                    <img src="${badgeUrl}" alt="${label}" width="auto" height="28" style="display:inline-block;vertical-align:middle;border:0;">
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Blurb -->
-              <p style="margin:0 0 16px;font-size:14px;color:#555;line-height:1.6;">
-                ${blurb ?? 'Your personalized match note is on its way.'}
-              </p>
-
-              <!-- CTA -->
-              <table cellpadding="0" cellspacing="0" border="0">
-                <tr>
-                  <td style="background-color:#4E2A84;border-radius:999px;padding:10px 24px;">
-                    <a href="${profileUrl}"
-                       style="color:#ffffff;text-decoration:none;font-weight:bold;
-                              font-family:Arial,sans-serif;font-size:14px;">
-                      View Profile
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>`
-  }).join('')
+const LABEL_COLORS: Record<string, string> = {
+  'Perfect Fit':   '#1E3A5F',
+  'Strong Match':  '#1E3A5F',
+  'Good Match':    '#2E7D32',
+  'Worth a Coffee':'#E65100',
 }
 
-function buildStartupCards(startupItems: StartupMatchItem[], baseUrl: string): string {
-  return startupItems.map(({ id, name, founderName, industry, description }) => {
-    const tagPills = (industry ?? []).map((tag) =>
-      `<span style="display:inline-block;padding:3px 10px;border-radius:10px;background:#ede9f6;
-                    color:#4E2A84;font-size:11px;font-weight:600;margin:0 4px 4px 0;">${tag}</span>`
-    ).join('')
+function buildMatchCards(matchItems: MatchItem[], baseUrl: string): string {
+  return matchItems.map(({ id, name, label, blurb, profileUrl, subtitle }, idx) => {
+    const initials = getInitials(name)
+    const badgeUrl = BADGE_URLS[label] ?? BADGE_URLS['Worth a Coffee']
+    const accentColor = LABEL_COLORS[label] ?? '#1E3A5F'
+    const isLast = idx === matchItems.length - 1
 
-    const snippet = description
-      ? (description.length > 100 ? description.slice(0, 100) + '…' : description)
-      : ''
+    const blurbHtml = blurb
+      ? `<b style="font-style:normal;color:#444;">Venn says:</b> ${blurb}`
+      : 'Your personalized match note is on its way.'
+
+    const divider = isLast ? '' : `<tr><td style="height:1px;background:#f0ede8;font-size:0;line-height:0;">&nbsp;</td></tr>`
 
     return `
     <tr>
-      <td style="padding:0 0 16px 0;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0"
-               style="background:#EEF2FF;border-radius:12px;overflow:hidden;">
+      <td style="padding:24px 32px;">
+        <!-- Card body: avatar col + content col -->
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <td style="padding:24px;">
-              <p style="margin:0 0 2px;font-size:16px;font-weight:600;color:#1a1a1a;">${name}</p>
-              <p style="margin:0 0 10px;font-size:13px;color:#666;">Founded by ${founderName}</p>
-              ${tagPills ? `<div style="margin-bottom:10px;">${tagPills}</div>` : ''}
-              ${snippet ? `<p style="margin:0 0 16px;font-size:14px;color:#555;line-height:1.6;">${snippet}</p>` : ''}
-              <a href="${baseUrl}/startup/${id}"
-                 style="display:inline-block;padding:10px 20px;background:#4E2A84;color:#fff;
-                        font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">
-                View Startup
-              </a>
+            <!-- Initials box -->
+            <td width="48" valign="top" style="padding-right:16px;">
+              <table cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="48" height="48"
+                      style="width:48px;height:48px;border-radius:8px;background:#e8e4f4;
+                             text-align:center;vertical-align:middle;
+                             font-size:16px;font-weight:700;color:#1E3A5F;
+                             font-family:Helvetica,Arial,sans-serif;">
+                    ${initials}
+                  </td>
+                </tr>
+              </table>
+            </td>
+            <!-- Right content -->
+            <td valign="top">
+              <!-- Name + badge -->
+              <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:4px;">
+                <tr>
+                  <td style="vertical-align:middle;
+                             font-size:16px;font-weight:700;color:#1a1a1a;
+                             font-family:Helvetica,Arial,sans-serif;">
+                    ${name}
+                  </td>
+                  <td style="vertical-align:middle;padding-left:8px;">
+                    <img src="${badgeUrl}" alt="${label}" height="22"
+                         style="display:block;border:0;height:22px;">
+                  </td>
+                </tr>
+              </table>
+              <!-- Subtitle -->
+              ${subtitle ? `<p style="margin:0 0 10px;font-size:13px;color:#888;font-family:Helvetica,Arial,sans-serif;">${subtitle}</p>` : `<p style="margin:0 0 10px;font-size:0;line-height:0;">&nbsp;</p>`}
+              <!-- Blurb callout -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:14px;">
+                <tr>
+                  <td style="background:#f7f5f2;border-left:3px solid ${accentColor};
+                             border-radius:0 6px 6px 0;padding:12px 14px;
+                             font-size:14px;color:#444;line-height:1.6;font-style:italic;
+                             font-family:Helvetica,Arial,sans-serif;">
+                    ${blurbHtml}
+                  </td>
+                </tr>
+              </table>
+              <!-- Footer row: CTA + feedback -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <!-- View Profile button -->
+                  <td valign="middle">
+                    <table cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="background:#1E3A5F;border-radius:999px;padding:9px 22px;">
+                          <a href="${profileUrl}"
+                             style="color:#ffffff;text-decoration:none;font-weight:700;
+                                    font-family:Helvetica,Arial,sans-serif;font-size:14px;
+                                    white-space:nowrap;">
+                            View Profile
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  <!-- Feedback -->
+                  <td valign="middle" align="right">
+                    <table cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="font-size:12px;color:#999;font-family:Helvetica,Arial,sans-serif;
+                                   padding-right:8px;white-space:nowrap;">
+                          Helpful match?
+                        </td>
+                        <td style="border:1px solid #d0ccc8;border-right:none;
+                                   border-radius:6px 0 0 6px;padding:6px 10px;font-size:14px;">
+                          <a href="${baseUrl}/api/feedback?match_id=${id}&vote=up"
+                             style="text-decoration:none;color:#444;font-family:Helvetica,Arial,sans-serif;">
+                            👍
+                          </a>
+                        </td>
+                        <td style="border:1px solid #d0ccc8;border-radius:0 6px 6px 0;
+                                   padding:6px 10px;font-size:14px;">
+                          <a href="${baseUrl}/api/feedback?match_id=${id}&vote=down"
+                             style="text-decoration:none;color:#444;font-family:Helvetica,Arial,sans-serif;">
+                            👎
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
         </table>
       </td>
-    </tr>`
+    </tr>
+    ${divider}`
   }).join('')
 }
 
@@ -168,83 +192,103 @@ function buildEmail(
   weekLabel: string,
   matchItems: MatchItem[],
   baseUrl: string,
-  startupItems?: StartupMatchItem[]
 ): string {
-  const matchCards = buildMatchCards(matchItems)
-
-  const startupSection = startupItems && startupItems.length > 0 ? `
-          <!-- Section 2: Startups in your space -->
-          <tr>
-            <td style="padding:24px 36px 8px;border-top:1px solid #ede9f6;">
-              <p style="margin:0 0 4px;font-size:17px;font-weight:700;color:#1a1a1a;">Startups in your space</p>
-              <p style="margin:0 0 16px;font-size:13px;color:#888;">Other founders building in similar areas</p>
-              <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                ${buildStartupCards(startupItems, baseUrl)}
-              </table>
-            </td>
-          </tr>` : ''
+  const firstName = recipientName.split(' ')[0] ?? recipientName
+  const matchCards = buildMatchCards(matchItems, baseUrl)
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f7f6fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f6fb;padding:32px 16px;">
-    <tr>
-      <td align="center">
-        <table width="560" cellpadding="0" cellspacing="0" border="0"
-               style="max-width:560px;width:100%;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #ede9f6;">
+<body style="margin:0;padding:0;background:#f0f0ed;font-family:Helvetica,Arial,sans-serif;">
 
-          <!-- Thin top bar -->
-          <tr>
-            <td style="background:#4E2A84;padding:10px 36px;">
-              <span style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.5px;">Venn</span>
-            </td>
-          </tr>
+<table width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background:#f0f0ed;padding:32px 16px;">
+  <tr>
+    <td align="center">
 
-          <!-- Main header -->
-          <tr>
-            <td style="background:#f7f6fb;padding:24px 36px 20px;border-bottom:1px solid #ede9f6;">
-              <p style="margin:0;font-size:20px;font-weight:700;color:#1a1a1a;letter-spacing:-0.3px;">Your matches this week</p>
-              <p style="margin:4px 0 0;font-size:13px;color:#888;">Week of ${weekLabel}</p>
-            </td>
-          </tr>
+      <!-- Card -->
+      <table width="560" cellpadding="0" cellspacing="0" border="0"
+             style="max-width:560px;width:100%;background:#ffffff;
+                    border-radius:12px;border:1px solid #e0ddd8;overflow:hidden;">
 
-          <!-- Greeting -->
-          <tr>
-            <td style="padding:24px 36px 8px;">
-              <p style="margin:0;font-size:15px;color:#333;">Hi ${recipientName},</p>
-              <p style="margin:10px 0 0;font-size:14px;color:#555;line-height:1.6;">
-                Here are your Venn matches for this week. We think these connections are worth making. Take a look and reach out — even a short intro can go a long way.
-              </p>
-            </td>
-          </tr>
+        <!-- Header -->
+        <tr>
+          <td style="padding:24px 32px 20px;border-bottom:1px solid #e8e5e0;">
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <!-- SVG logo -->
+                <td valign="middle" style="padding-right:10px;">
+                  <svg width="38" height="22" viewBox="-2 -2 42 26"
+                       xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="11" cy="11" r="10"
+                            stroke="#1E3A5F" stroke-width="1.8" fill="none"/>
+                    <circle cx="27" cy="11" r="10"
+                            stroke="#1E3A5F" stroke-width="1.8" fill="none"/>
+                  </svg>
+                </td>
+                <!-- Wordmark -->
+                <td valign="middle"
+                    style="font-family:'Trebuchet MS',Arial,sans-serif;
+                           font-size:20px;font-weight:700;color:#1E3A5F;">
+                  Venn
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
 
-          <!-- Match cards -->
-          <tr>
-            <td style="padding:16px 36px 8px;">
-              <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                ${matchCards}
-              </table>
-            </td>
-          </tr>
+        <!-- Intro -->
+        <tr>
+          <td style="padding:28px 32px 8px;">
+            <p style="margin:0 0 6px;font-size:12px;color:#999;text-transform:uppercase;
+                      letter-spacing:0.8px;font-weight:600;
+                      font-family:Helvetica,Arial,sans-serif;">
+              Week of ${weekLabel}
+            </p>
+            <h1 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#1a1a1a;
+                       font-family:Helvetica,Arial,sans-serif;">
+              Your matches this week
+            </h1>
+            <p style="margin:0;font-size:15px;color:#555;line-height:1.6;
+                      font-family:Helvetica,Arial,sans-serif;">
+              Hi ${firstName} — we think these connections are worth making. Take a look and reach out.
+            </p>
+          </td>
+        </tr>
 
-          ${startupSection}
+        <!-- Thin divider -->
+        <tr>
+          <td style="padding:24px 32px 0;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="height:1px;background:#f0ede8;font-size:0;line-height:0;">&nbsp;</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
 
-          <!-- Footer -->
-          <tr>
-            <td style="padding:20px 36px 28px;border-top:1px solid #f0eff4;">
-              <p style="margin:0;font-size:12px;color:#999;line-height:1.6;">
-                You're receiving this because you opted into Venn matching.
-                To stop receiving match emails, update your preferences at
-                <a href="${baseUrl}/profile/edit" style="color:#4E2A84;text-decoration:underline;">${baseUrl}/profile/edit</a>.
-              </p>
-            </td>
-          </tr>
-
+        <!-- Match cards -->
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          ${matchCards}
         </table>
-      </td>
-    </tr>
-  </table>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f7f5f2;padding:20px 32px;border-top:1px solid #e8e5e0;">
+            <p style="margin:0;font-size:12px;color:#999;line-height:1.6;
+                      font-family:Helvetica,Arial,sans-serif;">
+              You're receiving this because you opted into Venn matching.
+              <a href="${baseUrl}/profile/edit"
+                 style="color:#999;text-decoration:underline;">Update your preferences</a>
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+
 </body>
 </html>`
 }
@@ -305,7 +349,7 @@ export async function POST(req: NextRequest) {
 
   const { data: profileRows, error: profilesError } = await supabase
     .from('profiles')
-    .select('user_id, full_name, email, avatar_url')
+    .select('user_id, full_name, email, avatar_url, degree_program, graduation_year')
     .in('user_id', allUserIds)
 
   if (profilesError) {
@@ -397,11 +441,18 @@ export async function POST(req: NextRequest) {
         if (!matchedProfile) return null
 
         const label = getMatchLabel(m.match_score ?? 0)
+        const dp = (matchedProfile as { degree_program?: string | null }).degree_program ?? null
+        const gy = (matchedProfile as { graduation_year?: number | null }).graduation_year ?? null
+        const subtitle = dp || gy
+          ? [dp, gy ? `'${String(gy).slice(-2)}` : null].filter(Boolean).join(' • ')
+          : null
         return {
+          id: m.id,
           name: matchedProfile.full_name ?? 'A Venn member',
           label,
           blurb: m.blurb,
           profileUrl: `${baseUrl}/people/${matchedId}`,
+          subtitle,
         }
       })
       .filter((item): item is NonNullable<typeof item> => item !== null)
@@ -431,7 +482,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const html = buildEmail(recipientName, weekLabel, matchItems, baseUrl, startupItems)
+    const html = buildEmail(recipientName, weekLabel, matchItems, baseUrl)
 
     await resend.emails.send({
       from: 'Venn <onboarding@resend.dev>',
