@@ -253,7 +253,7 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
                 <div key={q.id} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
                   <div className="flex-shrink-0 mt-0.5">
                     {isAnswered ? (
-                      <div className="w-5 h-5 rounded-full bg-[#4E2A84] flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full bg-[#1E3A5F] flex items-center justify-center">
                         <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
@@ -271,7 +271,7 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
                         <p className="text-xs text-gray-400">Not answered yet</p>
                         <button
                           onClick={() => jumpToQuestion(i)}
-                          className="text-xs text-[#4E2A84] hover:underline flex items-center gap-0.5 mt-0.5"
+                          className="text-xs text-[#1E3A5F] hover:underline flex items-center gap-0.5 mt-0.5"
                         >
                           Answer this <ChevronRight className="w-3 h-3" />
                         </button>
@@ -286,7 +286,7 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
           <div className="border-t border-gray-100 px-5 py-4 flex-shrink-0">
             <button
               onClick={handleClose}
-              className="w-full rounded-lg bg-[#4E2A84] hover:bg-[#3d2169] text-white text-sm font-medium py-2.5 transition"
+              className="w-full rounded-lg bg-[#1E3A5F] hover:bg-[#16304f] text-white text-sm font-medium py-2.5 transition"
             >
               Done
             </button>
@@ -304,7 +304,7 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
         <Card>
           <Header title="Founder Personality Quiz" />
           <div className="flex-1 flex items-center justify-center">
-            <div className="w-6 h-6 rounded-full border-2 border-[#4E2A84] border-t-transparent animate-spin" />
+            <div className="w-6 h-6 rounded-full border-2 border-[#1E3A5F] border-t-transparent animate-spin" />
           </div>
         </Card>
       </Overlay>
@@ -328,7 +328,7 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
           </div>
           <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#4E2A84] rounded-full transition-all duration-500 ease-out"
+              className="h-full bg-[#1E3A5F] rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progressPct}%` }}
             />
           </div>
@@ -358,8 +358,8 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
                       disabled={!!selected}
                       className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-150 ${
                         isSelected || isPrevAnswer
-                          ? 'bg-[#4E2A84] border-[#4E2A84] text-white shadow-sm'
-                          : 'bg-white border-gray-200 text-gray-700 hover:border-[#4E2A84] hover:bg-[#faf8ff]'
+                          ? 'bg-[#1E3A5F] border-[#1E3A5F] text-white shadow-sm'
+                          : 'bg-white border-gray-200 text-gray-700 hover:border-[#1E3A5F] hover:bg-[#f0f4f9]'
                       }`}
                     >
                       <span className="text-sm font-medium leading-relaxed">{label}</span>
@@ -380,14 +380,14 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
                 placeholder={(question as TextQuestion).placeholder}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4E2A84] focus:border-transparent resize-none transition"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent resize-none transition"
                 onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleText() }}
               />
               <div className="mt-4 flex items-center gap-4">
                 <button
                   onClick={handleText}
                   disabled={!textInput.trim()}
-                  className="rounded-lg bg-[#4E2A84] hover:bg-[#3d2169] disabled:bg-gray-200 disabled:text-gray-400 text-white text-sm font-medium px-5 py-2 transition"
+                  className="rounded-lg bg-[#1E3A5F] hover:bg-[#16304f] disabled:bg-gray-200 disabled:text-gray-400 text-white text-sm font-medium px-5 py-2 transition"
                 >
                   {reviewMode ? 'Update' : isLastQuestion ? 'Review answers' : 'Next'}
                 </button>

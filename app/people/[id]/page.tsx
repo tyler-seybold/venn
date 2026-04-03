@@ -242,7 +242,7 @@ export default function PersonDetailPage() {
                   </span>
                 )}
                 {matchedOn && (
-                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-[#ede9f6] text-[#4E2A84]">
+                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-[#e8edf5] text-[#1E3A5F]">
                     Matched on {matchedOn}
                   </span>
                 )}
@@ -250,9 +250,9 @@ export default function PersonDetailPage() {
 
               {/* Venn blurb callout */}
               {matchBlurb && (
-                <div className="flex items-start gap-2 mt-3 bg-[#ede9f6] rounded-xl px-4 py-3">
-                  <Sparkles className="w-3.5 h-3.5 text-[#4E2A84] flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-[#4E2A84] leading-relaxed italic">
+                <div className="flex items-start gap-2 mt-3 bg-[#e8edf5] rounded-xl px-4 py-3">
+                  <Sparkles className="w-3.5 h-3.5 text-[#1E3A5F] flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-[#1E3A5F] leading-relaxed italic">
                     <span className="font-semibold not-italic">Venn says: </span>{matchBlurb}
                   </p>
                 </div>

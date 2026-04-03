@@ -21,8 +21,8 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
 
-    if (!email.endsWith('@kellogg.northwestern.edu')) {
-      setError('Please use your @kellogg.northwestern.edu email address.')
+    if (!email.endsWith('@kellogg.northwestern.edu') && !email.endsWith('@northwestern.edu')) {
+      setError('Please use your Northwestern .edu email address.')
       return
     }
 
@@ -98,7 +98,7 @@ export default function LoginPage() {
               Venn
             </h1>
             <p className="mt-2 text-sm text-gray-500">
-              Sign in with your Kellogg .edu email
+              Sign in with your Northwestern .edu email
             </p>
           </div>
 
@@ -139,7 +139,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setError('') }}
-                  placeholder="you@kellogg.northwestern.edu"
+                  placeholder="you@northwestern.edu"
                   className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
                 />
               </div>

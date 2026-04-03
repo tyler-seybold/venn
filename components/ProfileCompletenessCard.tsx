@@ -135,7 +135,7 @@ export default function ProfileCompletenessCard({
             <circle
               cx="32" cy="32" r={RADIUS}
               fill="none"
-              stroke="#4E2A84"
+              stroke="#1E3A5F"
               strokeWidth="6"
               strokeLinecap="round"
               strokeDasharray={CIRCUMFERENCE}
@@ -154,7 +154,7 @@ export default function ProfileCompletenessCard({
           {showButton && (
             <Link
               href="/profile/edit"
-              className="mt-2 inline-block rounded-lg bg-[#4E2A84] hover:bg-[#3d2169] text-white text-xs font-medium px-3 py-1.5 transition"
+              className="mt-2 inline-block rounded-lg bg-[#1E3A5F] hover:bg-[#16304f] text-white text-xs font-medium px-3 py-1.5 transition"
             >
               {buttonLabel}
             </Link>
@@ -169,11 +169,11 @@ export default function ProfileCompletenessCard({
             <li key={label} className="flex items-start gap-2 text-xs text-gray-500">
               <span className="mt-0.5 w-3.5 h-3.5 flex-shrink-0 rounded-full border border-gray-300 bg-white" />
               {onClick ? (
-                <button onClick={onClick} className="text-left hover:text-[#4E2A84] hover:underline transition-colors">
+                <button onClick={onClick} className="text-left hover:text-[#1E3A5F] hover:underline transition-colors">
                   {label}
                 </button>
               ) : href ? (
-                <Link href={href} className="hover:text-[#4E2A84] hover:underline transition-colors">
+                <Link href={href} className="hover:text-[#1E3A5F] hover:underline transition-colors">
                   {label}
                 </Link>
               ) : (

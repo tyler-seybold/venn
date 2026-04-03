@@ -805,13 +805,13 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <button
                   onClick={() => setQuizOpen(true)}
-                  className="flex items-center justify-between bg-[#faf8ff] border border-[#ede9f6] rounded-2xl px-5 py-4 hover:bg-[#f5f1fd] transition text-left h-full"
+                  className="flex items-center justify-between bg-[#f0f4f9] border border-[#e8edf5] rounded-2xl px-5 py-4 hover:bg-[#e8edf5] transition text-left h-full"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-[#4E2A84]">Founder Personality Quiz</p>
+                    <p className="text-sm font-semibold text-[#1E3A5F]">Founder Personality Quiz</p>
                     <p className="text-xs text-gray-500 mt-0.5">Helps us find better matches for you</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-[#4E2A84] flex-shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-[#1E3A5F] flex-shrink-0" />
                 </button>
 
                 <ProfileCompletenessCard
