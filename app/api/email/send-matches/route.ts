@@ -107,24 +107,24 @@ function buildMatchCards(matchItems: MatchItem[], baseUrl: string): string {
     const divider = isLast ? '' : `
     <tr>
       <td height="1" bgcolor="#f0ede8"
-          style="height:1px;line-height:1px;font-size:1px;background-color:#f0ede8;">&#8203;</td>
+          style="border:none;height:1px;line-height:1px;font-size:1px;background-color:#f0ede8;">&#8203;</td>
     </tr>`
 
     return `
     <tr>
       <td bgcolor="#ffffff"
-          style="background-color:#ffffff;
+          style="border:none;background-color:#ffffff;
                  padding-top:24px;padding-right:32px;padding-bottom:24px;padding-left:32px;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
           <tr>
             <!-- Initials box: 64px col (48px box + 16px gap) -->
             <td width="64" valign="top"
-                style="padding-right:16px;">
+                style="border:none;padding-right:16px;">
               <table cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                 <tr>
                   <td width="48" height="48" bgcolor="#e8e4f4" border="0"
                       align="center" valign="middle"
-                      style="width:48px;height:48px;background-color:#e8e4f4;border:0;outline:0;border-collapse:collapse;border-radius:8px;
+                      style="width:48px;height:48px;background-color:#e8e4f4;border:none;outline:0;border-collapse:collapse;border-radius:8px;
                              text-align:center;vertical-align:middle;
                              font-size:16px;font-weight:700;color:#1E3A5F;
                              font-family:Helvetica,Arial,sans-serif;">
@@ -134,17 +134,17 @@ function buildMatchCards(matchItems: MatchItem[], baseUrl: string): string {
               </table>
             </td>
             <!-- Content column: remaining 432px -->
-            <td valign="top">
+            <td valign="top" style="border:none;">
               <!-- Name + badge row -->
               <table cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                 <tr>
                   <td valign="middle"
-                      style="font-size:16px;font-weight:700;color:#1a1a1a;
+                      style="border:none;font-size:16px;font-weight:700;color:#1a1a1a;
                              font-family:Helvetica,Arial,sans-serif;">
                     ${name}
                   </td>
-                  <td width="8" style="padding-left:8px;">&#8203;</td>
-                  <td valign="middle">
+                  <td width="8" style="border:none;padding-left:8px;">&#8203;</td>
+                  <td valign="middle" style="border:none;">
                     <img src="${badgeUrl}" alt="${label}" height="22"
                          style="display:block;border:0;height:22px;">
                   </td>
@@ -160,7 +160,7 @@ function buildMatchCards(matchItems: MatchItem[], baseUrl: string): string {
               <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                 <tr>
                   <td bgcolor="#f7f5f2"
-                      style="background-color:#f7f5f2;border-left:3px solid ${accentColor};
+                      style="border:none;background-color:#f7f5f2;border-left:3px solid ${accentColor};
                              padding-top:12px;padding-right:14px;
                              padding-bottom:12px;padding-left:14px;
                              font-size:14px;color:#444;line-height:1.6;
@@ -175,11 +175,11 @@ function buildMatchCards(matchItems: MatchItem[], baseUrl: string): string {
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                 <tr>
                   <!-- View Profile pill button -->
-                  <td valign="middle">
+                  <td valign="middle" style="border:none;">
                     <table cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                       <tr>
                         <td bgcolor="#1E3A5F"
-                            style="background-color:#1E3A5F;border-radius:999px;
+                            style="border:none;background-color:#1E3A5F;border-radius:999px;
                                    padding-top:9px;padding-right:22px;
                                    padding-bottom:9px;padding-left:22px;">
                           <a href="${profileUrl}"
@@ -193,11 +193,11 @@ function buildMatchCards(matchItems: MatchItem[], baseUrl: string): string {
                     </table>
                   </td>
                   <!-- Feedback label + thumbs: pushed right -->
-                  <td valign="middle" align="right" width="100%">
+                  <td valign="middle" align="right" width="100%" style="border:none;">
                     <table cellpadding="0" cellspacing="0" border="0" align="right" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                       <tr>
                         <td valign="middle"
-                            style="font-size:12px;color:#999;font-family:Helvetica,Arial,sans-serif;
+                            style="border:none;font-size:12px;color:#999;font-family:Helvetica,Arial,sans-serif;
                                    padding-right:8px;white-space:nowrap;">
                           Helpful match?
                         </td>
@@ -248,24 +248,24 @@ function buildStartupCards(startupItems: StartupMatchItem[], baseUrl: string): s
     const divider = isLast ? '' : `
     <tr>
       <td height="1" bgcolor="#f0ede8"
-          style="height:1px;line-height:1px;font-size:1px;background-color:#f0ede8;">&#8203;</td>
+          style="border:none;height:1px;line-height:1px;font-size:1px;background-color:#f0ede8;">&#8203;</td>
     </tr>`
 
     return `
     <tr>
       <td bgcolor="#ffffff"
-          style="background-color:#ffffff;
+          style="border:none;background-color:#ffffff;
                  padding-top:24px;padding-right:32px;padding-bottom:24px;padding-left:32px;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
           <tr>
             <!-- Initials box: 64px col (48px box + 16px gap) -->
             <td width="64" valign="top"
-                style="padding-right:16px;">
+                style="border:none;padding-right:16px;">
               <table cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                 <tr>
                   <td width="48" height="48" bgcolor="#e8f0f7" border="0"
                       align="center" valign="middle"
-                      style="width:48px;height:48px;background-color:#e8f0f7;border:0;outline:0;border-collapse:collapse;border-radius:8px;
+                      style="width:48px;height:48px;background-color:#e8f0f7;border:none;outline:0;border-collapse:collapse;border-radius:8px;
                              text-align:center;vertical-align:middle;
                              font-size:16px;font-weight:700;color:#1E3A5F;
                              font-family:Helvetica,Arial,sans-serif;">
@@ -275,7 +275,7 @@ function buildStartupCards(startupItems: StartupMatchItem[], baseUrl: string): s
               </table>
             </td>
             <!-- Content column -->
-            <td valign="top">
+            <td valign="top" style="border:none;">
               <!-- Startup name -->
               <p style="margin-top:0;margin-right:0;margin-bottom:2px;margin-left:0;
                         font-size:16px;font-weight:700;color:#1a1a1a;
@@ -295,7 +295,7 @@ function buildStartupCards(startupItems: StartupMatchItem[], baseUrl: string): s
               <table cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                 <tr>
                   <td bgcolor="#1E3A5F"
-                      style="background-color:#1E3A5F;border-radius:999px;
+                      style="border:none;background-color:#1E3A5F;border-radius:999px;
                              padding-top:9px;padding-right:22px;
                              padding-bottom:9px;padding-left:22px;">
                     <a href="${baseUrl}/startup/${id}"
@@ -332,23 +332,23 @@ function buildPersonStartupCards(items: PersonStartupMatchItem[], baseUrl: strin
     const divider = isLast ? '' : `
     <tr>
       <td height="1" bgcolor="#f0ede8"
-          style="height:1px;line-height:1px;font-size:1px;background-color:#f0ede8;">&#8203;</td>
+          style="border:none;height:1px;line-height:1px;font-size:1px;background-color:#f0ede8;">&#8203;</td>
     </tr>`
 
     return `
     <tr>
       <td bgcolor="#ffffff"
-          style="background-color:#ffffff;
+          style="border:none;background-color:#ffffff;
                  padding-top:24px;padding-right:32px;padding-bottom:24px;padding-left:32px;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
           <tr>
             <!-- Initials box -->
-            <td width="64" valign="top" style="padding-right:16px;">
+            <td width="64" valign="top" style="border:none;padding-right:16px;">
               <table cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                 <tr>
                   <td width="48" height="48" bgcolor="#e8f0f7" border="0"
                       align="center" valign="middle"
-                      style="width:48px;height:48px;background-color:#e8f0f7;border:0;outline:0;border-collapse:collapse;border-radius:8px;
+                      style="width:48px;height:48px;background-color:#e8f0f7;border:none;outline:0;border-collapse:collapse;border-radius:8px;
                              text-align:center;vertical-align:middle;
                              font-size:16px;font-weight:700;color:#1E3A5F;
                              font-family:Helvetica,Arial,sans-serif;">
@@ -358,17 +358,17 @@ function buildPersonStartupCards(items: PersonStartupMatchItem[], baseUrl: strin
               </table>
             </td>
             <!-- Content column -->
-            <td valign="top">
+            <td valign="top" style="border:none;">
               <!-- Startup name + badge -->
               <table cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                 <tr>
                   <td valign="middle"
-                      style="font-size:16px;font-weight:700;color:#1a1a1a;
+                      style="border:none;font-size:16px;font-weight:700;color:#1a1a1a;
                              font-family:Helvetica,Arial,sans-serif;">
                     ${name}
                   </td>
-                  <td width="8" style="padding-left:8px;">&#8203;</td>
-                  <td valign="middle">
+                  <td width="8" style="border:none;padding-left:8px;">&#8203;</td>
+                  <td valign="middle" style="border:none;">
                     <img src="${badgeUrl}" alt="${label}" height="22"
                          style="display:block;border:0;height:22px;">
                   </td>
@@ -385,7 +385,7 @@ function buildPersonStartupCards(items: PersonStartupMatchItem[], baseUrl: strin
               <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                 <tr>
                   <td bgcolor="#f7f5f2"
-                      style="background-color:#f7f5f2;border-left:3px solid ${accentColor};
+                      style="border:none;background-color:#f7f5f2;border-left:3px solid ${accentColor};
                              padding-top:12px;padding-right:14px;
                              padding-bottom:12px;padding-left:14px;
                              font-size:14px;color:#444;line-height:1.6;
@@ -406,11 +406,11 @@ function buildPersonStartupCards(items: PersonStartupMatchItem[], baseUrl: strin
               <!-- Footer row: View Startup button (left) + feedback (right) -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                 <tr>
-                  <td valign="middle">
+                  <td valign="middle" style="border:none;">
                     <table cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                       <tr>
                         <td bgcolor="#1E3A5F"
-                            style="background-color:#1E3A5F;border-radius:999px;
+                            style="border:none;background-color:#1E3A5F;border-radius:999px;
                                    padding-top:9px;padding-right:22px;
                                    padding-bottom:9px;padding-left:22px;">
                           <a href="${baseUrl}/startup/${startupId}"
@@ -423,11 +423,11 @@ function buildPersonStartupCards(items: PersonStartupMatchItem[], baseUrl: strin
                       </tr>
                     </table>
                   </td>
-                  <td valign="middle" align="right" width="100%">
+                  <td valign="middle" align="right" width="100%" style="border:none;">
                     <table cellpadding="0" cellspacing="0" border="0" align="right" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                       <tr>
                         <td valign="middle"
-                            style="font-size:12px;color:#999;font-family:Helvetica,Arial,sans-serif;
+                            style="border:none;font-size:12px;color:#999;font-family:Helvetica,Arial,sans-serif;
                                    padding-right:8px;white-space:nowrap;">
                           Helpful match?
                         </td>
@@ -481,11 +481,11 @@ function buildEmail(
   const personStartupSection = personStartupItems && personStartupItems.length > 0 ? `
     <!-- Section: Startups looking for someone like you — divider -->
     <tr>
-      <td style="padding-top:16px;padding-right:32px;padding-bottom:0;padding-left:32px;border:0;">
+      <td style="border:none;padding-top:16px;padding-right:32px;padding-bottom:0;padding-left:32px;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
           <tr>
             <td height="1" bgcolor="#f0ede8"
-                style="height:1px;line-height:1px;font-size:1px;background-color:#f0ede8;">&#8203;</td>
+                style="border:none;height:1px;line-height:1px;font-size:1px;background-color:#f0ede8;">&#8203;</td>
           </tr>
         </table>
       </td>
@@ -493,9 +493,8 @@ function buildEmail(
     <!-- Section: Startups looking for someone like you — header -->
     <tr>
       <td bgcolor="#ffffff"
-          style="background-color:#ffffff;
-                 padding-top:24px;padding-right:32px;padding-bottom:4px;padding-left:32px;
-                 border:0;">
+          style="border:none;background-color:#ffffff;
+                 padding-top:24px;padding-right:32px;padding-bottom:4px;padding-left:32px;">
         <p style="margin-top:0;margin-right:0;margin-bottom:0;margin-left:0;
                   font-size:16px;font-weight:700;color:#1a1a1a;
                   font-family:Helvetica,Arial,sans-serif;">
@@ -510,11 +509,11 @@ function buildEmail(
   const startupSection = startupItems && startupItems.length > 0 ? `
     <!-- Startup section: divider -->
     <tr>
-      <td style="padding-top:16px;padding-right:32px;padding-bottom:0;padding-left:32px;">
+      <td style="border:none;padding-top:16px;padding-right:32px;padding-bottom:0;padding-left:32px;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
           <tr>
             <td height="1" bgcolor="#f0ede8"
-                style="height:1px;line-height:1px;font-size:1px;background-color:#f0ede8;">&#8203;</td>
+                style="border:none;height:1px;line-height:1px;font-size:1px;background-color:#f0ede8;">&#8203;</td>
           </tr>
         </table>
       </td>
@@ -522,7 +521,7 @@ function buildEmail(
     <!-- Startup section: header -->
     <tr>
       <td bgcolor="#ffffff"
-          style="background-color:#ffffff;
+          style="border:none;background-color:#ffffff;
                  padding-top:24px;padding-right:32px;padding-bottom:4px;padding-left:32px;">
         <p style="margin-top:0;margin-right:0;margin-bottom:4px;margin-left:0;
                   font-size:16px;font-weight:700;color:#1a1a1a;
@@ -544,6 +543,9 @@ function buildEmail(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
+  <style>
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; border: none; border-collapse: collapse; }
+  </style>
 </head>
 <body bgcolor="#f0f0ed" style="margin:0;padding:0;background-color:#f0f0ed;">
 
@@ -552,7 +554,7 @@ function buildEmail(
        style="background-color:#f0f0ed;border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
     <td align="center"
-        style="padding-top:32px;padding-right:16px;padding-bottom:32px;padding-left:16px;">
+        style="border:none;padding-top:32px;padding-right:16px;padding-bottom:32px;padding-left:16px;">
 
       <!-- Inner card: 560px, white, bordered -->
       <table width="560" cellpadding="0" cellspacing="0" border="1" bgcolor="#ffffff"
@@ -562,10 +564,10 @@ function buildEmail(
         <!-- ── Header ── -->
         <tr>
           <td bgcolor="#ffffff"
-              style="background-color:#ffffff;
+              style="border:none;background-color:#ffffff;
                      padding-top:24px;padding-right:32px;
                      padding-bottom:20px;padding-left:32px;
-                     border-bottom:1px solid #e8e5e0;border-top:0;border-left:0;border-right:0;">
+                     border-bottom:1px solid #e8e5e0;">
             <img src="https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/venn_logo_primary.png"
                  alt="Venn" height="30"
                  style="display:block;border:0;height:30px;">
@@ -575,10 +577,9 @@ function buildEmail(
         <!-- ── Intro ── -->
         <tr>
           <td bgcolor="#ffffff"
-              style="background-color:#ffffff;
+              style="border:none;background-color:#ffffff;
                      padding-top:28px;padding-right:32px;
-                     padding-bottom:8px;padding-left:32px;
-                     border:0;">
+                     padding-bottom:8px;padding-left:32px;">
             <p style="margin-top:0;margin-right:0;margin-bottom:6px;margin-left:0;
                       font-size:12px;color:#999;text-transform:uppercase;
                       letter-spacing:0.8px;font-weight:600;
@@ -600,11 +601,11 @@ function buildEmail(
 
         <!-- ── Divider ── -->
         <tr>
-          <td style="padding-top:16px;padding-right:32px;padding-bottom:0;padding-left:32px;border:0;">
+          <td style="border:none;padding-top:16px;padding-right:32px;padding-bottom:0;padding-left:32px;">
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
               <tr>
                 <td height="1" bgcolor="#f0ede8"
-                    style="height:1px;line-height:1px;font-size:1px;background-color:#f0ede8;">&#8203;</td>
+                    style="border:none;height:1px;line-height:1px;font-size:1px;background-color:#f0ede8;">&#8203;</td>
               </tr>
             </table>
           </td>
@@ -622,10 +623,10 @@ function buildEmail(
         <!-- ── Footer ── -->
         <tr>
           <td bgcolor="#f7f5f2"
-              style="background-color:#f7f5f2;
+              style="border:none;background-color:#f7f5f2;
                      padding-top:20px;padding-right:32px;
                      padding-bottom:20px;padding-left:32px;
-                     border-top:1px solid #e8e5e0;border-bottom:0;border-left:0;border-right:0;">
+                     border-top:1px solid #e8e5e0;">
             <p style="margin-top:0;margin-right:0;margin-bottom:0;margin-left:0;
                       font-size:12px;color:#999;line-height:1.6;
                       font-family:Helvetica,Arial,sans-serif;">
