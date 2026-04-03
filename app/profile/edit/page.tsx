@@ -57,6 +57,7 @@ export default function ProfileEditPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 
   const [matchingPausedUntil, setMatchingPausedUntil] = useState<string | null>(null)
+  const [pauseLoading, setPauseLoading] = useState(false)
 
   const [deactivateStep, setDeactivateStep] = useState<'idle' | 'confirm'>('idle')
   const [deactivateLoading, setDeactivateLoading] = useState(false)
@@ -124,15 +125,21 @@ export default function ProfileEditPage() {
     }
   }
 
-  function handlePauseToggle() {
+  async function handlePauseToggle() {
+    if (!userId) return
+    setPauseLoading(true)
     const isPaused = matchingPausedUntil && new Date(matchingPausedUntil) > new Date()
     if (isPaused) {
-      setMatchingPausedUntil(null)
+      const { error } = await supabase.from('profiles').update({ matching_paused_until: null }).eq('user_id', userId)
+      if (!error) setMatchingPausedUntil(null)
     } else {
       const until = new Date()
       until.setDate(until.getDate() + 30)
-      setMatchingPausedUntil(until.toISOString())
+      const isoUntil = until.toISOString()
+      const { error } = await supabase.from('profiles').update({ matching_paused_until: isoUntil }).eq('user_id', userId)
+      if (!error) setMatchingPausedUntil(isoUntil)
     }
+    setPauseLoading(false)
   }
 
   async function handleDeactivate() {
@@ -201,10 +208,8 @@ export default function ProfileEditPage() {
       .from('profiles')
       .update({
         ...profileData,
-        cofounder_interest:    cofounderInterest,
-        matching_opt_in:       matchingOptIn,
-        matching_paused_until: matchingPausedUntil,
-        completeness_score:    score,
+        cofounder_interest: cofounderInterest,
+        completeness_score: score,
       })
       .eq('user_id', userId)
 
@@ -510,8 +515,8 @@ export default function ProfileEditPage() {
               </div>
             </div>
 
-            {/* 12. Matching opt-in */}
-            <div>
+            {/* 12. Matching opt-in — hidden for now, restore when needed */}
+            {/* <div>
               <div className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
                 <p className="text-sm font-medium text-gray-700">Receive weekly match suggestions</p>
                 <button
@@ -528,17 +533,21 @@ export default function ProfileEditPage() {
                   />
                 </button>
               </div>
+            </div> */}
 
-              {matchingOptIn && (() => {
+            {/* Pause matching */}
+            <div>
+              {(() => {
                 const isPaused = !!matchingPausedUntil && new Date(matchingPausedUntil) > new Date()
                 return (
-                  <div className="mt-2">
+                  <div>
                     <div className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
                       <p className="text-sm font-medium text-gray-700">Pause matching</p>
                       <button
                         type="button"
                         onClick={handlePauseToggle}
-                        className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 ${
+                        disabled={pauseLoading}
+                        className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 disabled:opacity-50 ${
                           isPaused ? 'bg-brand' : 'bg-gray-200'
                         }`}
                       >
