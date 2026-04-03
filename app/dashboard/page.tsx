@@ -1081,6 +1081,7 @@ function buildDemoMatches(currentUserId: string): MatchWithProfile[] {
       matched_name: 'Raj Patel',
       matched_avatar: null,
       matched_bio: null,
+      matched_subtitle: null,
     },
     {
       id: 'demo-match-3',
@@ -1098,6 +1099,7 @@ function buildDemoMatches(currentUserId: string): MatchWithProfile[] {
       matched_name: 'James Okafor',
       matched_avatar: null,
       matched_bio: null,
+      matched_subtitle: null,
     },
   ]
 }
