@@ -116,9 +116,9 @@ function buildMatchCards(matchItems: MatchItem[], baseUrl: string): string {
                 style="padding-right:16px;">
               <table cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td width="48" height="48" bgcolor="#e8e4f4"
+                  <td width="48" height="48" bgcolor="#e8e4f4" border="0"
                       align="center" valign="middle"
-                      style="width:48px;height:48px;background-color:#e8e4f4;border-radius:8px;
+                      style="width:48px;height:48px;background-color:#e8e4f4;border:0;outline:0;border-radius:8px;
                              text-align:center;vertical-align:middle;
                              font-size:16px;font-weight:700;color:#1E3A5F;
                              font-family:Helvetica,Arial,sans-serif;">
@@ -267,9 +267,9 @@ function buildStartupCards(startupItems: StartupMatchItem[], baseUrl: string): s
                 style="padding-right:16px;">
               <table cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td width="48" height="48" bgcolor="#e8f0f7"
+                  <td width="48" height="48" bgcolor="#e8f0f7" border="0"
                       align="center" valign="middle"
-                      style="width:48px;height:48px;background-color:#e8f0f7;border-radius:8px;
+                      style="width:48px;height:48px;background-color:#e8f0f7;border:0;outline:0;border-radius:8px;
                              text-align:center;vertical-align:middle;
                              font-size:16px;font-weight:700;color:#1E3A5F;
                              font-family:Helvetica,Arial,sans-serif;">
@@ -354,9 +354,9 @@ function buildPersonStartupCards(items: PersonStartupMatchItem[], baseUrl: strin
             <td width="64" valign="top" style="padding-right:16px;">
               <table cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td width="48" height="48" bgcolor="#e8f0f7"
+                  <td width="48" height="48" bgcolor="#e8f0f7" border="0"
                       align="center" valign="middle"
-                      style="width:48px;height:48px;background-color:#e8f0f7;border-radius:8px;
+                      style="width:48px;height:48px;background-color:#e8f0f7;border:0;outline:0;border-radius:8px;
                              text-align:center;vertical-align:middle;
                              font-size:16px;font-weight:700;color:#1E3A5F;
                              font-family:Helvetica,Arial,sans-serif;">
@@ -764,22 +764,24 @@ export async function POST(req: NextRequest) {
     (founderStartupRows ?? []).map((s) => [s.founder_id, s])
   )
 
-  // Fetch startup_startup matches for this week involving any founder startup
-  const founderStartupIds = (founderStartupRows ?? []).map((s) => s.id)
-  let startupMatchesByStartupId = new Map<string, { otherStartupId: string; score: number }[]>()
+  // Build a Set of startup IDs (s.id) — NOT founder user IDs — for the startup_startup query
+  const founderStartupIdSet = new Set((founderStartupRows ?? []).map((s) => s.id))
+  const founderStartupIdList = [...founderStartupIdSet]
 
-  if (founderStartupIds.length > 0) {
+  const startupMatchesByStartupId = new Map<string, { otherStartupId: string; score: number }[]>()
+
+  if (founderStartupIdList.length > 0) {
     const { data: ssMatchRows } = await supabase
       .from('matches')
       .select('user_id_1, user_id_2, match_score')
       .eq('week_of', weekOf)
       .eq('match_type', 'startup_startup')
-      .or(`user_id_1.in.(${founderStartupIds.join(',')}),user_id_2.in.(${founderStartupIds.join(',')})`)
+      .or(`user_id_1.in.(${founderStartupIdList.join(',')}),user_id_2.in.(${founderStartupIdList.join(',')})`)
 
-    const founderStartupIdSet = new Set(founderStartupIds)
     for (const row of ssMatchRows ?? []) {
-      const ourId    = founderStartupIdSet.has(row.user_id_1) ? row.user_id_1 : row.user_id_2
-      const otherId  = ourId === row.user_id_1 ? row.user_id_2 : row.user_id_1
+      // user_id_1 and user_id_2 in startup_startup rows are startup IDs, not user IDs
+      const ourId   = founderStartupIdSet.has(row.user_id_1) ? row.user_id_1 : row.user_id_2
+      const otherId = ourId === row.user_id_1 ? row.user_id_2 : row.user_id_1
       if (!startupMatchesByStartupId.has(ourId)) startupMatchesByStartupId.set(ourId, [])
       startupMatchesByStartupId.get(ourId)!.push({ otherStartupId: otherId, score: row.match_score ?? 0 })
     }
