@@ -330,18 +330,9 @@ export default function NewStartupPage() {
 
             {/* Description */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                  Description <span className="text-red-500">*</span>
-                </label>
-                <span
-                  className={`text-xs ${
-                    description.length > DESC_MAX ? 'text-red-500' : 'text-gray-400'
-                  }`}
-                >
-                  {description.length}/{DESC_MAX}
-                </span>
-              </div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Description <span className="text-red-500">*</span>
+              </label>
               <textarea
                 id="description"
                 rows={4}
@@ -352,6 +343,7 @@ export default function NewStartupPage() {
                 maxLength={DESC_MAX}
                 className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition resize-none"
               />
+              <p className={`text-xs mt-1 ${DESC_MAX - description.length < 20 ? 'text-red-500' : DESC_MAX - description.length < 100 ? 'text-orange-400' : 'text-gray-400'}`}>{DESC_MAX - description.length} characters remaining</p>
             </div>
 
             {/* Website URL */}

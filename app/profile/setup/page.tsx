@@ -296,7 +296,7 @@ export default function ProfileSetupPage() {
               />
               <div className="flex justify-between mt-1">
                 {fieldErrors.bio ? <p className="text-xs text-red-600">{fieldErrors.bio}</p> : <span />}
-                <p className={`text-xs ${bio.length >= 500 ? 'text-red-500' : 'text-gray-400'}`}>{bio.length}/500</p>
+                <p className={`text-xs ${500 - bio.length < 20 ? 'text-red-500' : 500 - bio.length < 100 ? 'text-orange-400' : 'text-gray-400'}`}>{500 - bio.length} characters remaining</p>
               </div>
             </div>
 
@@ -421,7 +421,7 @@ export default function ProfileSetupPage() {
               />
               <div className="flex justify-between mt-1">
                 {fieldErrors.lookingFor ? <p className="text-xs text-red-600">{fieldErrors.lookingFor}</p> : <span />}
-                <p className={`text-xs ${lookingFor.length >= 500 ? 'text-red-500' : 'text-gray-400'}`}>{lookingFor.length}/500</p>
+                <p className={`text-xs ${500 - lookingFor.length < 20 ? 'text-red-500' : 500 - lookingFor.length < 100 ? 'text-orange-400' : 'text-gray-400'}`}>{500 - lookingFor.length} characters remaining</p>
               </div>
             </div>
 
