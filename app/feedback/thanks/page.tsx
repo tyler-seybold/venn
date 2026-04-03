@@ -1,20 +1,18 @@
 'use client'
 
-export const dynamic = 'force-dynamic'
-
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
-export default function FeedbackThanksPage() {
+function FeedbackThanksContent() {
   const searchParams = useSearchParams()
   const vote    = searchParams.get('vote') as 'up' | 'down' | null
   const matchId = searchParams.get('match_id')
   const side    = searchParams.get('side')
 
-  const [reason, setReason]     = useState('')
+  const [reason, setReason]       = useState('')
   const [submitted, setSubmitted] = useState(false)
-  const [saving, setSaving]     = useState(false)
+  const [saving, setSaving]       = useState(false)
 
   const message = vote === 'up'
     ? "Glad that was helpful! We'll keep finding you great connections."
@@ -107,5 +105,13 @@ export default function FeedbackThanksPage() {
 
       </div>
     </div>
+  )
+}
+
+export default function FeedbackThanksPage() {
+  return (
+    <Suspense>
+      <FeedbackThanksContent />
+    </Suspense>
   )
 }
