@@ -57,7 +57,6 @@ export default function ProfileEditPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 
   const [matchingPausedUntil, setMatchingPausedUntil] = useState<string | null>(null)
-  const [pauseLoading, setPauseLoading] = useState(false)
 
   const [deactivateStep, setDeactivateStep] = useState<'idle' | 'confirm'>('idle')
   const [deactivateLoading, setDeactivateLoading] = useState(false)
@@ -125,21 +124,15 @@ export default function ProfileEditPage() {
     }
   }
 
-  async function handlePauseToggle() {
-    if (!userId) return
-    setPauseLoading(true)
+  function handlePauseToggle() {
     const isPaused = matchingPausedUntil && new Date(matchingPausedUntil) > new Date()
     if (isPaused) {
-      const { error } = await supabase.from('profiles').update({ matching_paused_until: null }).eq('user_id', userId)
-      if (!error) setMatchingPausedUntil(null)
+      setMatchingPausedUntil(null)
     } else {
       const until = new Date()
       until.setDate(until.getDate() + 30)
-      const isoUntil = until.toISOString()
-      const { error } = await supabase.from('profiles').update({ matching_paused_until: isoUntil }).eq('user_id', userId)
-      if (!error) setMatchingPausedUntil(isoUntil)
+      setMatchingPausedUntil(until.toISOString())
     }
-    setPauseLoading(false)
   }
 
   async function handleDeactivate() {
@@ -208,9 +201,10 @@ export default function ProfileEditPage() {
       .from('profiles')
       .update({
         ...profileData,
-        cofounder_interest: cofounderInterest,
-        matching_opt_in:    matchingOptIn,
-        completeness_score: score,
+        cofounder_interest:    cofounderInterest,
+        matching_opt_in:       matchingOptIn,
+        matching_paused_until: matchingPausedUntil,
+        completeness_score:    score,
       })
       .eq('user_id', userId)
 
@@ -544,8 +538,7 @@ export default function ProfileEditPage() {
                       <button
                         type="button"
                         onClick={handlePauseToggle}
-                        disabled={pauseLoading}
-                        className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 disabled:opacity-50 ${
+                        className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 ${
                           isPaused ? 'bg-brand' : 'bg-gray-200'
                         }`}
                       >

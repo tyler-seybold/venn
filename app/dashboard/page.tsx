@@ -602,9 +602,15 @@ export default function DashboardPage() {
       {/* Top Nav */}
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <span className="text-base font-semibold text-gray-900 tracking-tight">
-            Venn
-          </span>
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <svg width="38" height="22" viewBox="-2 -2 40 24" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="11" cy="11" r="10" stroke="#1E3A5F" strokeWidth="1.8" fill="none" />
+              <circle cx="27" cy="11" r="10" stroke="#1E3A5F" strokeWidth="1.8" fill="none" />
+            </svg>
+            <span style={{ fontFamily: "'Trebuchet MS', Arial, sans-serif", fontSize: '18px', fontWeight: 700, color: '#1E3A5F' }}>
+              Venn
+            </span>
+          </Link>
           {/* Right side */}
           <div className="flex items-center gap-2">
           {/* Feedback button */}
