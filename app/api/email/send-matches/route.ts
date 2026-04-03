@@ -45,6 +45,7 @@ type MatchItem = {
   blurb: string | null
   profileUrl: string
   subtitle: string | null
+  side: 1 | 2
 }
 
 type StartupMatchItem = {
@@ -72,7 +73,7 @@ const LABEL_COLORS: Record<string, string> = {
 }
 
 function buildMatchCards(matchItems: MatchItem[], baseUrl: string): string {
-  return matchItems.map(({ id, name, label, blurb, profileUrl, subtitle }, idx) => {
+  return matchItems.map(({ id, name, label, blurb, profileUrl, subtitle, side }, idx) => {
     const initials = getInitials(name)
     const badgeUrl = BADGE_URLS[label] ?? BADGE_URLS['Worth a Coffee']
     const accentColor = LABEL_COLORS[label] ?? '#1E3A5F'
@@ -161,14 +162,14 @@ function buildMatchCards(matchItems: MatchItem[], baseUrl: string): string {
                         </td>
                         <td style="border:1px solid #d0ccc8;border-right:none;
                                    border-radius:6px 0 0 6px;padding:6px 10px;font-size:14px;">
-                          <a href="${baseUrl}/api/feedback?match_id=${id}&vote=up"
+                          <a href="${baseUrl}/api/feedback?match_id=${id}&vote=up&side=${side}"
                              style="text-decoration:none;color:#444;font-family:Helvetica,Arial,sans-serif;">
                             👍
                           </a>
                         </td>
                         <td style="border:1px solid #d0ccc8;border-radius:0 6px 6px 0;
                                    padding:6px 10px;font-size:14px;">
-                          <a href="${baseUrl}/api/feedback?match_id=${id}&vote=down"
+                          <a href="${baseUrl}/api/feedback?match_id=${id}&vote=down&side=${side}"
                              style="text-decoration:none;color:#444;font-family:Helvetica,Arial,sans-serif;">
                             👎
                           </a>
@@ -453,6 +454,7 @@ export async function POST(req: NextRequest) {
           blurb: m.blurb,
           profileUrl: `${baseUrl}/people/${matchedId}`,
           subtitle,
+          side: (isUser1 ? 1 : 2) as 1 | 2,
         }
       })
       .filter((item): item is NonNullable<typeof item> => item !== null)
