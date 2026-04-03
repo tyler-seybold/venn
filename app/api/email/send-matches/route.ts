@@ -123,9 +123,9 @@ function buildMatchCards(matchItems: MatchItem[], baseUrl: string): string {
                 style="border:none;padding-right:16px;">
               <table cellpadding="0" cellspacing="0" border="0" style="border:none;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
                 <tr>
-                  <td width="48" height="48" bgcolor="#e8e4f4" border="0"
+                  <td width="48" height="48" bgcolor="#e2e8f2" border="0"
                       align="center" valign="middle"
-                      style="width:48px;height:48px;background-color:#e8e4f4;border:none;outline:0;border-collapse:collapse;border-radius:8px;
+                      style="width:48px;height:48px;background-color:#e2e8f2;border:none;outline:0;border-collapse:collapse;border-radius:8px;
                              text-align:center;vertical-align:middle;
                              font-size:16px;font-weight:700;color:#1E3A5F;
                              font-family:Helvetica,Arial,sans-serif;">

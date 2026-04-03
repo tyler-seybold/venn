@@ -16,7 +16,7 @@ const INDUSTRY_COLORS: Record<string, string> = {
   'Financial Services': 'bg-emerald-100 text-emerald-700',
   Fintech: 'bg-cyan-100 text-cyan-700',
   'Food & Beverage': 'bg-red-100 text-red-700',
-  Gaming: 'bg-violet-100 text-violet-700',
+  Gaming: 'bg-slate-100 text-slate-600',
   'Health & Wellness': 'bg-lime-100 text-lime-700',
   Healthcare: 'bg-green-100 text-green-700',
   Logistics: 'bg-stone-100 text-stone-700',
