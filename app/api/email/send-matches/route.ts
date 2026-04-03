@@ -188,14 +188,117 @@ function buildMatchCards(matchItems: MatchItem[], baseUrl: string): string {
   }).join('')
 }
 
+function buildStartupCards(startupItems: StartupMatchItem[], baseUrl: string): string {
+  return startupItems.map(({ id, name, founderName, industry, description }, idx) => {
+    const initials = getInitials(name)
+    const isLast = idx === startupItems.length - 1
+
+    const tagPills = (industry ?? []).map((tag) =>
+      `<span style="display:inline-block;padding:3px 10px;border-radius:999px;
+                    background:#f0f0ed;color:#555;font-size:12px;
+                    font-family:Helvetica,Arial,sans-serif;margin-right:4px;">${tag}</span>`
+    ).join('')
+
+    const snippet = description
+      ? (description.length > 120 ? description.slice(0, 120) + '…' : description)
+      : null
+
+    const divider = isLast ? '' : `<tr><td style="height:1px;background:#f0ede8;font-size:0;line-height:0;">&nbsp;</td></tr>`
+
+    return `
+    <tr>
+      <td style="padding:24px 32px;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <!-- Initials box -->
+            <td width="48" valign="top" style="padding-right:16px;">
+              <table cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="48" height="48"
+                      style="width:48px;height:48px;border-radius:8px;background:#e8f0f7;
+                             text-align:center;vertical-align:middle;
+                             font-size:16px;font-weight:700;color:#1E3A5F;
+                             font-family:Helvetica,Arial,sans-serif;">
+                    ${initials}
+                  </td>
+                </tr>
+              </table>
+            </td>
+            <!-- Right content -->
+            <td valign="top">
+              <!-- Name -->
+              <p style="margin:0 0 2px;font-size:16px;font-weight:700;color:#1a1a1a;
+                        font-family:Helvetica,Arial,sans-serif;">
+                ${name}
+              </p>
+              <!-- Founded by -->
+              <p style="margin:0 0 8px;font-size:13px;color:#888;
+                        font-family:Helvetica,Arial,sans-serif;">
+                Founded by ${founderName}
+              </p>
+              <!-- Industry tags -->
+              ${tagPills ? `<p style="margin:0 0 8px;">${tagPills}</p>` : ''}
+              <!-- Description snippet -->
+              ${snippet ? `<p style="margin:0 0 12px;font-size:14px;color:#555;line-height:1.6;font-family:Helvetica,Arial,sans-serif;">${snippet}</p>` : ''}
+              <!-- View Startup button -->
+              <table cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="background:#1E3A5F;border-radius:999px;padding:9px 22px;">
+                    <a href="${baseUrl}/startup/${id}"
+                       style="color:#ffffff;text-decoration:none;font-weight:700;
+                              font-family:Helvetica,Arial,sans-serif;font-size:14px;
+                              white-space:nowrap;">
+                      View Startup
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    ${divider}`
+  }).join('')
+}
+
 function buildEmail(
   recipientName: string,
   weekLabel: string,
   matchItems: MatchItem[],
   baseUrl: string,
+  startupItems?: StartupMatchItem[],
 ): string {
   const firstName = recipientName.split(' ')[0] ?? recipientName
   const matchCards = buildMatchCards(matchItems, baseUrl)
+
+  const startupSection = startupItems && startupItems.length > 0 ? `
+        <!-- Startup section divider -->
+        <tr>
+          <td style="padding:24px 32px 0;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="height:1px;background:#f0ede8;font-size:0;line-height:0;">&nbsp;</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- Startup section header -->
+        <tr>
+          <td style="padding:24px 32px 4px;">
+            <p style="margin:0 0 4px;font-size:16px;font-weight:700;color:#1a1a1a;
+                      font-family:Helvetica,Arial,sans-serif;">
+              Startups in your space
+            </p>
+            <p style="margin:0;font-size:13px;color:#888;font-family:Helvetica,Arial,sans-serif;">
+              Other founders at Kellogg working in adjacent areas.
+            </p>
+          </td>
+        </tr>
+        <!-- Startup cards -->
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          ${buildStartupCards(startupItems, baseUrl)}
+        </table>` : ''
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -272,6 +375,8 @@ function buildEmail(
         <table width="100%" cellpadding="0" cellspacing="0" border="0">
           ${matchCards}
         </table>
+
+        ${startupSection}
 
         <!-- Footer -->
         <tr>
@@ -484,7 +589,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const html = buildEmail(recipientName, weekLabel, matchItems, baseUrl)
+    const html = buildEmail(recipientName, weekLabel, matchItems, baseUrl, startupItems)
 
     await resend.emails.send({
       from: 'Venn <onboarding@resend.dev>',
