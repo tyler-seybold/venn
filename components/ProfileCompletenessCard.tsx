@@ -128,7 +128,7 @@ export default function ProfileCompletenessCard({
             <circle
               cx="32" cy="32" r={RADIUS}
               fill="none"
-              stroke="#f3f0f8"
+              stroke="#e2e8f2"
               strokeWidth="6"
             />
             {/* Progress */}

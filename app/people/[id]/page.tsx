@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase'
 
 const INDUSTRY_COLORS: Record<string, string> = {
   Advertising: 'bg-orange-100 text-orange-700',
-  AI: 'bg-indigo-100 text-indigo-700',
+  AI: 'bg-slate-100 text-slate-600',
   Apparel: 'bg-pink-100 text-pink-700',
   B2B: 'bg-amber-100 text-amber-700',
   Biotech: 'bg-lime-100 text-lime-700',
@@ -237,7 +237,7 @@ export default function PersonDetailPage() {
               {/* Founder badge + matched badge */}
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 {startups.length > 0 && (
-                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
+                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
                     Founder
                   </span>
                 )}

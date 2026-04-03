@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase'
 
 const INDUSTRY_COLORS: Record<string, string> = {
   Apparel: 'bg-pink-100 text-pink-700',
-  'Business Services': 'bg-indigo-100 text-indigo-700',
+  'Business Services': 'bg-slate-100 text-slate-600',
   Climate: 'bg-teal-100 text-teal-700',
   'Consumer Products': 'bg-orange-100 text-orange-700',
   'Consumer Services': 'bg-amber-100 text-amber-700',
@@ -337,7 +337,7 @@ export default function StartupDetailPage() {
                       <span
                         className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                           member.role === 'primary'
-                            ? 'bg-indigo-100 text-indigo-700'
+                            ? 'bg-slate-100 text-slate-600'
                             : 'bg-gray-100 text-gray-600'
                         }`}
                       >

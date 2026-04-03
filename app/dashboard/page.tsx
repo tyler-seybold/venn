@@ -120,7 +120,7 @@ const ALL_STAGES = ['Ideation', 'MVP', 'Beta Client/Pilot', 'Revenue-generating'
 
 const INDUSTRY_COLORS: Record<string, string> = {
   Advertising: 'bg-orange-100 text-orange-700',
-  AI: 'bg-indigo-100 text-indigo-700',
+  AI: 'bg-slate-100 text-slate-600',
   Apparel: 'bg-pink-100 text-pink-700',
   B2B: 'bg-amber-100 text-amber-700',
   Biotech: 'bg-lime-100 text-lime-700',
@@ -1496,7 +1496,7 @@ function PersonCard({ person: p, readOnly = false }: { person: Profile; readOnly
   const router = useRouter()
 
   const badge = p.is_founder
-    ? { label: 'Founder', className: 'bg-indigo-500/80 text-white' }
+    ? { label: 'Founder', className: 'bg-[#1E3A5F]/80 text-white' }
     : p.is_looking_for_startup
     ? { label: 'Open to joining', className: 'bg-emerald-500/80 text-white' }
     : null
