@@ -31,6 +31,21 @@ const ROLE_ORIENTATIONS = [
 
 const DEGREE_PROGRAMS = ['2Y', '1Y', 'MMM', 'MBAi', 'JD-MBA', 'MD-MBA', 'EMBA', 'E&W', 'Exchange']
 
+const COMPLETENESS_LABELS: Record<string, string> = {
+  full_name:            'Full name',
+  bio:                  'Bio (at least 50 characters)',
+  skills:               'Skills',
+  industries:           'Industry interests',
+  industry_openness:    'Industry openness',
+  looking_for:          'What you\'re looking for (at least 100 characters)',
+  graduation_year:      'Graduation year',
+  degree_program:       'Degree program',
+  avatar_url:           'Profile photo',
+  role_orientation:     'Role orientation',
+  looking_for_extended: 'Expand "what you\'re looking for" to 200+ characters',
+  industries_breadth:   'Select at least 3 industry interests',
+}
+
 export default function ProfileSetupPage() {
   const router = useRouter()
 
@@ -56,6 +71,10 @@ export default function ProfileSetupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+
+  const [nudgeOpen, setNudgeOpen] = useState(false)
+  const [nudgeScore, setNudgeScore] = useState(0)
+  const [nudgeMissingItems, setNudgeMissingItems] = useState<string[]>([])
 
   const avatarInputRef = useRef<HTMLInputElement>(null)
 
@@ -144,7 +163,7 @@ export default function ProfileSetupPage() {
       role_orientation:  roleOrientation.length > 0 ? roleOrientation : null,
       looking_for:       lookingFor || null,
     }
-    const { score } = calculateCompleteness(profileData)
+    const { score, breakdown } = calculateCompleteness(profileData)
 
     const { error: insertError } = await supabase.from('profiles').insert({
       user_id:            userId,
@@ -167,7 +186,19 @@ export default function ProfileSetupPage() {
           body: JSON.stringify({ looking_for: lookingFor.trim(), user_id: userId }),
         }).catch(() => {})
       }
-      router.push('/onboarding/startup')
+
+      const missingItems = (Object.keys(breakdown) as (keyof typeof breakdown)[])
+        .filter((key) => key !== 'personality_quiz' && breakdown[key] === 0)
+        .map((key) => COMPLETENESS_LABELS[key])
+        .filter(Boolean) as string[]
+
+      if (missingItems.length > 0) {
+        setNudgeScore(score)
+        setNudgeMissingItems(missingItems)
+        setNudgeOpen(true)
+      } else {
+        router.push('/onboarding/startup')
+      }
     }
   }
 
@@ -181,6 +212,46 @@ export default function ProfileSetupPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+
+      {/* Completeness nudge modal */}
+      {nudgeOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setNudgeOpen(false)} />
+          <div className="relative bg-white rounded-2xl shadow-xl border border-gray-200 px-8 py-8 w-full max-w-md">
+            <h2 className="text-xl font-semibold text-gray-900 mb-1">Your profile is looking good!</h2>
+            <p className="text-sm text-gray-500 mb-5">
+              Your profile is{' '}
+              <span className="font-semibold text-brand">{nudgeScore}% complete</span>.
+              {' '}Adding a few more details will improve your matches.
+            </p>
+
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Missing items</p>
+            <ul className="space-y-1.5 mb-7">
+              {nudgeMissingItems.map((item) => (
+                <li key={item} className="flex items-start gap-2 text-sm text-gray-700">
+                  <span className="mt-0.5 w-4 h-4 rounded-full border-2 border-gray-300 flex-shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => setNudgeOpen(false)}
+                className="w-full rounded-lg bg-brand hover:bg-brand-hover text-white text-sm font-medium py-2.5 transition"
+              >
+                Improve My Profile
+              </button>
+              <button
+                onClick={() => router.push('/onboarding/startup')}
+                className="w-full rounded-lg border border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-50 text-sm font-medium py-2.5 transition"
+              >
+                Keep Going
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="w-full max-w-lg">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 px-8 py-10">
           <div className="mb-8">

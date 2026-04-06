@@ -65,6 +65,20 @@ function formatWeekOf(dateStr: string | null) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 }
 
+function formatFullDate(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00Z')
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+}
+
+function nextMondayDateStr(): string {
+  const now = new Date()
+  const day = now.getUTCDay() // 0 = Sunday, 1 = Monday, …
+  const daysUntilMonday = day === 1 ? 0 : day === 0 ? 1 : 8 - day
+  const monday = new Date(now)
+  monday.setUTCDate(now.getUTCDate() + daysUntilMonday)
+  return monday.toISOString().slice(0, 10)
+}
+
 export default function AdminPage() {
   const router = useRouter()
 
@@ -381,6 +395,16 @@ export default function AdminPage() {
               Matching is currently disabled. The cron job and manual run requests will return <code className="font-mono">matching_disabled</code> unless <code className="font-mono">?force=true</code> is used.
             </p>
           )}
+
+          <div className="mt-5 pt-5 border-t border-gray-100">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">Next match scheduled for</p>
+            <p style={{ fontSize: '24px', fontWeight: 700, color: '#1E3A5F' }}>
+              {formatFullDate(nextMatchDate || nextMondayDateStr())}
+            </p>
+            {!nextMatchDate && (
+              <p className="mt-1 text-xs text-gray-400">Auto-calculated — set a specific date above to override.</p>
+            )}
+          </div>
         </div>
 
         {/* Tabs */}
