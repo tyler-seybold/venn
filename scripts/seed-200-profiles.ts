@@ -247,7 +247,7 @@ function buildProfile(index: number) {
   // Personality quiz — cluster base + 20% per-answer flip noise
   const cluster = pick(CLUSTER_POOL)
   const personalityQuiz: Record<string, string | null> = {}
-  for (const [key, val] of Object.entries(cluster.base)) {
+  for (const [key, val] of Object.entries(cluster.base) as [string, string][]) {
     personalityQuiz[key] = Math.random() < 0.2
       ? (val === 'A' ? 'B' : 'A')  // flip with 20% chance
       : val
