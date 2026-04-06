@@ -133,8 +133,10 @@ export async function POST(req: NextRequest) {
   const startupMatchCount = { value: 0 }
 
   // ── 5. People ↔ people matching ──────────────────────────────────────────────
-  // Score all unique pairs, sort globally by score, then greedily assign up to
-  // the per-user cap so the highest-quality matches are prioritised.
+  // Score all unique pairs globally, then build a per-user sorted candidate list.
+  // Users are processed in random order each run (Fisher-Yates shuffle) so no
+  // user is systematically advantaged by position. Two passes ensure users
+  // skipped in pass 1 (because their top picks were taken) get a second chance.
   type PeoplePair = { id1: string; id2: string; score: number }
   const allPeoplePairs: PeoplePair[] = []
 
@@ -149,49 +151,88 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  allPeoplePairs.sort((a, b) => b.score - a.score)
-
-  for (const { id1, id2, score } of allPeoplePairs) {
-    if ((userMatchCount.get(id1) ?? 0) >= 2) continue
-    if ((userMatchCount.get(id2) ?? 0) >= 2) continue
-    const [a, b] = [id1, id2].sort()
-    const key = `${a}:${b}`
-    if (insertedPairs.has(key)) continue
-    insertedPairs.add(key)
-    userMatchCount.set(id1, (userMatchCount.get(id1) ?? 0) + 1)
-    userMatchCount.set(id2, (userMatchCount.get(id2) ?? 0) + 1)
-    toInsert.push({ user_id_1: a, user_id_2: b, match_type: 'people_people', match_score: score, week_of: weekOf, blurb: null })
-    peopleMatchCount.value++
+  // Build per-user candidate lists sorted descending by score
+  const peopleCandidates = new Map<string, PeoplePair[]>()
+  for (const p of profiles) peopleCandidates.set(p.user_id, [])
+  for (const pair of allPeoplePairs) {
+    peopleCandidates.get(pair.id1)!.push(pair)
+    peopleCandidates.get(pair.id2)!.push(pair)
   }
+  for (const list of peopleCandidates.values()) list.sort((a, b) => b.score - a.score)
+
+  // Fisher-Yates shuffle — new random order each run prevents systematic bias
+  function shuffle<T>(arr: T[]): T[] {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]]
+    }
+    return arr
+  }
+
+  // One pass: iterate users in random order, assign each user their personal best
+  // available pair (partner has capacity, pair is new, score above threshold).
+  function runPeoplePass() {
+    const order = shuffle(profiles.map((p) => p.user_id))
+    for (const uid of order) {
+      if ((userMatchCount.get(uid) ?? 0) >= 2) continue
+      const candidates = peopleCandidates.get(uid) ?? []
+      for (const pair of candidates) {
+        const partnerId = pair.id1 === uid ? pair.id2 : pair.id1
+        if ((userMatchCount.get(partnerId) ?? 0) >= 2) continue
+        const [a, b] = [uid, partnerId].sort()
+        const key = `${a}:${b}`
+        if (insertedPairs.has(key)) continue
+        insertedPairs.add(key)
+        userMatchCount.set(uid,       (userMatchCount.get(uid)       ?? 0) + 1)
+        userMatchCount.set(partnerId, (userMatchCount.get(partnerId) ?? 0) + 1)
+        toInsert.push({ user_id_1: a, user_id_2: b, match_type: 'people_people', match_score: pair.score, week_of: weekOf, blurb: null })
+        peopleMatchCount.value++
+        break // one match assigned this pass; move to next user
+      }
+    }
+  }
+
+  runPeoplePass() // pass 1
+  runPeoplePass() // pass 2: fills users who had capacity but were skipped in pass 1
 
   // ── 6. People ↔ startup matching ─────────────────────────────────────────────
-  // Only fill remaining capacity (up to 2 total) with startup matches.
-  for (const profile of profiles) {
-    if ((userMatchCount.get(profile.user_id) ?? 0) >= 2) continue
+  // Same per-user best-match approach: score all startup candidates per user,
+  // sort by score, process users in random order, assign best available.
+  // Two passes to fill remaining capacity after people↔people matching.
+  function runStartupPass() {
+    const order = shuffle(profiles.map((p) => p.user_id))
+    for (const uid of order) {
+      if ((userMatchCount.get(uid) ?? 0) >= 2) continue
 
-    const candidates: { startupId: string; score: number }[] = []
+      const profile = profiles.find((p) => p.user_id === uid)!
+      const candidates: { startupId: string; score: number }[] = []
 
-    for (const startup of startups) {
-      if (startup.founder_id === profile.user_id) continue
-      if (pairExists(profile.user_id, startup.id)) continue
-      const { total } = scorePersonStartupMatch(profile, startup)
-      if (total < MATCH_THRESHOLDS.minimum) continue
-      candidates.push({ startupId: startup.id, score: total })
-    }
+      for (const startup of startups) {
+        if (startup.founder_id === uid) continue
+        if (pairExists(uid, startup.id)) continue
+        const { total } = scorePersonStartupMatch(profile, startup)
+        if (total < MATCH_THRESHOLDS.minimum) continue
+        candidates.push({ startupId: startup.id, score: total })
+      }
 
-    candidates.sort((a, b) => b.score - a.score)
+      candidates.sort((a, b) => b.score - a.score)
 
-    for (const { startupId, score } of candidates) {
-      if ((userMatchCount.get(profile.user_id) ?? 0) >= 2) break
-      const [a, b] = [profile.user_id, startupId].sort()
-      const key = `${a}:${b}`
-      if (insertedPairs.has(key)) continue
-      insertedPairs.add(key)
-      userMatchCount.set(profile.user_id, (userMatchCount.get(profile.user_id) ?? 0) + 1)
-      toInsert.push({ user_id_1: profile.user_id, user_id_2: startupId, match_type: 'people_startup', match_score: score, week_of: weekOf, blurb: null })
-      startupMatchCount.value++
+      for (const { startupId, score } of candidates) {
+        if ((userMatchCount.get(uid) ?? 0) >= 2) break
+        const [a, b] = [uid, startupId].sort()
+        const key = `${a}:${b}`
+        if (insertedPairs.has(key)) continue
+        insertedPairs.add(key)
+        userMatchCount.set(uid, (userMatchCount.get(uid) ?? 0) + 1)
+        toInsert.push({ user_id_1: uid, user_id_2: startupId, match_type: 'people_startup', match_score: score, week_of: weekOf, blurb: null })
+        startupMatchCount.value++
+        break
+      }
     }
   }
+
+  runStartupPass() // pass 1
+  runStartupPass() // pass 2
 
   // ── 7. Startup ↔ startup similarity matching ─────────────────────────────────
   // Score every unique startup pair, skip below threshold and existing pairs,
