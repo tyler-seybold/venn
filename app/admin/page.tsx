@@ -97,6 +97,7 @@ export default function AdminPage() {
   const [matchingEnabled, setMatchingEnabled] = useState(true)
   const [matchFrequency, setMatchFrequency] = useState<'weekly' | 'biweekly' | 'monthly'>('weekly')
   const [nextMatchDate, setNextMatchDate] = useState('')
+  const [savedNextMatchDate, setSavedNextMatchDate] = useState('')
   const [settingsSaving, setSettingsSaving] = useState(false)
   const [settingsSaved, setSettingsSaved] = useState(false)
 
@@ -157,6 +158,7 @@ export default function AdminPage() {
         setMatchingEnabled(settingsData.matching_enabled)
         setMatchFrequency(settingsData.match_frequency as 'weekly' | 'biweekly' | 'monthly')
         setNextMatchDate(settingsData.next_match_date ?? '')
+        setSavedNextMatchDate(settingsData.next_match_date ?? '')
       }
 
       setStartups(
@@ -259,6 +261,7 @@ export default function AdminPage() {
     }).eq('id', 1)
     setSettingsSaving(false)
     setSettingsSaved(true)
+    setSavedNextMatchDate(nextMatchDate)
     setTimeout(() => setSettingsSaved(false), 2500)
   }
 
@@ -399,9 +402,9 @@ export default function AdminPage() {
           <div className="mt-5 pt-5 border-t border-gray-100">
             <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">Next match scheduled for</p>
             <p style={{ fontSize: '24px', fontWeight: 700, color: '#1E3A5F' }}>
-              {formatFullDate(nextMatchDate || nextMondayDateStr())}
+              {formatFullDate(savedNextMatchDate || nextMondayDateStr())}
             </p>
-            {!nextMatchDate && (
+            {!savedNextMatchDate && (
               <p className="mt-1 text-xs text-gray-400">Auto-calculated — set a specific date above to override.</p>
             )}
           </div>
