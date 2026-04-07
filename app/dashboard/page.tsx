@@ -69,6 +69,7 @@ type MatchWithProfile = {
   matched_bio: string | null
   matched_subtitle: string | null
   matched_slack_handle: string | null
+  matched_email: string | null
 }
 
 function getWeekOf(date: Date): string {
@@ -507,7 +508,7 @@ export default function DashboardPage() {
         peopleRows.map((m) => m.user_id_1 === userId ? m.user_id_2 : m.user_id_1)
       )]
       const { data: profileRows } = peopleOtherIds.length > 0
-        ? await supabase.from('profiles').select('user_id, full_name, avatar_url, bio, slack_handle').in('user_id', peopleOtherIds)
+        ? await supabase.from('profiles').select('user_id, full_name, avatar_url, bio, slack_handle, email').in('user_id', peopleOtherIds)
         : { data: [] }
       const profileMap = Object.fromEntries((profileRows ?? []).map((p) => [p.user_id, p]))
 
@@ -534,6 +535,7 @@ export default function DashboardPage() {
           matched_bio: prof?.bio ?? null,
           matched_subtitle: null as string | null,
           matched_slack_handle: (prof as { slack_handle?: string | null } | null)?.slack_handle ?? null,
+          matched_email: (prof as { email?: string | null } | null)?.email ?? null,
         }
       })
 
@@ -547,6 +549,7 @@ export default function DashboardPage() {
           matched_bio: startup?.description ?? null,
           matched_subtitle: founderName ? `Founded by ${founderName}` : null,
           matched_slack_handle: null as string | null,
+          matched_email: null as string | null,
         }
       })
 
@@ -1074,6 +1077,7 @@ function buildDemoMatches(currentUserId: string): MatchWithProfile[] {
       matched_bio: null,
       matched_subtitle: null,
       matched_slack_handle: null,
+      matched_email: null,
     },
     {
       id: 'demo-match-2',
@@ -1093,6 +1097,7 @@ function buildDemoMatches(currentUserId: string): MatchWithProfile[] {
       matched_bio: null,
       matched_subtitle: null,
       matched_slack_handle: null,
+      matched_email: null,
     },
     {
       id: 'demo-match-3',
@@ -1112,6 +1117,7 @@ function buildDemoMatches(currentUserId: string): MatchWithProfile[] {
       matched_bio: null,
       matched_subtitle: null,
       matched_slack_handle: null,
+      matched_email: null,
     },
   ]
 }
@@ -1199,17 +1205,6 @@ function MatchCard({
             {m.matched_subtitle && (
               <p className="text-xs text-gray-500 mt-0.5">{m.matched_subtitle}</p>
             )}
-            {!isStartupMatch && m.matched_slack_handle && (
-              <a
-                href={`https://kellogg-mba.slack.com/team/${m.matched_slack_handle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="inline-block mt-1 text-xs text-brand hover:underline"
-              >
-                Message on Slack →
-              </a>
-            )}
             {label && (
               <span
                 className="inline-block mt-1.5 text-xs font-semibold px-3 py-1 rounded-full text-white"
@@ -1239,7 +1234,7 @@ function MatchCard({
         </div>
       </Link>
 
-      {/* Footer: feedback — outside Link so thumbs don't navigate */}
+      {/* Footer: feedback + action buttons — outside Link so they don't navigate */}
       <div className="border-t border-gray-100">
         <div className="px-4 py-3 flex items-center gap-2">
           <span className="text-xs text-gray-500 mr-auto">Was this a good match?</span>
@@ -1268,6 +1263,29 @@ function MatchCard({
             </button>
           </div>
         </div>
+        {!isStartupMatch && (m.matched_email || m.matched_slack_handle) && (
+          <div className="px-4 pb-3 flex items-center gap-2 border-t border-gray-100 pt-3">
+            {m.matched_email && (
+              <a
+                href={`mailto:${m.matched_email}`}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-medium px-3 py-1.5 transition"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                Email
+              </a>
+            )}
+            {m.matched_slack_handle && (
+              <a
+                href={`https://kellogg-mba.slack.com/team/${m.matched_slack_handle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-medium px-3 py-1.5 transition"
+              >
+                Message on Slack
+              </a>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Reason popover — fixed position to escape overflow:hidden */}
