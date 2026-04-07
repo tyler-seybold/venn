@@ -84,9 +84,9 @@ function truncateAtWord(text: string, limit: number): string {
 }
 
 const LABEL_COLORS: Record<string, string> = {
-  'Perfect Fit':   '#1E3A5F',
-  'Strong Match':  '#1E3A5F',
-  'Good Match':    '#2E7D32',
+  'Perfect Fit':   '#0D7377',
+  'Strong Match':  '#7B1D3A',
+  'Good Match':    '#0284C7',
   'Worth a Coffee':'#E65100',
 }
 

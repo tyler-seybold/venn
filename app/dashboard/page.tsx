@@ -1254,9 +1254,12 @@ function MatchCard({
           </div>
 
           {/* Venn says callout */}
-          <div className="flex items-start gap-2 bg-[#e8edf5] rounded-xl px-4 py-3">
-            <Sparkles className="w-3.5 h-3.5 text-[#1E3A5F] flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-[#1E3A5F] leading-relaxed italic">
+          <div
+            className="flex items-start gap-2 rounded-xl px-4 py-3"
+            style={{ backgroundColor: `${labelColor}15` }}
+          >
+            <Sparkles className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: labelColor }} />
+            <p className="text-xs leading-relaxed italic" style={{ color: labelColor }}>
               {m.blurb
                 ? <><span className="font-semibold not-italic">Venn says: </span>{m.blurb}</>
                 : 'Your personalized match note is on its way.'

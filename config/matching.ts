@@ -16,9 +16,9 @@ export function getMatchLabel(score: number): string {
 
 export function getMatchLabelColor(label: string): string {
   switch (label) {
-    case "Perfect Fit": return "#1E3A5F"
-    case "Strong Match": return "#1E3A5F"
-    case "Good Match": return "#2E7D32"
+    case "Perfect Fit": return "#0D7377"
+    case "Strong Match": return "#7B1D3A"
+    case "Good Match": return "#0284C7"
     case "Worth a Coffee": return "#E65100"
     default: return "#757575"
   }
