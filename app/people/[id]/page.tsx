@@ -53,6 +53,7 @@ type Profile = {
   user_id: string
   full_name: string | null
   email: string | null
+  slack_handle: string | null
   bio: string | null
   skills: string[] | null
   industries: string[] | null
@@ -209,22 +210,38 @@ export default function PersonDetailPage() {
                 <h1 className="text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
                   {profile.full_name ?? '—'}
                 </h1>
-                {currentUserId === profile.user_id ? (
-                  <button
-                    onClick={() => router.push('/profile/edit')}
-                    className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-medium px-3 py-1.5 transition"
-                  >
-                    Edit Profile
-                  </button>
-                ) : profile.email && (
-                  <a
-                    href={`mailto:${profile.email}`}
-                    className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-medium px-3 py-1.5 transition"
-                  >
-                    <Mail className="w-3.5 h-3.5" />
-                    Email
-                  </a>
-                )}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {currentUserId === profile.user_id ? (
+                    <button
+                      onClick={() => router.push('/profile/edit')}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-medium px-3 py-1.5 transition"
+                    >
+                      Edit Profile
+                    </button>
+                  ) : (
+                    <>
+                      {profile.email && (
+                        <a
+                          href={`mailto:${profile.email}`}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-medium px-3 py-1.5 transition"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                          Email
+                        </a>
+                      )}
+                      {profile.slack_handle && (
+                        <a
+                          href={`https://kellogg-mba.slack.com/team/${profile.slack_handle}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-medium px-3 py-1.5 transition"
+                        >
+                          Message on Slack
+                        </a>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
 
               {/* Grad year + degree */}

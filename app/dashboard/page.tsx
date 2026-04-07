@@ -68,6 +68,7 @@ type MatchWithProfile = {
   matched_avatar: string | null
   matched_bio: string | null
   matched_subtitle: string | null
+  matched_slack_handle: string | null
 }
 
 function getWeekOf(date: Date): string {
@@ -506,7 +507,7 @@ export default function DashboardPage() {
         peopleRows.map((m) => m.user_id_1 === userId ? m.user_id_2 : m.user_id_1)
       )]
       const { data: profileRows } = peopleOtherIds.length > 0
-        ? await supabase.from('profiles').select('user_id, full_name, avatar_url, bio').in('user_id', peopleOtherIds)
+        ? await supabase.from('profiles').select('user_id, full_name, avatar_url, bio, slack_handle').in('user_id', peopleOtherIds)
         : { data: [] }
       const profileMap = Object.fromEntries((profileRows ?? []).map((p) => [p.user_id, p]))
 
@@ -532,6 +533,7 @@ export default function DashboardPage() {
           matched_avatar: prof?.avatar_url ?? null,
           matched_bio: prof?.bio ?? null,
           matched_subtitle: null as string | null,
+          matched_slack_handle: (prof as { slack_handle?: string | null } | null)?.slack_handle ?? null,
         }
       })
 
@@ -544,6 +546,7 @@ export default function DashboardPage() {
           matched_avatar: null as string | null,
           matched_bio: startup?.description ?? null,
           matched_subtitle: founderName ? `Founded by ${founderName}` : null,
+          matched_slack_handle: null as string | null,
         }
       })
 
@@ -1070,6 +1073,7 @@ function buildDemoMatches(currentUserId: string): MatchWithProfile[] {
       matched_avatar: null,
       matched_bio: null,
       matched_subtitle: null,
+      matched_slack_handle: null,
     },
     {
       id: 'demo-match-2',
@@ -1088,6 +1092,7 @@ function buildDemoMatches(currentUserId: string): MatchWithProfile[] {
       matched_avatar: null,
       matched_bio: null,
       matched_subtitle: null,
+      matched_slack_handle: null,
     },
     {
       id: 'demo-match-3',
@@ -1106,6 +1111,7 @@ function buildDemoMatches(currentUserId: string): MatchWithProfile[] {
       matched_avatar: null,
       matched_bio: null,
       matched_subtitle: null,
+      matched_slack_handle: null,
     },
   ]
 }
@@ -1192,6 +1198,17 @@ function MatchCard({
             <h3 className="font-semibold text-gray-900 text-base leading-tight">{m.matched_name ?? 'Unknown'}</h3>
             {m.matched_subtitle && (
               <p className="text-xs text-gray-500 mt-0.5">{m.matched_subtitle}</p>
+            )}
+            {!isStartupMatch && m.matched_slack_handle && (
+              <a
+                href={`https://kellogg-mba.slack.com/team/${m.matched_slack_handle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-block mt-1 text-xs text-brand hover:underline"
+              >
+                Message on Slack →
+              </a>
             )}
             {label && (
               <span

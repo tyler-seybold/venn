@@ -48,6 +48,7 @@ export default function ProfileEditPage() {
   const [industryOpenness, setIndustryOpenness] = useState('')
   const [roleOrientation, setRoleOrientation] = useState<string[]>([])
   const [lookingFor, setLookingFor] = useState('')
+  const [slackHandle, setSlackHandle] = useState('')
   const [cofounderInterest, setCofounderInterest] = useState(false)
   const [matchingOptIn, setMatchingOptIn] = useState(true)
 
@@ -98,6 +99,7 @@ export default function ProfileEditPage() {
         setIndustryOpenness(profile.industry_openness ?? '')
         setRoleOrientation(profile.role_orientation ?? [])
         setLookingFor(profile.looking_for ?? '')
+        setSlackHandle(profile.slack_handle ?? '')
         setCofounderInterest(profile.cofounder_interest ?? false)
         setMatchingOptIn(profile.matching_opt_in ?? true)
         setMatchingPausedUntil(profile.matching_paused_until ?? null)
@@ -208,6 +210,7 @@ export default function ProfileEditPage() {
       .from('profiles')
       .update({
         ...profileData,
+        slack_handle:       slackHandle.trim() || null,
         cofounder_interest: cofounderInterest,
         completeness_score: score,
       })
@@ -495,7 +498,37 @@ export default function ProfileEditPage() {
               </div>
             </div>
 
-            {/* 11. Co-founder interest */}
+            {/* 11. Slack Member ID */}
+            <div>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <label htmlFor="slackHandle" className="text-sm font-medium text-gray-700">
+                  Slack Member ID <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <div className="relative group">
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs font-medium flex items-center justify-center hover:bg-gray-300 transition flex-shrink-0"
+                  >
+                    ?
+                  </button>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-900 text-white text-xs rounded-lg px-3 py-2.5 leading-relaxed opacity-0 group-hover:opacity-100 pointer-events-none transition z-10">
+                    Go to Slack → open your profile → click the three-dot menu (•••) → click &ldquo;Copy member ID&rdquo;. Your ID starts with &ldquo;U&rdquo; and is different from your display name or handle.
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                  </div>
+                </div>
+              </div>
+              <input
+                id="slackHandle"
+                type="text"
+                value={slackHandle}
+                onChange={(e) => setSlackHandle(e.target.value)}
+                placeholder="e.g. UUA000B10"
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
+              />
+            </div>
+
+            {/* 12. Co-founder interest */}
             <div>
               <div className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
                 <p className="text-sm font-medium text-gray-700">Interested in finding a co-founder?</p>
