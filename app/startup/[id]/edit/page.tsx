@@ -60,6 +60,7 @@ export default function EditStartupPage() {
 
   // Auth + ownership state
   const [userId, setUserId] = useState<string | null>(null)
+  const [userName, setUserName] = useState<string | null>(null)
   const [authChecked, setAuthChecked] = useState(false)
 
   // Form fields
@@ -81,7 +82,7 @@ export default function EditStartupPage() {
   // Co-founders state
   const [coFounders, setCoFounders] = useState<Array<{ id: string; user_id: string; full_name: string | null; email: string | null }>>([])
   const [memberSearch, setMemberSearch] = useState('')
-  const [searchResults, setSearchResults] = useState<Array<{ user_id: string; full_name: string | null; email: string | null }>>([])
+  const [searchResults, setSearchResults] = useState<Array<{ user_id: string; full_name: string | null; email: string | null; graduation_year: number | null; degree_program: string | null }>>([])
   const [searchLoading, setSearchLoading] = useState(false)
   const [addingMember, setAddingMember] = useState(false)
 
@@ -115,17 +116,33 @@ export default function EditStartupPage() {
         return
       }
 
-      // Allow primary founder or admin
+      // Allow primary founder, co-founder, or admin
       if (startup.founder_id !== uid) {
-        const { data: callerProfile } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('user_id', uid)
-          .single()
-        if (!callerProfile?.is_admin) {
+        const [{ data: memberData }, { data: callerProfile }] = await Promise.all([
+          supabase
+            .from('startup_members')
+            .select('role')
+            .eq('startup_id', id)
+            .eq('user_id', uid)
+            .single(),
+          supabase
+            .from('profiles')
+            .select('is_admin, full_name')
+            .eq('user_id', uid)
+            .single(),
+        ])
+        if (memberData?.role !== 'co-founder' && !callerProfile?.is_admin) {
           router.replace('/dashboard')
           return
         }
+        setUserName(callerProfile?.full_name ?? null)
+      } else {
+        const { data: callerProfile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('user_id', uid)
+          .single()
+        setUserName(callerProfile?.full_name ?? null)
       }
 
       // Pre-populate fields
@@ -173,15 +190,15 @@ export default function EditStartupPage() {
     setSearchLoading(true)
     const { data } = await supabase
       .from('profiles')
-      .select('user_id, full_name, email')
-      .ilike('full_name', `%${query}%`)
+      .select('user_id, full_name, email, graduation_year, degree_program')
+      .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
       .limit(8)
     const existingIds = new Set([...coFounders.map((m) => m.user_id), userId ?? ''])
     setSearchResults((data ?? []).filter((p) => !existingIds.has(p.user_id)))
     setSearchLoading(false)
   }
 
-  async function addCoFounder(profile: { user_id: string; full_name: string | null; email: string | null }) {
+  async function addCoFounder(profile: { user_id: string; full_name: string | null; email: string | null; graduation_year: number | null; degree_program: string | null }) {
     setAddingMember(true)
     const { data, error: insertErr } = await supabase
       .from('startup_members')
@@ -189,9 +206,22 @@ export default function EditStartupPage() {
       .select('id')
       .single()
     if (!insertErr && data) {
-      setCoFounders((prev) => [...prev, { id: data.id, ...profile }])
+      setCoFounders((prev) => [...prev, { id: data.id, user_id: profile.user_id, full_name: profile.full_name, email: profile.email }])
       setSearchResults((prev) => prev.filter((p) => p.user_id !== profile.user_id))
       setMemberSearch('')
+      // Fire-and-forget notification email
+      fetch('/api/startup/notify-cofounder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          startupId: id,
+          startupName,
+          cofounderUserId: profile.user_id,
+          cofounderEmail: profile.email,
+          cofounderName: profile.full_name,
+          addedByName: userName,
+        }),
+      }).catch(() => {})
     }
     setAddingMember(false)
   }
@@ -677,8 +707,10 @@ export default function EditStartupPage() {
                         className="w-full text-left px-3.5 py-2.5 text-sm text-gray-800 hover:bg-brand-light transition disabled:opacity-50"
                       >
                         <span className="font-medium">{p.full_name ?? '—'}</span>
-                        {p.email && (
-                          <span className="ml-2 text-xs text-gray-400">{p.email}</span>
+                        {(p.degree_program || p.graduation_year) && (
+                          <span className="ml-2 text-xs text-gray-400">
+                            {[p.degree_program, p.graduation_year ? `Class of ${p.graduation_year}` : null].filter(Boolean).join(' · ')}
+                          </span>
                         )}
                       </button>
                     </li>
