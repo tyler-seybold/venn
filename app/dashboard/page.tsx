@@ -1253,17 +1253,16 @@ function MatchCard({
             )}
           </div>
 
-          {/* Blurb (preferred) or bio fallback */}
-          {m.blurb ? (
-            <div>
-              <p className="text-xs text-gray-400 mb-1">Why Venn matched you:</p>
-              <p className="text-sm text-gray-700 leading-relaxed">{m.blurb}</p>
-            </div>
-          ) : m.matched_bio ? (
-            <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
-              {m.matched_bio.length > 150 ? m.matched_bio.slice(0, 150) + '…' : m.matched_bio}
+          {/* Venn says callout */}
+          <div className="flex items-start gap-2 bg-[#e8edf5] rounded-xl px-4 py-3">
+            <Sparkles className="w-3.5 h-3.5 text-[#1E3A5F] flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-[#1E3A5F] leading-relaxed italic">
+              {m.blurb
+                ? <><span className="font-semibold not-italic">Venn says: </span>{m.blurb}</>
+                : 'Your personalized match note is on its way.'
+              }
             </p>
-          ) : null}
+          </div>
 
           {/* Matched on date */}
           {matchedOn && (
