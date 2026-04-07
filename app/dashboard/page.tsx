@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Mail, ChevronDown, ChevronRight, ExternalLink, Sparkles, Rocket, Users, ThumbsUp, ThumbsDown, X, MessageSquare } from 'lucide-react'
+import { Mail, ChevronDown, ChevronRight, ExternalLink, Sparkles, Rocket, Users, ThumbsUp, ThumbsDown, X, MessageSquare, Search } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { getMatchLabel, getMatchLabelColor } from '@/config/matching'
 import ProfileCompletenessCard from '@/components/ProfileCompletenessCard'
@@ -393,8 +393,10 @@ export default function DashboardPage() {
   // Startup filters
   const [startupIndustries, setStartupIndustries] = useState<string[]>([])
   const [startupStages, setStartupStages] = useState<string[]>([])
+  const [startupSearch, setStartupSearch] = useState('')
   // People filter
   const [peopleIndustries, setPeopleIndustries] = useState<string[]>([])
+  const [peopleSearch, setPeopleSearch] = useState('')
 
   // Auth check
   useEffect(() => {
@@ -595,11 +597,19 @@ export default function DashboardPage() {
   const filteredStartups = startups.filter((s) => {
     if (startupIndustries.length > 0 && !startupIndustries.some((ind) => s.industry?.includes(ind))) return false
     if (startupStages.length > 0 && !startupStages.includes(s.stage ?? '')) return false
+    if (startupSearch.trim()) {
+      const q = startupSearch.toLowerCase()
+      if (!s.startup_name.toLowerCase().includes(q) && !(s.description ?? '').toLowerCase().includes(q)) return false
+    }
     return true
   })
 
   const filteredPeople = people.filter((p) => {
     if (peopleIndustries.length > 0 && !peopleIndustries.some((ind) => p.industries?.includes(ind))) return false
+    if (peopleSearch.trim()) {
+      const q = peopleSearch.toLowerCase()
+      if (!(p.full_name ?? '').toLowerCase().includes(q) && !(p.bio ?? '').toLowerCase().includes(q)) return false
+    }
     return true
   })
 
@@ -798,7 +808,7 @@ export default function DashboardPage() {
             ] as const).map(({ key, label, Icon }) => (
               <button
                 key={key}
-                onClick={() => setTab(key)}
+                onClick={() => { setTab(key); setStartupSearch(''); setPeopleSearch('') }}
                 className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition text-left w-full ${
                   tab === key
                     ? 'bg-brand-light text-brand'
@@ -945,7 +955,7 @@ export default function DashboardPage() {
           {tab === 'startups' && (
             <div>
               {!demoMode && (
-                <div className="flex items-center gap-2 mb-6">
+                <div className="flex items-center gap-2 mb-6 flex-wrap">
                   <FilterDropdown
                     label="Filter by Industry"
                     options={ALL_INDUSTRIES}
@@ -958,6 +968,16 @@ export default function DashboardPage() {
                     selected={startupStages}
                     onChange={setStartupStages}
                   />
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={startupSearch}
+                      onChange={(e) => setStartupSearch(e.target.value)}
+                      placeholder="Search startups..."
+                      className="pl-8 pr-3 py-2 rounded-lg border border-gray-300 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition w-48"
+                    />
+                  </div>
                   <div className="flex-1" />
                   <button
                     onClick={() => router.push('/startup/new')}
@@ -992,13 +1012,23 @@ export default function DashboardPage() {
           {tab === 'people' && (
             <div>
               {!demoMode && (
-                <div className="flex items-center gap-2 mb-6">
+                <div className="flex items-center gap-2 mb-6 flex-wrap">
                   <FilterDropdown
                     label="Filter by Industry"
                     options={ALL_INDUSTRIES}
                     selected={peopleIndustries}
                     onChange={setPeopleIndustries}
                   />
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={peopleSearch}
+                      onChange={(e) => setPeopleSearch(e.target.value)}
+                      placeholder="Search people..."
+                      className="pl-8 pr-3 py-2 rounded-lg border border-gray-300 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition w-48"
+                    />
+                  </div>
                 </div>
               )}
 
@@ -1043,7 +1073,7 @@ export default function DashboardPage() {
         ] as const).map(({ key, label, Icon }) => (
           <button
             key={key}
-            onClick={() => setTab(key)}
+            onClick={() => { setTab(key); setStartupSearch(''); setPeopleSearch('') }}
             className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 text-xs font-medium transition ${
               tab === key ? 'text-brand' : 'text-gray-400 hover:text-gray-600'
             }`}
