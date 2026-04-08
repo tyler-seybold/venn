@@ -61,6 +61,8 @@ export default function EditStartupPage() {
   // Auth + ownership state
   const [userId, setUserId] = useState<string | null>(null)
   const [userName, setUserName] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [accessToken, setAccessToken] = useState<string | null>(null)
   const [authChecked, setAuthChecked] = useState(false)
 
   // Form fields
@@ -116,6 +118,9 @@ export default function EditStartupPage() {
         return
       }
 
+      const { data: session } = await supabase.auth.getSession()
+      setAccessToken(session.session?.access_token ?? null)
+
       // Allow primary founder, co-founder, or admin
       if (startup.founder_id !== uid) {
         const [{ data: memberData }, { data: callerProfile }] = await Promise.all([
@@ -135,13 +140,15 @@ export default function EditStartupPage() {
           router.replace('/dashboard')
           return
         }
+        setIsAdmin(callerProfile?.is_admin ?? false)
         setUserName(callerProfile?.full_name ?? null)
       } else {
         const { data: callerProfile } = await supabase
           .from('profiles')
-          .select('full_name')
+          .select('is_admin, full_name')
           .eq('user_id', uid)
           .single()
+        setIsAdmin(callerProfile?.is_admin ?? false)
         setUserName(callerProfile?.full_name ?? null)
       }
 
@@ -229,6 +236,15 @@ export default function EditStartupPage() {
   async function removeCoFounder(memberId: string) {
     await supabase.from('startup_members').delete().eq('id', memberId)
     setCoFounders((prev) => prev.filter((m) => m.id !== memberId))
+  }
+
+  async function promoteFounder(newFounderUserId: string) {
+    await fetch('/api/admin/promote-founder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ startup_id: id, new_founder_id: newFounderUserId }),
+    })
+    router.refresh()
   }
 
   // Logo handlers
@@ -667,6 +683,17 @@ export default function EditStartupPage() {
                       className="flex items-center gap-1.5 bg-brand-light border border-brand-light text-brand text-sm font-medium px-3 py-1 rounded-full"
                     >
                       {m.full_name ?? m.email ?? 'Unknown'}
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => promoteFounder(m.user_id)}
+                          className="text-brand/50 hover:text-brand transition ml-0.5 text-xs"
+                          aria-label="Make Primary Founder"
+                          title="Make Primary Founder"
+                        >
+                          ★
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => removeCoFounder(m.id)}
