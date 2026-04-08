@@ -172,6 +172,7 @@ export default function ProfileEditPage() {
     if (!lookingFor.trim()) errors.lookingFor = 'This field is required.'
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
     setFieldErrors({})
