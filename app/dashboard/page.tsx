@@ -1585,34 +1585,36 @@ function PersonCard({ person: p, readOnly = false }: { person: Profile; readOnly
 
   return (
     <div
-      className={`bg-white rounded-[5rem] border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden transition-all ${readOnly ? '' : 'cursor-pointer hover:border-brand-light hover:shadow-md hover:-translate-y-0.5'}`}
+      className={`bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden transition-all ${readOnly ? '' : 'cursor-pointer hover:border-brand-light hover:shadow-md hover:-translate-y-0.5'}`}
       onClick={() => { if (!readOnly) router.push(`/people/${p.user_id}`) }}
     >
-      {/* Photo / placeholder — full-width, bleeds to edges */}
-      <div className="relative w-full aspect-square rounded-t-[5rem] overflow-hidden bg-brand-light flex-shrink-0">
-        {p.avatar_url ? (
-          <img
-            src={p.avatar_url}
-            alt={p.full_name ?? 'Avatar'}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-5xl font-bold text-brand/50">
-              {(p.full_name ?? '?').charAt(0).toUpperCase()}
-            </span>
-          </div>
-        )}
-        {/* Status badge overlay */}
-        {badge && (
-          <span className={`absolute top-6 left-6 text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm ${badge.className}`}>
-            {badge.label}
-          </span>
-        )}
-      </div>
-
       {/* Card body */}
-      <div className="w-full flex flex-col items-center gap-2.5 px-4 pt-4 pb-0">
+      <div className="w-full flex flex-col items-center gap-2.5 px-4 pt-5 pb-0">
+        {/* Circle avatar */}
+        <div className="relative flex-shrink-0">
+          <div className="w-[72px] h-[72px] rounded-full overflow-hidden bg-brand-light">
+            {p.avatar_url ? (
+              <img
+                src={p.avatar_url}
+                alt={p.full_name ?? 'Avatar'}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-2xl font-bold text-brand/50">
+                  {(p.full_name ?? '?').charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+          </div>
+          {/* Status badge — bottom-right of circle */}
+          {badge && (
+            <span className={`absolute -bottom-1 -right-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap ${badge.className}`}>
+              {badge.label}
+            </span>
+          )}
+        </div>
+
         {/* Name */}
         <h3 className="text-base font-semibold text-gray-900 text-center leading-tight">
           {p.full_name ?? '—'}
