@@ -84,6 +84,7 @@ export default function EditStartupPage() {
   // Co-founders state
   const [coFounders, setCoFounders] = useState<Array<{ id: string; user_id: string; full_name: string | null; email: string | null }>>([])
   const [pendingPrimaryFounderId, setPendingPrimaryFounderId] = useState<string | null>(null)
+  const [pendingNewCoFounders, setPendingNewCoFounders] = useState<{ user_id: string; full_name: string | null; email: string | null }[]>([])
   const [memberSearch, setMemberSearch] = useState('')
   const [searchResults, setSearchResults] = useState<Array<{ user_id: string; full_name: string | null; email: string | null; graduation_year: number | null; degree_program: string | null }>>([])
   const [searchLoading, setSearchLoading] = useState(false)
@@ -206,36 +207,20 @@ export default function EditStartupPage() {
     setSearchLoading(false)
   }
 
-  async function addCoFounder(profile: { user_id: string; full_name: string | null; email: string | null; graduation_year: number | null; degree_program: string | null }) {
-    setAddingMember(true)
-    const { data, error: insertErr } = await supabase
-      .from('startup_members')
-      .insert({ startup_id: id, user_id: profile.user_id, role: 'co-founder' })
-      .select('id')
-      .single()
-    if (!insertErr && data) {
-      setCoFounders((prev) => [...prev, { id: data.id, user_id: profile.user_id, full_name: profile.full_name, email: profile.email }])
-      setSearchResults((prev) => prev.filter((p) => p.user_id !== profile.user_id))
-      setMemberSearch('')
-      // Fire-and-forget notification email
-      fetch('/api/startup/notify-cofounder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          startupId: id,
-          startupName,
-          cofounderUserId: profile.user_id,
-          cofounderEmail: profile.email,
-          cofounderName: profile.full_name,
-          addedByName: userName,
-        }),
-      }).catch(() => {})
-    }
-    setAddingMember(false)
+  function addCoFounder(profile: { user_id: string; full_name: string | null; email: string | null; graduation_year: number | null; degree_program: string | null }) {
+    // Stage locally — insert happens on save
+    setCoFounders((prev) => [...prev, { id: `pending-${profile.user_id}`, user_id: profile.user_id, full_name: profile.full_name, email: profile.email }])
+    setPendingNewCoFounders((prev) => [...prev, { user_id: profile.user_id, full_name: profile.full_name, email: profile.email }])
+    setSearchResults((prev) => prev.filter((p) => p.user_id !== profile.user_id))
+    setMemberSearch('')
   }
 
   async function removeCoFounder(memberId: string) {
-    await supabase.from('startup_members').delete().eq('id', memberId)
+    if (!memberId.startsWith('pending-')) {
+      await supabase.from('startup_members').delete().eq('id', memberId)
+    }
+    const removed = coFounders.find((m) => m.id === memberId)
+    if (removed) setPendingNewCoFounders((prev) => prev.filter((p) => p.user_id !== removed.user_id))
     setCoFounders((prev) => prev.filter((m) => m.id !== memberId))
   }
 
@@ -352,6 +337,29 @@ export default function EditStartupPage() {
       await promoteFounder(pendingPrimaryFounderId)
       setPendingPrimaryFounderId(null)
     }
+
+    for (const p of pendingNewCoFounders) {
+      const { data } = await supabase
+        .from('startup_members')
+        .insert({ startup_id: id, user_id: p.user_id, role: 'co-founder' })
+        .select('id')
+        .single()
+      if (data) {
+        fetch('/api/startup/notify-cofounder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            startupId: id,
+            startupName,
+            cofounderUserId: p.user_id,
+            cofounderEmail: p.email,
+            cofounderName: p.full_name,
+            addedByName: userName,
+          }),
+        }).catch(() => {})
+      }
+    }
+    setPendingNewCoFounders([])
 
     setLoading(false)
     router.push('/dashboard')
@@ -685,23 +693,29 @@ export default function EditStartupPage() {
               {coFounders.length > 0 && (
                 <div className="flex flex-col gap-2 mb-3">
                   {coFounders.map((m) => {
-                    const isPending = pendingPrimaryFounderId === m.user_id
+                    const isPendingPromotion = pendingPrimaryFounderId === m.user_id
+                    const isPendingNew = pendingNewCoFounders.some((p) => p.user_id === m.user_id)
                     return (
                       <div
                         key={m.id}
-                        className="flex items-center justify-between bg-white border border-gray-200 rounded-2xl shadow-sm p-4"
+                        className="flex items-start justify-between bg-white border border-gray-200 rounded-2xl shadow-sm p-4"
                       >
-                        <div className="flex items-center gap-3">
-                          <span className="font-semibold text-sm text-gray-900">
-                            {m.full_name ?? m.email ?? 'Unknown'}
-                          </span>
-                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${isPending ? 'bg-[#e8edf5] text-[#1E3A5F]' : 'bg-gray-100 text-gray-600'}`}>
-                            {isPending ? 'Primary Founder (pending)' : 'Co-Founder'}
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm text-gray-900">
+                              {m.full_name ?? m.email ?? 'Unknown'}
+                            </span>
+                            {isPendingNew && (
+                              <span className="text-xs text-gray-400">(pending)</span>
+                            )}
+                          </div>
+                          <span className={`self-start text-xs font-medium px-2.5 py-1 rounded-full ${isPendingPromotion ? 'bg-[#e8edf5] text-[#1E3A5F]' : 'bg-gray-100 text-gray-600'}`}>
+                            {isPendingPromotion ? 'Primary Founder (pending)' : 'Co-Founder'}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {isAdmin && (
-                            isPending ? (
+                        <div className="flex flex-col gap-2 items-end">
+                          {isAdmin && !isPendingNew && (
+                            isPendingPromotion ? (
                               <button
                                 type="button"
                                 onClick={() => setPendingPrimaryFounderId(null)}
@@ -722,7 +736,7 @@ export default function EditStartupPage() {
                           <button
                             type="button"
                             onClick={() => removeCoFounder(m.id)}
-                            disabled={isPending}
+                            disabled={isPendingPromotion}
                             className="text-xs font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 rounded-lg px-2.5 py-1 transition disabled:opacity-40 disabled:cursor-not-allowed"
                           >
                             Remove
@@ -756,9 +770,8 @@ export default function EditStartupPage() {
                     <li key={p.user_id}>
                       <button
                         type="button"
-                        disabled={addingMember}
                         onClick={() => addCoFounder(p)}
-                        className="w-full text-left px-3.5 py-2.5 text-sm text-gray-800 hover:bg-brand-light transition disabled:opacity-50"
+                        className="w-full text-left px-3.5 py-2.5 text-sm text-gray-800 hover:bg-brand-light transition"
                       >
                         <span className="font-medium">{p.full_name ?? '—'}</span>
                         {(p.degree_program || p.graduation_year) && (
