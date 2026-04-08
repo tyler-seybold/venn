@@ -97,6 +97,8 @@ export default function EditStartupPage() {
   const [error, setError] = useState('')
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const searchQueryRef = useRef('')
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
   // Auth check then load startup
   useEffect(() => {
@@ -191,7 +193,7 @@ export default function EditStartupPage() {
 
   // Co-founder search
   async function handleMemberSearch(query: string) {
-    setMemberSearch(query)
+    searchQueryRef.current = query
     if (!query.trim()) {
       setSearchResults([])
       return
@@ -202,6 +204,7 @@ export default function EditStartupPage() {
       .select('user_id, full_name, email, graduation_year, degree_program')
       .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
       .limit(8)
+    if (searchQueryRef.current !== query) return
     const existingIds = new Set([...coFounders.map((m) => m.user_id), userId ?? ''])
     setSearchResults((data ?? []).filter((p) => !existingIds.has(p.user_id)))
     setSearchLoading(false)
@@ -752,7 +755,12 @@ export default function EditStartupPage() {
               <input
                 type="text"
                 value={memberSearch}
-                onChange={(e) => handleMemberSearch(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value
+                  setMemberSearch(val)
+                  if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+                  searchDebounceRef.current = setTimeout(() => handleMemberSearch(val), 200)
+                }}
                 placeholder="Search by name to add a co-founder…"
                 className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
               />
