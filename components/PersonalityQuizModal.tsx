@@ -265,7 +265,15 @@ export default function PersonalityQuizModal({ isOpen, onClose, userId, onComple
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-800 leading-snug">{q.text}</p>
                     {isAnswered ? (
-                      <p className="text-xs text-gray-500 mt-0.5">{answerText}</p>
+                      <>
+                        <p className="text-xs text-gray-500 mt-0.5">{answerText}</p>
+                        <button
+                          onClick={() => jumpToQuestion(i)}
+                          className="text-xs text-[#1E3A5F] hover:underline flex items-center gap-0.5 mt-0.5"
+                        >
+                          Edit <ChevronRight className="w-3 h-3" />
+                        </button>
+                      </>
                     ) : (
                       <div className="mt-0.5">
                         <p className="text-xs text-gray-400">Not answered yet</p>
