@@ -181,6 +181,8 @@ export default function PersonDetailPage() {
     ? INDUSTRY_OPENNESS_LABELS[profile.industry_openness] ?? null
     : null
 
+  const labelColor = matchScore != null ? getMatchLabelColor(getMatchLabel(matchScore)) : '#757575'
+
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="w-full max-w-2xl mx-auto">
@@ -272,8 +274,8 @@ export default function PersonDetailPage() {
                 )}
                 {matchScore !== null && (
                   <span
-                    className="text-xs font-medium px-2.5 py-1 rounded-full text-white"
-                    style={{ backgroundColor: getMatchLabelColor(getMatchLabel(matchScore)) }}
+                    className="text-xs font-semibold px-2.5 py-1 rounded-full text-white"
+                    style={{ backgroundColor: labelColor }}
                   >
                     {getMatchLabel(matchScore)}
                   </span>
@@ -287,9 +289,9 @@ export default function PersonDetailPage() {
 
               {/* Venn blurb callout */}
               {matchBlurb && (
-                <div className="flex items-start gap-2 mt-3 rounded-xl px-4 py-3" style={{ backgroundColor: matchScore !== null ? getMatchLabelColor(getMatchLabel(matchScore)) + '26' : '#e8edf5' }}>
-                  <Sparkles className="w-3.5 h-3.5 text-[#1E3A5F] flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-[#1E3A5F] leading-relaxed italic">
+                <div className="flex items-start gap-2 mt-3 rounded-xl px-4 py-3" style={{ backgroundColor: `${labelColor}15` }}>
+                  <Sparkles className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: labelColor }} />
+                  <p className="text-xs leading-relaxed italic" style={{ color: labelColor }}>
                     <span className="font-semibold not-italic">Venn says: </span>{matchBlurb}
                   </p>
                 </div>
