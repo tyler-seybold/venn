@@ -83,6 +83,7 @@ export default function EditStartupPage() {
 
   // Co-founders state
   const [coFounders, setCoFounders] = useState<Array<{ id: string; user_id: string; full_name: string | null; email: string | null }>>([])
+  const [pendingPrimaryFounderId, setPendingPrimaryFounderId] = useState<string | null>(null)
   const [memberSearch, setMemberSearch] = useState('')
   const [searchResults, setSearchResults] = useState<Array<{ user_id: string; full_name: string | null; email: string | null; graduation_year: number | null; degree_program: string | null }>>([])
   const [searchLoading, setSearchLoading] = useState(false)
@@ -341,13 +342,19 @@ export default function EditStartupPage() {
       })
       .eq('id', id)
 
-    setLoading(false)
-
     if (updateError) {
+      setLoading(false)
       setError(updateError.message)
-    } else {
-      router.push('/dashboard')
+      return
     }
+
+    if (pendingPrimaryFounderId) {
+      await promoteFounder(pendingPrimaryFounderId)
+      setPendingPrimaryFounderId(null)
+    }
+
+    setLoading(false)
+    router.push('/dashboard')
   }
 
   async function handleDelete() {
@@ -676,34 +683,54 @@ export default function EditStartupPage() {
 
               {/* Current co-founders */}
               {coFounders.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {coFounders.map((m) => (
-                    <span
-                      key={m.id}
-                      className="flex items-center gap-1.5 bg-brand-light border border-brand-light text-brand text-sm font-medium px-3 py-1 rounded-full"
-                    >
-                      {m.full_name ?? m.email ?? 'Unknown'}
-                      {isAdmin && (
-                        <button
-                          type="button"
-                          onClick={() => promoteFounder(m.user_id)}
-                          className="text-brand/50 hover:text-brand transition ml-0.5 text-xs"
-                          aria-label="Make Primary Founder"
-                          title="Make Primary Founder"
-                        >
-                          ★
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removeCoFounder(m.id)}
-                        className="text-brand/50 hover:text-brand transition ml-0.5"
-                        aria-label="Remove"
+                <div className="flex flex-col gap-2 mb-3">
+                  {coFounders.map((m) => {
+                    const isPending = pendingPrimaryFounderId === m.user_id
+                    return (
+                      <div
+                        key={m.id}
+                        className="flex items-center justify-between bg-white border border-gray-200 rounded-2xl shadow-sm p-4"
                       >
-                        ×
-                      </button>
-                    </span>
-                  ))}
+                        <div className="flex items-center gap-3">
+                          <span className="font-semibold text-sm text-gray-900">
+                            {m.full_name ?? m.email ?? 'Unknown'}
+                          </span>
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${isPending ? 'bg-[#e8edf5] text-[#1E3A5F]' : 'bg-gray-100 text-gray-600'}`}>
+                            {isPending ? 'Primary Founder (pending)' : 'Co-Founder'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {isAdmin && (
+                            isPending ? (
+                              <button
+                                type="button"
+                                onClick={() => setPendingPrimaryFounderId(null)}
+                                className="text-xs font-medium text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded-lg px-2.5 py-1 transition"
+                              >
+                                Undo
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setPendingPrimaryFounderId(m.user_id)}
+                                className="text-xs font-medium text-[#1E3A5F] hover:text-[#1E3A5F]/80 border border-[#1E3A5F]/30 hover:border-[#1E3A5F] rounded-lg px-2.5 py-1 transition"
+                              >
+                                Promote to Primary Founder
+                              </button>
+                            )
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removeCoFounder(m.id)}
+                            disabled={isPending}
+                            className="text-xs font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 rounded-lg px-2.5 py-1 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
 
