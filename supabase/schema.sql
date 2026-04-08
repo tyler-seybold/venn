@@ -152,6 +152,11 @@ create policy "startup_members: primary founder insert"
       where id = startup_id
       and founder_id = auth.uid()
     )
+    or exists (
+      select 1 from profiles
+      where user_id = auth.uid()
+      and is_admin = true
+    )
   );
 
 -- profiles: admins can update any profile
@@ -195,10 +200,11 @@ create policy "startup_members: delete"
   on startup_members for delete
   to authenticated
   using (
-    exists (
-      select 1 from startups
-      where id = startup_id
-      and founder_id = auth.uid()
-    )
+    exists (select 1 from startups where id = startup_id and founder_id = auth.uid())
     or user_id = auth.uid()
+    or exists (
+      select 1 from profiles
+      where user_id = auth.uid()
+      and is_admin = true
+    )
   );
