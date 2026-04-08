@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getMatchLabel } from '@/config/matching'
+import { getFriendlyError } from '@/lib/errors'
 
 type Student = {
   user_id: string
@@ -222,7 +223,7 @@ export default function AdminPage() {
       setStudents((prev) => prev.filter((s) => s.user_id !== userId))
     } else {
       const json = await res.json()
-      alert(`Delete failed: ${json.error}`)
+      alert(getFriendlyError(json, 'save'))
     }
     setDeletingId(null)
   }
@@ -239,7 +240,7 @@ export default function AdminPage() {
       setStartups((prev) => prev.filter((s) => s.id !== startupId))
     } else {
       const json = await res.json()
-      alert(`Delete failed: ${json.error}`)
+      alert(getFriendlyError(json, 'save'))
     }
     setDeletingId(null)
   }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { getFriendlyError } from '@/lib/errors'
 
 const INDUSTRIES = [
   'Advertising',
@@ -130,7 +131,7 @@ export default function NewStartupPage() {
         .upload(path, logoFile, { upsert: true })
 
       if (uploadError) {
-        setError(`Logo upload failed: ${uploadError.message}`)
+        setError(getFriendlyError(uploadError, 'upload'))
         setLoading(false)
         return
       }
@@ -158,7 +159,7 @@ export default function NewStartupPage() {
 
     if (insertError || !newStartup) {
       setLoading(false)
-      setError(insertError?.message ?? 'Failed to create startup')
+      setError(getFriendlyError(insertError, 'save'))
       return
     }
 

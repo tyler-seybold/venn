@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { getFriendlyError } from '@/lib/errors'
 
 const INDUSTRIES = [
   'Advertising',
@@ -118,7 +119,7 @@ export default function EditStartupPage() {
         .single()
 
       if (fetchError || !startup) {
-        router.replace('/dashboard')
+        router.replace('/dashboard?error=load')
         return
       }
 
@@ -284,7 +285,7 @@ export default function EditStartupPage() {
         .upload(path, logoFile, { upsert: true })
 
       if (uploadError) {
-        setError(`Logo upload failed: ${uploadError.message}`)
+        setError(getFriendlyError(uploadError, 'upload'))
         setLoading(false)
         return
       }
@@ -332,7 +333,7 @@ export default function EditStartupPage() {
 
     if (updateError) {
       setLoading(false)
-      setError(updateError.message)
+      setError(getFriendlyError(updateError, 'save'))
       return
     }
 
@@ -385,7 +386,7 @@ export default function EditStartupPage() {
     setDeleting(false)
 
     if (deleteError) {
-      setError(deleteError.message)
+      setError(getFriendlyError(deleteError, 'save'))
     } else {
       router.push('/dashboard')
     }

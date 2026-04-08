@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { calculateCompleteness } from '@/lib/completeness'
+import { getFriendlyError } from '@/lib/errors'
 
 const SKILLS = [
   'Engineering', 'Finance', 'Marketing', 'Operations', 'Design',
@@ -184,7 +185,7 @@ export default function ProfileEditPage() {
         .from('avatars')
         .upload(path, avatarFile, { upsert: true })
       if (uploadError) {
-        setError(`Photo upload failed: ${uploadError.message}`)
+        setError(getFriendlyError(uploadError, 'upload'))
         setLoading(false)
         return
       }
@@ -219,7 +220,7 @@ export default function ProfileEditPage() {
     setLoading(false)
 
     if (updateError) {
-      setError(updateError.message)
+      setError(getFriendlyError(updateError, 'save'))
     } else {
       if (lookingFor.trim()) {
         fetch('/api/inference/intent-tags', {
