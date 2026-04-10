@@ -70,6 +70,7 @@ export default function NewStartupPage() {
   // Submission state
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -101,9 +102,11 @@ export default function NewStartupPage() {
 
   // Industry toggle
   function toggleIndustry(industry: string) {
-    setSelectedIndustries((prev) =>
-      prev.includes(industry) ? prev.filter((i) => i !== industry) : [...prev, industry]
-    )
+    setSelectedIndustries((prev) => {
+      if (prev.includes(industry)) return prev.filter((i) => i !== industry)
+      if (prev.length >= 3) return prev
+      return [...prev, industry]
+    })
   }
 
   // Skills toggle
@@ -118,6 +121,19 @@ export default function NewStartupPage() {
     e.preventDefault()
     if (!userId) return
     setError('')
+
+    const errors: Record<string, string> = {}
+    if (!startupName.trim()) errors.startupName = 'Startup name is required.'
+    if (!description.trim()) errors.description = 'Description is required.'
+    if (!stage) errors.stage = 'Stage is required.'
+    if (selectedIndustries.length === 0) errors.industries = 'Select at least one industry.'
+    if (selectedIndustries.length > 3) errors.industries = 'Select up to 3 industries.'
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    setFieldErrors({})
     setLoading(true)
 
     let logoUrl: string | null = null
@@ -221,12 +237,12 @@ export default function NewStartupPage() {
               <input
                 id="startupName"
                 type="text"
-                required
                 value={startupName}
                 onChange={(e) => setStartupName(e.target.value)}
                 placeholder="Acme Inc."
                 className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
               />
+              {fieldErrors.startupName && <p className="text-sm text-red-600 mt-1">{fieldErrors.startupName}</p>}
             </div>
 
             {/* Logo upload */}
@@ -304,6 +320,7 @@ export default function NewStartupPage() {
                   )
                 })}
               </div>
+              {fieldErrors.industries && <p className="text-sm text-red-600 mt-1">{fieldErrors.industries}</p>}
             </div>
 
             {/* Stage */}
@@ -327,6 +344,7 @@ export default function NewStartupPage() {
                   </button>
                 ))}
               </div>
+              {fieldErrors.stage && <p className="text-sm text-red-600 mt-1">{fieldErrors.stage}</p>}
             </div>
 
             {/* Description */}
@@ -337,7 +355,6 @@ export default function NewStartupPage() {
               <textarea
                 id="description"
                 rows={4}
-                required
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="What does your startup do? Who is it for?"
@@ -345,6 +362,7 @@ export default function NewStartupPage() {
                 className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition resize-none"
               />
               <p className={`text-xs mt-1 ${DESC_MAX - description.length < 20 ? 'text-red-500' : DESC_MAX - description.length < 100 ? 'text-orange-400' : 'text-gray-400'}`}>{DESC_MAX - description.length} characters remaining</p>
+              {fieldErrors.description && <p className="text-sm text-red-600 mt-1">{fieldErrors.description}</p>}
             </div>
 
             {/* Website URL */}
