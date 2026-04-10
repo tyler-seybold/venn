@@ -66,21 +66,38 @@ export default function NewStartupPage() {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [openToCofounders, setOpenToCofounders] = useState(false)
   const [openToInterns, setOpenToInterns] = useState(false)
+  const [problemStatement, setProblemStatement] = useState('')
+
+  // Co-founders state
+  const [coFounders, setCoFounders] = useState<Array<{ id: string; user_id: string; full_name: string | null; email: string | null }>>([])
+  const [pendingNewCoFounders, setPendingNewCoFounders] = useState<{ user_id: string; full_name: string | null; email: string | null }[]>([])
+  const [memberSearch, setMemberSearch] = useState('')
+  const [searchResults, setSearchResults] = useState<Array<{ user_id: string; full_name: string | null; email: string | null; graduation_year: number | null; degree_program: string | null }>>([])
+  const [searchLoading, setSearchLoading] = useState(false)
 
   // Submission state
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [userName, setUserName] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const searchQueryRef = useRef('')
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
   // Auth check
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) {
         router.replace('/login')
       } else {
         setUserId(data.user.id)
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('user_id', data.user.id)
+          .single()
+        setUserName(profile?.full_name ?? null)
         setAuthChecked(true)
       }
     })
@@ -116,6 +133,38 @@ export default function NewStartupPage() {
     )
   }
 
+  // Co-founder search
+  async function handleMemberSearch(query: string) {
+    searchQueryRef.current = query
+    if (!query.trim()) {
+      setSearchResults([])
+      return
+    }
+    setSearchLoading(true)
+    const { data } = await supabase
+      .from('profiles')
+      .select('user_id, full_name, email, graduation_year, degree_program')
+      .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
+      .limit(8)
+    if (searchQueryRef.current !== query) return
+    const existingIds = new Set([...coFounders.map((m) => m.user_id), userId ?? ''])
+    setSearchResults((data ?? []).filter((p) => !existingIds.has(p.user_id)))
+    setSearchLoading(false)
+  }
+
+  function addCoFounder(profile: { user_id: string; full_name: string | null; email: string | null; graduation_year: number | null; degree_program: string | null }) {
+    setCoFounders((prev) => [...prev, { id: `pending-${profile.user_id}`, user_id: profile.user_id, full_name: profile.full_name, email: profile.email }])
+    setPendingNewCoFounders((prev) => [...prev, { user_id: profile.user_id, full_name: profile.full_name, email: profile.email }])
+    setSearchResults((prev) => prev.filter((p) => p.user_id !== profile.user_id))
+    setMemberSearch('')
+  }
+
+  function removeCoFounder(memberId: string) {
+    const removed = coFounders.find((m) => m.id === memberId)
+    if (removed) setPendingNewCoFounders((prev) => prev.filter((p) => p.user_id !== removed.user_id))
+    setCoFounders((prev) => prev.filter((m) => m.id !== memberId))
+  }
+
   // Submit
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -125,6 +174,7 @@ export default function NewStartupPage() {
     const errors: Record<string, string> = {}
     if (!startupName.trim()) errors.startupName = 'Startup name is required.'
     if (!description.trim()) errors.description = 'Description is required.'
+    if (!problemStatement.trim()) errors.problemStatement = 'Problem statement is required.'
     if (!stage) errors.stage = 'Stage is required.'
     if (selectedIndustries.length === 0) errors.industries = 'Select at least one industry.'
     if (selectedIndustries.length > 3) errors.industries = 'Select up to 3 industries.'
@@ -170,6 +220,7 @@ export default function NewStartupPage() {
       skills_needed: selectedSkills.length > 0 ? selectedSkills : null,
       open_to_cofounders: openToCofounders,
       open_to_interns: openToInterns,
+      problem_statement: problemStatement.trim() || null,
       // current_ask and current_ask_updated_at omitted — hidden from UI
     }).select('id').single()
 
@@ -184,6 +235,28 @@ export default function NewStartupPage() {
       user_id: userId,
       role: 'primary',
     })
+
+    for (const p of pendingNewCoFounders) {
+      const { data } = await supabase
+        .from('startup_members')
+        .insert({ startup_id: newStartup.id, user_id: p.user_id, role: 'co-founder' })
+        .select('id')
+        .single()
+      if (data) {
+        fetch('/api/startup/notify-cofounder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            startupId: newStartup.id,
+            startupName,
+            cofounderUserId: p.user_id,
+            cofounderEmail: p.email,
+            cofounderName: p.full_name,
+            addedByName: userName,
+          }),
+        }).catch(() => {})
+      }
+    }
 
     setLoading(false)
     router.push('/dashboard')
@@ -363,6 +436,101 @@ export default function NewStartupPage() {
               />
               <p className={`text-xs mt-1 ${DESC_MAX - description.length < 20 ? 'text-red-500' : DESC_MAX - description.length < 100 ? 'text-orange-400' : 'text-gray-400'}`}>{DESC_MAX - description.length} characters remaining</p>
               {fieldErrors.description && <p className="text-sm text-red-600 mt-1">{fieldErrors.description}</p>}
+            </div>
+
+            {/* Problem statement */}
+            <div>
+              <label htmlFor="problemStatement" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Problem statement <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="problemStatement"
+                rows={4}
+                value={problemStatement}
+                onChange={(e) => setProblemStatement(e.target.value)}
+                placeholder="What problem are you solving?"
+                maxLength={DESC_MAX}
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition resize-none"
+              />
+              <p className={`text-xs mt-1 ${DESC_MAX - problemStatement.length < 20 ? 'text-red-500' : DESC_MAX - problemStatement.length < 100 ? 'text-orange-400' : 'text-gray-400'}`}>{DESC_MAX - problemStatement.length} characters remaining</p>
+              {fieldErrors.problemStatement && <p className="text-sm text-red-600 mt-1">{fieldErrors.problemStatement}</p>}
+            </div>
+
+            {/* Co-Founders */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Co-Founders <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+
+              {coFounders.length > 0 && (
+                <div className="flex flex-col gap-2 mb-3">
+                  {coFounders.map((m) => (
+                    <div
+                      key={m.id}
+                      className="flex items-start justify-between bg-white border border-gray-200 rounded-2xl shadow-sm p-4"
+                    >
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-sm text-gray-900">
+                            {m.full_name ?? m.email ?? 'Unknown'}
+                          </span>
+                          <span className="text-xs text-gray-400">(pending)</span>
+                        </div>
+                        <span className="self-start text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
+                          Co-Founder
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeCoFounder(m.id)}
+                        className="text-xs font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 rounded-lg px-2.5 py-1 transition"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <input
+                type="text"
+                value={memberSearch}
+                onChange={(e) => {
+                  const val = e.target.value
+                  setMemberSearch(val)
+                  if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+                  searchDebounceRef.current = setTimeout(() => handleMemberSearch(val), 200)
+                }}
+                placeholder="Search by name to add a co-founder…"
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
+              />
+
+              {searchLoading && (
+                <p className="mt-2 text-xs text-gray-400">Searching…</p>
+              )}
+              {!searchLoading && memberSearch && searchResults.length === 0 && (
+                <p className="mt-2 text-xs text-gray-400">No matching profiles found.</p>
+              )}
+              {searchResults.length > 0 && (
+                <ul className="mt-1 rounded-lg border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+                  {searchResults.map((p) => (
+                    <li key={p.user_id}>
+                      <button
+                        type="button"
+                        onClick={() => addCoFounder(p)}
+                        className="w-full text-left px-3.5 py-2.5 text-sm text-gray-800 hover:bg-brand-light transition"
+                      >
+                        <span className="font-medium">{p.full_name ?? '—'}</span>
+                        {(p.degree_program || p.graduation_year) && (
+                          <span className="ml-2 text-xs text-gray-400">
+                            {[p.degree_program, p.graduation_year ? `Class of ${p.graduation_year}` : null].filter(Boolean).join(' · ')}
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             {/* Website URL */}

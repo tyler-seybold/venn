@@ -81,6 +81,7 @@ export default function EditStartupPage() {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [openToCofounders, setOpenToCofounders] = useState(false)
   const [openToInterns, setOpenToInterns] = useState(false)
+  const [problemStatement, setProblemStatement] = useState('')
 
   // Co-founders state
   const [coFounders, setCoFounders] = useState<Array<{ id: string; user_id: string; full_name: string | null; email: string | null }>>([])
@@ -171,6 +172,7 @@ export default function EditStartupPage() {
       setSelectedSkills(startup.skills_needed ?? [])
       setOpenToCofounders(startup.open_to_cofounders ?? false)
       setOpenToInterns(startup.open_to_interns ?? false)
+      setProblemStatement(startup.problem_statement ?? '')
 
       // Load co-founders (exclude primary)
       const { data: membersData } = await supabase
@@ -279,6 +281,7 @@ export default function EditStartupPage() {
     const errors: Record<string, string> = {}
     if (!startupName.trim()) errors.startupName = 'Startup name is required.'
     if (!description.trim()) errors.description = 'Description is required.'
+    if (!problemStatement.trim()) errors.problemStatement = 'Problem statement is required.'
     if (!stage) errors.stage = 'Stage is required.'
     if (selectedIndustries.length === 0) errors.industries = 'Select at least one industry.'
     if (selectedIndustries.length > 3) errors.industries = 'Select up to 3 industries.'
@@ -343,6 +346,7 @@ export default function EditStartupPage() {
         skills_needed: selectedSkills.length > 0 ? selectedSkills : null,
         open_to_cofounders: openToCofounders,
         open_to_interns: openToInterns,
+        problem_statement: problemStatement.trim() || null,
         // current_ask and current_ask_updated_at omitted — hidden from UI
       })
       .eq('id', id)
@@ -591,6 +595,24 @@ export default function EditStartupPage() {
               />
               <p className={`text-xs mt-1 ${DESC_MAX - description.length < 20 ? 'text-red-500' : DESC_MAX - description.length < 100 ? 'text-orange-400' : 'text-gray-400'}`}>{DESC_MAX - description.length} characters remaining</p>
               {fieldErrors.description && <p className="text-sm text-red-600 mt-1">{fieldErrors.description}</p>}
+            </div>
+
+            {/* Problem statement */}
+            <div>
+              <label htmlFor="problemStatement" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Problem statement <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="problemStatement"
+                rows={4}
+                value={problemStatement}
+                onChange={(e) => setProblemStatement(e.target.value)}
+                placeholder="What problem are you solving?"
+                maxLength={DESC_MAX}
+                className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition resize-none"
+              />
+              <p className={`text-xs mt-1 ${DESC_MAX - problemStatement.length < 20 ? 'text-red-500' : DESC_MAX - problemStatement.length < 100 ? 'text-orange-400' : 'text-gray-400'}`}>{DESC_MAX - problemStatement.length} characters remaining</p>
+              {fieldErrors.problemStatement && <p className="text-sm text-red-600 mt-1">{fieldErrors.problemStatement}</p>}
             </div>
 
             {/* Website URL */}
