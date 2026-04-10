@@ -599,6 +599,7 @@ export default function ProfileEditPage() {
                         ? `Your matches are paused until ${new Date(matchingPausedUntil!).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}. Toggle off to resume early.`
                         : 'Turn on to pause your matches for 30 days.'}
                     </p>
+                    <p className="mt-1 px-1 text-xs text-gray-400">Changes take effect immediately.</p>
                   </div>
                 )
               })()}
