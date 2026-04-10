@@ -118,7 +118,7 @@ export default function PersonDetailPage() {
         supabase.from('startup_members').select('startup_id').eq('user_id', currentUserId),
         supabase
           .from('matches')
-          .select('created_at, blurb, match_score')
+          .select('created_at, week_of, blurb, match_score')
           .neq('match_type', 'startup_startup')
           .or(`and(user_id_1.eq.${currentUserId},user_id_2.eq.${id}),and(user_id_1.eq.${id},user_id_2.eq.${currentUserId})`)
           .order('created_at', { ascending: false })
@@ -133,8 +133,8 @@ export default function PersonDetailPage() {
       setMyStartupIds(new Set((myMemberships ?? []).map((m) => m.startup_id)))
 
       if (matchRows && matchRows.length > 0) {
-        const d = new Date(matchRows[0].created_at)
-        setMatchedOn(d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }))
+        const d = new Date(matchRows[0].week_of ?? matchRows[0].created_at)
+        setMatchedOn(d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }))
         setMatchBlurb(matchRows[0].blurb ?? null)
         setMatchScore(matchRows[0].match_score ?? null)
       }
