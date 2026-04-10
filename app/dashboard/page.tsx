@@ -1214,8 +1214,8 @@ function MatchCard({
   const label = m.match_score != null ? getMatchLabel(m.match_score) : null
   const labelColor = label ? getMatchLabelColor(label) : '#757575'
 
-  const matchedOn = m.created_at
-    ? new Date(m.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  const matchedOn = m.week_of
+    ? new Date(m.week_of).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
     : null
 
   return (
