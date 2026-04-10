@@ -163,6 +163,7 @@ export default function ProfileEditPage() {
     setError('')
 
     const errors: Record<string, string> = {}
+    if (!fullName.trim()) errors.fullName = 'Full name is required.'
     if (!graduationYear || graduationYear.length !== 4) errors.graduationYear = 'Enter a 4-digit graduation year.'
     if (!degreeProgram) errors.degreeProgram = 'Select a degree program.'
     if (!bio.trim()) errors.bio = 'Bio is required.'
@@ -278,6 +279,7 @@ export default function ProfileEditPage() {
                 placeholder="Jane Smith"
                 className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
               />
+              {fieldErrors.fullName && <p className="text-sm text-red-600 mt-1">{fieldErrors.fullName}</p>}
             </div>
 
             {/* 2. Profile photo */}
