@@ -530,9 +530,10 @@ export default function EditStartupPage() {
 
             {/* Industry */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Industry <span className="text-gray-400 font-normal">(optional)</span>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Industry
               </label>
+              <p className="text-xs text-gray-400 mb-2">Select up to 3</p>
               <div className="flex flex-wrap gap-2">
                 {INDUSTRIES.map((industry) => {
                   const selected = selectedIndustries.includes(industry)
@@ -558,7 +559,7 @@ export default function EditStartupPage() {
             {/* Stage */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Stage <span className="text-gray-400 font-normal">(optional)</span>
+                Stage
               </label>
               <div className="flex flex-wrap gap-2">
                 {STAGES.map((s) => (
