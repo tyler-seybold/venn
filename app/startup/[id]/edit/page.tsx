@@ -531,7 +531,7 @@ export default function EditStartupPage() {
             {/* Industry */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Industry
+                Industry <span className="text-red-500 ml-0.5">*</span>
               </label>
               <p className="text-xs text-gray-400 mb-2">Select up to 3</p>
               <div className="flex flex-wrap gap-2">
@@ -559,7 +559,7 @@ export default function EditStartupPage() {
             {/* Stage */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Stage
+                Stage <span className="text-red-500 ml-0.5">*</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {STAGES.map((s) => (
