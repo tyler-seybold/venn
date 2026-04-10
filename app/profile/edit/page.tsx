@@ -273,7 +273,6 @@ export default function ProfileEditPage() {
               <input
                 id="fullName"
                 type="text"
-                required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Jane Smith"
