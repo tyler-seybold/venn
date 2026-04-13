@@ -231,6 +231,16 @@ export default function ProfileEditPage() {
           body: JSON.stringify({ looking_for: lookingFor.trim(), user_id: userId }),
         }).catch(() => {})
       }
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        fetch('/api/moderation/check', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.access_token ?? ''}`,
+          },
+          body: JSON.stringify({ type: 'profile', id: userId }),
+        }).catch(() => {})
+      }).catch(() => {})
       router.push('/dashboard')
     }
   }
