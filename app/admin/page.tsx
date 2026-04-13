@@ -47,6 +47,28 @@ type FeedbackMatch = {
   name_2: string | null
 }
 
+type FlaggedProfile = {
+  user_id: string
+  full_name: string | null
+  email: string | null
+  moderation_flags: Record<string, string[]> | null
+}
+
+type FlaggedStartup = {
+  id: string
+  startup_name: string | null
+  founder_id: string
+  founder_name: string | null
+  moderation_flags: Record<string, string[]> | null
+}
+
+function formatFlags(flags: Record<string, string[]> | null): string {
+  if (!flags || Object.keys(flags).length === 0) return '—'
+  return Object.entries(flags)
+    .map(([field, cats]) => `${field} (${cats.join(', ')})`)
+    .join('; ')
+}
+
 const STAGE_COLORS: Record<string, string> = {
   Ideation: 'bg-slate-100 text-slate-600',
   MVP: 'bg-blue-100 text-blue-700',
@@ -84,11 +106,13 @@ export default function AdminPage() {
   const router = useRouter()
 
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'students' | 'startups' | 'feedback' | 'submissions'>('students')
+  const [tab, setTab] = useState<'students' | 'startups' | 'feedback' | 'submissions' | 'flagged'>('students')
   const [students, setStudents] = useState<Student[]>([])
   const [startups, setStartups] = useState<AdminStartup[]>([])
   const [feedbackMatches, setFeedbackMatches] = useState<FeedbackMatch[]>([])
   const [userFeedback, setUserFeedback] = useState<UserFeedbackEntry[]>([])
+  const [flaggedProfiles, setFlaggedProfiles] = useState<FlaggedProfile[]>([])
+  const [flaggedStartups, setFlaggedStartups] = useState<FlaggedStartup[]>([])
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -207,6 +231,40 @@ export default function AdminPage() {
         )
       }
 
+      // Flagged profiles
+      const { data: flaggedProfilesData } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email, moderation_flags')
+        .eq('moderation_status', 'flagged')
+
+      setFlaggedProfiles(flaggedProfilesData ?? [])
+
+      // Flagged startups + founder names
+      const { data: flaggedStartupRows } = await supabase
+        .from('startups')
+        .select('id, startup_name, founder_id, moderation_flags')
+        .eq('moderation_status', 'flagged')
+
+      if (flaggedStartupRows && flaggedStartupRows.length > 0) {
+        const founderIds = [...new Set(flaggedStartupRows.map((s) => s.founder_id).filter(Boolean))]
+        const founderMap = new Map<string, string>()
+        if (founderIds.length > 0) {
+          const { data: founders } = await supabase
+            .from('profiles')
+            .select('user_id, full_name')
+            .in('user_id', founderIds)
+          for (const f of founders ?? []) {
+            if (f.user_id) founderMap.set(f.user_id, f.full_name ?? f.user_id)
+          }
+        }
+        setFlaggedStartups(
+          flaggedStartupRows.map((s) => ({
+            ...s,
+            founder_name: s.founder_id ? (founderMap.get(s.founder_id) ?? null) : null,
+          }))
+        )
+      }
+
       setLoading(false)
     })
   }, [router])
@@ -266,6 +324,38 @@ export default function AdminPage() {
     setTimeout(() => setSettingsSaved(false), 2500)
   }
 
+  async function handleMarkOk(type: 'profile' | 'startup', id: string) {
+    if (type === 'profile') {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ moderation_status: 'reviewed_ok', moderation_flags: null, matching_paused_until: null })
+        .eq('user_id', id)
+      if (!error) setFlaggedProfiles((prev) => prev.filter((p) => p.user_id !== id))
+    } else {
+      const { error } = await supabase
+        .from('startups')
+        .update({ moderation_status: 'reviewed_ok', moderation_flags: null })
+        .eq('id', id)
+      if (!error) setFlaggedStartups((prev) => prev.filter((s) => s.id !== id))
+    }
+  }
+
+  async function handleHidePermanently(type: 'profile' | 'startup', id: string) {
+    if (type === 'profile') {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ moderation_status: 'reviewed_removed' })
+        .eq('user_id', id)
+      if (!error) setFlaggedProfiles((prev) => prev.filter((p) => p.user_id !== id))
+    } else {
+      const { error } = await supabase
+        .from('startups')
+        .update({ moderation_status: 'reviewed_removed' })
+        .eq('id', id)
+      if (!error) setFlaggedStartups((prev) => prev.filter((s) => s.id !== id))
+    }
+  }
+
   // Feedback summary stats
   const totalResponses = feedbackMatches.reduce((n, m) => {
     return n + (m.feedback_1 != null ? 1 : 0) + (m.feedback_2 != null ? 1 : 0)
@@ -276,6 +366,12 @@ export default function AdminPage() {
   const totalDown = totalResponses - totalUp
   const pctUp   = totalResponses > 0 ? Math.round((totalUp / totalResponses) * 100) : 0
   const pctDown = totalResponses > 0 ? Math.round((totalDown / totalResponses) * 100) : 0
+
+  const flaggedCount = flaggedProfiles.length + flaggedStartups.length
+
+  useEffect(() => {
+    if (tab === 'flagged' && flaggedCount === 0) setTab('students')
+  }, [flaggedCount, tab])
 
   if (loading) {
     return (
@@ -432,6 +528,19 @@ export default function AdminPage() {
                 : `App Feedback (${userFeedback.length})`}
             </button>
           ))}
+          {flaggedCount > 0 && (
+            <button
+              onClick={() => setTab('flagged')}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition flex items-center gap-1.5 ${
+                tab === 'flagged'
+                  ? 'border-brand text-brand'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Flagged ({flaggedCount})
+              <span className="inline-block w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
+            </button>
+          )}
         </div>
 
         {/* Students tab */}
@@ -655,6 +764,96 @@ export default function AdminPage() {
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+        {/* Flagged tab */}
+        {tab === 'flagged' && (
+          <div className="space-y-6">
+            {flaggedProfiles.length > 0 && (
+              <div>
+                <h2 className="text-sm font-semibold text-gray-700 mb-3">Flagged Profiles ({flaggedProfiles.length})</h2>
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100 bg-gray-50">
+                        <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
+                        <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                        <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Flagged Fields</th>
+                        <th className="px-5 py-3 w-px" />
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {flaggedProfiles.map((p) => (
+                        <tr key={p.user_id} className="hover:bg-gray-50 transition">
+                          <td className="px-5 py-3.5 font-medium text-gray-900">{p.full_name ?? <span className="text-gray-400 font-normal">—</span>}</td>
+                          <td className="px-5 py-3.5 text-gray-600">{p.email ?? '—'}</td>
+                          <td className="px-5 py-3.5 text-gray-500 text-xs font-mono">{formatFlags(p.moderation_flags)}</td>
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center justify-end gap-2 whitespace-nowrap">
+                              <button
+                                onClick={() => handleMarkOk('profile', p.user_id)}
+                                className="text-xs font-medium text-green-700 hover:text-green-900 border border-green-200 hover:border-green-400 rounded-lg px-2.5 py-1 transition"
+                              >
+                                Mark OK
+                              </button>
+                              <button
+                                onClick={() => handleHidePermanently('profile', p.user_id)}
+                                className="text-xs font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 rounded-lg px-2.5 py-1 transition"
+                              >
+                                Hide Permanently
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {flaggedStartups.length > 0 && (
+              <div>
+                <h2 className="text-sm font-semibold text-gray-700 mb-3">Flagged Startups ({flaggedStartups.length})</h2>
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100 bg-gray-50">
+                        <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Startup</th>
+                        <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Founder</th>
+                        <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Flagged Fields</th>
+                        <th className="px-5 py-3 w-px" />
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {flaggedStartups.map((s) => (
+                        <tr key={s.id} className="hover:bg-gray-50 transition">
+                          <td className="px-5 py-3.5 font-medium text-gray-900">{s.startup_name ?? <span className="text-gray-400 font-normal">—</span>}</td>
+                          <td className="px-5 py-3.5 text-gray-600">{s.founder_name ?? '—'}</td>
+                          <td className="px-5 py-3.5 text-gray-500 text-xs font-mono">{formatFlags(s.moderation_flags)}</td>
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center justify-end gap-2 whitespace-nowrap">
+                              <button
+                                onClick={() => handleMarkOk('startup', s.id)}
+                                className="text-xs font-medium text-green-700 hover:text-green-900 border border-green-200 hover:border-green-400 rounded-lg px-2.5 py-1 transition"
+                              >
+                                Mark OK
+                              </button>
+                              <button
+                                onClick={() => handleHidePermanently('startup', s.id)}
+                                className="text-xs font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 rounded-lg px-2.5 py-1 transition"
+                              >
+                                Hide Permanently
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>
