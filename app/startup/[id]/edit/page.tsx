@@ -385,6 +385,15 @@ export default function EditStartupPage() {
     }
     setPendingNewCoFounders([])
 
+    fetch('/api/moderation/check', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken ?? ''}`,
+      },
+      body: JSON.stringify({ type: 'startup', id }),
+    }).catch(() => {})
+
     setLoading(false)
     router.push('/dashboard')
   }

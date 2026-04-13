@@ -258,6 +258,17 @@ export default function NewStartupPage() {
       }
     }
 
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      fetch('/api/moderation/check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token ?? ''}`,
+        },
+        body: JSON.stringify({ type: 'startup', id: newStartup.id }),
+      }).catch(() => {})
+    }).catch(() => {})
+
     setLoading(false)
     router.push('/dashboard')
   }
