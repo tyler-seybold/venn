@@ -1554,7 +1554,7 @@ function StartupCard({
         {/* Actions */}
         <div className="mt-auto pt-1" onClick={(e) => e.stopPropagation()}>
           <a
-            href={(() => { const cc = s.member_emails?.filter(e => e !== s.founder_email).join(','); return `mailto:${s.founder_email ?? ''}${cc ? `?cc=${encodeURIComponent(cc)}&` : '?'}subject=${encodeURIComponent('Re: ' + s.startup_name)}`; })()}
+            href={(() => { const cc = s.member_emails?.filter(e => e !== s.founder_email).join(','); return `mailto:${s.founder_email ?? ''}${cc ? `?cc=${cc}&` : '?'}subject=${encodeURIComponent('Re: ' + s.startup_name)}`; })()}
             className="inline-flex items-center gap-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-medium px-3 py-1.5 transition"
           >
             <Mail className="w-3.5 h-3.5" />
