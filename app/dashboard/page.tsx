@@ -1596,96 +1596,100 @@ function PersonCard({ person: p, readOnly = false }: { person: Profile; readOnly
     >
       {/* Card body */}
       <div className="w-full flex flex-col flex-1 items-center gap-2 p-4">
-        {/* Circle avatar */}
-        <div className="relative flex-shrink-0">
-          <div className="w-[72px] h-[72px] rounded-full overflow-hidden bg-brand-light">
-            {p.avatar_url ? (
-              <img
-                src={p.avatar_url}
-                alt={p.full_name ?? 'Avatar'}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="text-2xl font-bold text-brand/50">
-                  {(p.full_name ?? '?').charAt(0).toUpperCase()}
-                </span>
-              </div>
+        <div className="flex flex-col items-center gap-2 w-full">
+          {/* Circle avatar */}
+          <div className="relative flex-shrink-0">
+            <div className="w-[72px] h-[72px] rounded-full overflow-hidden bg-brand-light">
+              {p.avatar_url ? (
+                <img
+                  src={p.avatar_url}
+                  alt={p.full_name ?? 'Avatar'}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-2xl font-bold text-brand/50">
+                    {(p.full_name ?? '?').charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+            </div>
+            {/* Status badge — bottom-right of circle */}
+            {badge && (
+              <span className={`absolute -bottom-1 -right-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap ${badge.className}`}>
+                {badge.label}
+              </span>
             )}
           </div>
-          {/* Status badge — bottom-right of circle */}
-          {badge && (
-            <span className={`absolute -bottom-1 -right-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap ${badge.className}`}>
-              {badge.label}
-            </span>
+
+          {/* Name */}
+          <h3 className="text-base font-semibold text-gray-900 text-center leading-tight">
+            {p.full_name ?? '—'}
+          </h3>
+
+          {/* Startup name */}
+          {p.startup_name && (
+            <p className="text-sm text-gray-500 text-center leading-tight -mt-1">{p.startup_name}</p>
+          )}
+
+          {/* Industry tags */}
+          {p.industries && p.industries.length > 0 && (
+            <div className="flex flex-wrap gap-1 justify-center px-2">
+              {p.industries.slice(0, 3).map((ind) => (
+                <span key={ind} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                  {ind}
+                </span>
+              ))}
+              {p.industries.length > 3 && (
+                <span className="text-xs text-gray-400">+{p.industries.length - 3} more</span>
+              )}
+            </div>
           )}
         </div>
 
-        {/* Name */}
-        <h3 className="text-base font-semibold text-gray-900 text-center leading-tight">
-          {p.full_name ?? '—'}
-        </h3>
+        <div className="flex flex-col items-center gap-2 w-full mt-auto">
+          {/* Email / Slack buttons */}
+          {(p.email || p.slack_handle) && (
+            <div className="flex justify-center gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+              {p.email && (
+                <a
+                  href={`mailto:${p.email}`}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-medium px-3 py-1.5 transition"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  Email
+                </a>
+              )}
+              {p.slack_handle && (
+                <a
+                  href={`slack://user?team=T0AUF6SQ7&id=${p.slack_handle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-gray-700 hover:bg-gray-800 text-white text-xs font-medium px-3 py-1.5 transition"
+                >
+                  <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
+                    <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
+                  </svg>
+                  Slack
+                </a>
+              )}
+            </div>
+          )}
 
-        {/* Startup name */}
-        {p.startup_name && (
-          <p className="text-sm text-gray-500 text-center leading-tight -mt-1">{p.startup_name}</p>
-        )}
-
-        {/* Industry tags */}
-        {p.industries && p.industries.length > 0 && (
-          <div className="flex flex-wrap gap-1 justify-center px-2">
-            {p.industries.slice(0, 3).map((ind) => (
-              <span key={ind} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                {ind}
-              </span>
-            ))}
-            {p.industries.length > 3 && (
-              <span className="text-xs text-gray-400">+{p.industries.length - 3} more</span>
-            )}
-          </div>
-        )}
-
-        {/* Email / Slack buttons */}
-        {(p.email || p.slack_handle) && (
-          <div className="flex justify-center gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
-            {p.email && (
-              <a
-                href={`mailto:${p.email}`}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-medium px-3 py-1.5 transition"
+          {/* View Profile button */}
+          {!readOnly && (
+            <div className="w-full border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => router.push(`/people/${p.user_id}`)}
+                className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-brand bg-brand-light hover:bg-brand-light transition"
               >
-                <Mail className="w-3.5 h-3.5" />
-                Email
-              </a>
-            )}
-            {p.slack_handle && (
-              <a
-                href={`slack://user?team=T0AUF6SQ7&id=${p.slack_handle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-gray-700 hover:bg-gray-800 text-white text-xs font-medium px-3 py-1.5 transition"
-              >
-                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-                  <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
-                </svg>
-                Slack
-              </a>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* View Profile button */}
-      {!readOnly && (
-        <div className="w-full mt-auto border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={() => router.push(`/people/${p.user_id}`)}
-            className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-brand bg-brand-light hover:bg-brand-light transition"
-          >
-            View Profile
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+                View Profile
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }
