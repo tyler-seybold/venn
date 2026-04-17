@@ -1367,6 +1367,13 @@ function MatchCard({
             autoFocus
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
           />
+          <button
+            type="button"
+            onClick={() => setShowPopover(false)}
+            className="mt-2 w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-600 hover:border-gray-400 hover:text-gray-800 transition"
+          >
+            Done
+          </button>
           {/* Downward caret */}
           <div className="absolute bottom-[-5px] right-6 w-2.5 h-2.5 bg-white border-b border-r border-gray-100 rotate-45" />
         </div>
