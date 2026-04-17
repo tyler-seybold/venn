@@ -1044,7 +1044,7 @@ export default function DashboardPage() {
               )}
 
               {demoMode ? (
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-stretch">
                   {DEMO_PEOPLE.map((p) => (
                     <PersonCard key={p.user_id} person={p} readOnly />
                   ))}
@@ -1054,7 +1054,7 @@ export default function DashboardPage() {
               ) : filteredPeople.length === 0 ? (
                 <EmptyState message="No people match the selected filters." />
               ) : (
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-stretch">
                   {filteredPeople.map((p) => (
                     <PersonCard key={p.user_id} person={p} />
                   ))}
@@ -1591,7 +1591,7 @@ function PersonCard({ person: p, readOnly = false }: { person: Profile; readOnly
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden transition-all ${readOnly ? '' : 'cursor-pointer hover:border-brand-light hover:shadow-md hover:-translate-y-0.5'}`}
+      className={`bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center overflow-hidden transition-all h-full ${readOnly ? '' : 'cursor-pointer hover:border-brand-light hover:shadow-md hover:-translate-y-0.5'}`}
       onClick={() => { if (!readOnly) router.push(`/people/${p.user_id}`) }}
     >
       {/* Card body */}
