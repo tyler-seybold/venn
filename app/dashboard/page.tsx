@@ -1631,6 +1631,20 @@ function PersonCard({ person: p, readOnly = false }: { person: Profile; readOnly
           <p className="text-sm text-gray-500 text-center leading-tight -mt-1">{p.startup_name}</p>
         )}
 
+        {/* Industry tags */}
+        {p.industries && p.industries.length > 0 && (
+          <div className="flex flex-wrap gap-1 justify-center px-2">
+            {p.industries.slice(0, 3).map((ind) => (
+              <span key={ind} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                {ind}
+              </span>
+            ))}
+            {p.industries.length > 3 && (
+              <span className="text-xs text-gray-400">+{p.industries.length - 3} more</span>
+            )}
+          </div>
+        )}
+
         {/* Email / Slack buttons */}
         {(p.email || p.slack_handle) && (
           <div className="flex justify-center gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
