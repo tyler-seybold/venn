@@ -436,12 +436,12 @@ export default function DashboardPage() {
     if (!authChecked) return
     supabase
       .from('startups')
-      .select('*, profiles(email), startup_members(user_id, profiles(full_name))')
+      .select('*, profiles(email), startup_members(user_id, role, profiles(full_name, email))')
       .order('created_at', { ascending: false })
       .then(({ data }) => {
         setStartups(
           (data ?? []).map(({ profiles, startup_members, ...s }) => {
-            const members = (startup_members as Array<{ user_id: string; profiles: unknown }>) ?? []
+            const members = (startup_members as Array<{ user_id: string; role: string; profiles: unknown }>) ?? []
             const member_names = members
               .map((m) => {
                 const p = m.profiles
@@ -452,10 +452,20 @@ export default function DashboardPage() {
                 return name ?? null
               })
               .filter((n): n is string => typeof n === 'string' && n.length > 0)
+            const member_emails = members
+              .map((m) => {
+                const p = m.profiles
+                const email = Array.isArray(p)
+                  ? (p as Array<{ email: string | null }>)[0]?.email
+                  : (p as { email: string | null } | null)?.email
+                return email ?? null
+              })
+              .filter((e): e is string => typeof e === 'string' && e.length > 0)
             return {
               ...s,
               founder_email: (profiles as { email: string } | null)?.email ?? null,
               member_names,
+              member_emails,
             }
           })
         )
@@ -1544,7 +1554,7 @@ function StartupCard({
         {/* Actions */}
         <div className="mt-auto pt-1" onClick={(e) => e.stopPropagation()}>
           <a
-            href={`mailto:${s.founder_email ?? ''}?subject=Re: ${encodeURIComponent(s.startup_name)}`}
+            href={(() => { const cc = s.member_emails?.filter(e => e !== s.founder_email).join(','); return `mailto:${s.founder_email ?? ''}${cc ? `?cc=${encodeURIComponent(cc)}&` : '?'}subject=${encodeURIComponent('Re: ' + s.startup_name)}`; })()}
             className="inline-flex items-center gap-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-medium px-3 py-1.5 transition"
           >
             <Mail className="w-3.5 h-3.5" />
