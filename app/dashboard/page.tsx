@@ -1222,13 +1222,12 @@ function MatchCard({
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
       {/* Clickable content area */}
       <Link href={cardHref} className="flex flex-col">
-        {/* Avatar banner */}
-        <div className="px-4 pt-4">
-          <div className="relative w-full h-32 rounded-xl overflow-hidden bg-brand-light flex items-center justify-center">
+        <div className="flex justify-center pt-5 pb-2">
+          <div className="relative w-16 h-16 rounded-full bg-brand-light flex items-center justify-center overflow-hidden flex-shrink-0">
             {m.matched_avatar ? (
               <img src={m.matched_avatar} alt={m.matched_name ?? ''} className="w-full h-full object-cover" />
             ) : (
-              <span className="text-5xl font-bold text-brand/30">
+              <span className="text-2xl font-bold text-brand/30">
                 {(m.matched_name ?? '?').charAt(0).toUpperCase()}
               </span>
             )}
