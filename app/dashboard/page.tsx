@@ -1595,7 +1595,7 @@ function PersonCard({ person: p, readOnly = false }: { person: Profile; readOnly
       onClick={() => { if (!readOnly) router.push(`/people/${p.user_id}`) }}
     >
       {/* Card body */}
-      <div className="w-full flex flex-col items-center gap-2.5 px-4 pt-5 pb-0">
+      <div className="w-full flex flex-col flex-1 items-center gap-2 p-4">
         {/* Circle avatar */}
         <div className="relative flex-shrink-0">
           <div className="w-[72px] h-[72px] rounded-full overflow-hidden bg-brand-light">
@@ -1676,7 +1676,7 @@ function PersonCard({ person: p, readOnly = false }: { person: Profile; readOnly
 
       {/* View Profile button */}
       {!readOnly && (
-        <div className="w-full mt-3 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+        <div className="w-full mt-auto border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => router.push(`/people/${p.user_id}`)}
             className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-brand bg-brand-light hover:bg-brand-light transition"
