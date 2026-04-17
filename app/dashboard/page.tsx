@@ -1676,20 +1676,21 @@ function PersonCard({ person: p, readOnly = false }: { person: Profile; readOnly
             </div>
           )}
 
-          {/* View Profile button */}
-          {!readOnly && (
-            <div className="w-full border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
-              <button
-                onClick={() => router.push(`/people/${p.user_id}`)}
-                className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-brand bg-brand-light hover:bg-brand-light transition"
-              >
-                View Profile
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* View Profile button */}
+      {!readOnly && (
+        <div className="w-full border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => router.push(`/people/${p.user_id}`)}
+            className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-brand bg-brand-light hover:bg-brand-light rounded-b-2xl transition"
+          >
+            View Profile
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }
