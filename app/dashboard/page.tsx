@@ -1222,7 +1222,7 @@ function MatchCard({
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
       {/* Clickable content area */}
       <Link href={cardHref} className="flex flex-col">
-        <div className="flex justify-center pt-5 pb-2">
+        <div className="flex items-center gap-3 px-4 pt-4 pb-2">
           <div className="relative w-16 h-16 rounded-full bg-brand-light flex items-center justify-center overflow-hidden flex-shrink-0">
             {m.matched_avatar ? (
               <img src={m.matched_avatar} alt={m.matched_name ?? ''} className="w-full h-full object-cover" />
@@ -1232,25 +1232,21 @@ function MatchCard({
               </span>
             )}
           </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-4 flex flex-col gap-3">
-          {/* Name + label badge */}
-          <div>
-            <h3 className="font-semibold text-gray-900 text-base leading-tight">{m.matched_name ?? 'Unknown'}</h3>
-            {m.matched_subtitle && (
-              <p className="text-xs text-gray-500 mt-0.5">{m.matched_subtitle}</p>
-            )}
+          <div className="flex flex-col gap-1">
+            <p className="font-semibold text-gray-900 leading-tight">{m.matched_name ?? 'Unknown'}</p>
             {label && (
               <span
-                className="inline-block mt-1.5 text-xs font-semibold px-3 py-1 rounded-full text-white"
+                className="inline-block text-xs font-semibold px-3 py-1 rounded-full text-white w-fit"
                 style={{ backgroundColor: labelColor }}
               >
                 {label}
               </span>
             )}
           </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-4 flex flex-col gap-3">
 
           {/* Venn says callout */}
           <div
