@@ -17,6 +17,7 @@ type Startup = {
   startup_name: string
   logo_url: string | null
   member_names: string[]
+  member_emails?: string[]
   industry: string[] | null
   stage: string | null
   description: string | null
