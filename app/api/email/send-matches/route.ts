@@ -69,10 +69,10 @@ type PersonStartupMatchItem = {
 }
 
 const BADGE_URLS: Record<string, string> = {
-  'Perfect Fit': 'https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/perfect-fit.png',
-  'Strong Match': 'https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/strong-match.png',
-  'Good Match': 'https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/good-match.png',
-  'Worth a Coffee': 'https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/worth-a-coffee.png',
+  'Perfect Fit': 'https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/match_tags/perfect-fit.png',
+  'Strong Match': 'https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/match_tags/strong-match.png',
+  'Good Match': 'https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/match_tags/good-match.png',
+  'Worth a Coffee': 'https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/match_tags/worth-a-coffee.png',
 }
 
 // ── HTML builders ─────────────────────────────────────────────────────────────
@@ -569,7 +569,7 @@ function buildEmail(
                      padding-top:24px;padding-right:32px;
                      padding-bottom:20px;padding-left:32px;
                      border-bottom:1px solid #e8e5e0;">
-            <img src="https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/venn_logo_primary.png"
+            <img src="https://jfwqnupckntpgesfkbtt.supabase.co/storage/v1/object/public/assets/venn_logos/venn_logo_primary.png"
                  alt="Venn" height="30"
                  style="display:block;border:0;height:30px;">
           </td>
