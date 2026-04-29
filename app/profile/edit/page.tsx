@@ -55,6 +55,7 @@ export default function ProfileEditPage() {
 
   const [passwordInput, setPasswordInput] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordOpen, setPasswordOpen] = useState(false)
 
   // Avatar state
   const [existingAvatarUrl, setExistingAvatarUrl] = useState<string | null>(null)
@@ -177,6 +178,12 @@ export default function ProfileEditPage() {
     if (passwordInput.length > 0 || confirmPassword.length > 0) {
       if (passwordInput.length < 8) {
         errors.password = 'Password must be at least 8 characters.'
+      } else if (!/[A-Z]/.test(passwordInput)) {
+        errors.password = 'Password must include at least one uppercase letter.'
+      } else if (!/[a-z]/.test(passwordInput)) {
+        errors.password = 'Password must include at least one lowercase letter.'
+      } else if (!/[0-9]/.test(passwordInput)) {
+        errors.password = 'Password must include at least one number.'
       } else if (passwordInput !== confirmPassword) {
         errors.confirmPassword = 'Passwords do not match.'
       }
@@ -635,36 +642,56 @@ export default function ProfileEditPage() {
             </div>
 
             {/* Password */}
-            <div className="space-y-4">
-              <p className="text-sm font-medium text-gray-700">Password</p>
-              <div>
-                <label htmlFor="passwordInput" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  New password <span className="text-gray-400 font-normal">(optional)</span>
-                </label>
-                <input
-                  id="passwordInput"
-                  type="password"
-                  autoComplete="new-password"
-                  value={passwordInput}
-                  onChange={(e) => { setPasswordInput(e.target.value); setFieldErrors((prev) => ({ ...prev, password: '' })) }}
-                  className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
-                />
-                {fieldErrors.password && <p className="text-sm text-red-600 mt-1">{fieldErrors.password}</p>}
-              </div>
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Confirm password
-                </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  value={confirmPassword}
-                  onChange={(e) => { setConfirmPassword(e.target.value); setFieldErrors((prev) => ({ ...prev, confirmPassword: '' })) }}
-                  className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
-                />
-                {fieldErrors.confirmPassword && <p className="text-sm text-red-600 mt-1">{fieldErrors.confirmPassword}</p>}
-              </div>
+            <div>
+              <button
+                type="button"
+                onClick={() => setPasswordOpen((o) => !o)}
+                className="flex items-center justify-between w-full text-left"
+              >
+                <span className="text-sm font-medium text-gray-700">Change Password</span>
+                <svg
+                  className={`w-4 h-4 text-gray-400 transition-transform ${passwordOpen ? 'rotate-180' : ''}`}
+                  fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {passwordOpen && (
+                <div className="space-y-4 mt-4">
+                  <div>
+                    <label htmlFor="passwordInput" className="block text-sm font-medium text-gray-700 mb-1.5">
+                      New password
+                    </label>
+                    <input
+                      id="passwordInput"
+                      type="password"
+                      autoComplete="new-password"
+                      value={passwordInput}
+                      onChange={(e) => { setPasswordInput(e.target.value); setFieldErrors((prev) => ({ ...prev, password: '' })) }}
+                      className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
+                    />
+                    <p className="mt-1.5 text-xs text-gray-400">
+                      Must be at least 8 characters with one uppercase letter, one lowercase letter, and one number.
+                    </p>
+                    {fieldErrors.password && <p className="text-sm text-red-600 mt-1">{fieldErrors.password}</p>}
+                  </div>
+                  <div>
+                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Confirm password
+                    </label>
+                    <input
+                      id="confirmPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => { setConfirmPassword(e.target.value); setFieldErrors((prev) => ({ ...prev, confirmPassword: '' })) }}
+                      className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition"
+                    />
+                    {fieldErrors.confirmPassword && <p className="text-sm text-red-600 mt-1">{fieldErrors.confirmPassword}</p>}
+                  </div>
+                </div>
+              )}
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
