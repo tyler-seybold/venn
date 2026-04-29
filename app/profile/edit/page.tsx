@@ -642,7 +642,7 @@ export default function ProfileEditPage() {
             </div>
 
             {/* Password */}
-            <div>
+            <div className="border border-gray-200 rounded-xl bg-gray-50 px-4 py-3">
               <button
                 type="button"
                 onClick={() => setPasswordOpen((o) => !o)}
