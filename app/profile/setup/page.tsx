@@ -199,7 +199,7 @@ export default function ProfileSetupPage() {
         setNudgeMissingItems(missingItems)
         setNudgeOpen(true)
       } else {
-        router.push('/onboarding/startup')
+        router.push('/onboarding/set-password')
       }
     }
   }
@@ -245,7 +245,7 @@ export default function ProfileSetupPage() {
                 Improve My Profile
               </button>
               <button
-                onClick={() => router.push('/onboarding/startup')}
+                onClick={() => router.push('/onboarding/set-password')}
                 className="w-full rounded-lg border border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-50 text-sm font-medium py-2.5 transition"
               >
                 Keep Going
